@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="SMTP Connection Manager"
+  DTS:DTSID="{3C051037-4D22-43A3-88E0-895932089CAC}"
+  DTS:Description="Send mail connection"
+  DTS:CreationName="SMTP">
+  <DTS:ObjectData>
+    <SmtpConnectionManager
+      ConnectionString="SmtpServer=mail-tools.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>

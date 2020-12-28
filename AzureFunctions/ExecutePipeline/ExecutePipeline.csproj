@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <OutputType>Library</OutputType>
+    <UserSecretsId>a7f71c16-284e-4588-9f27-70c4560021be</UserSecretsId>
+  </PropertyGroup>
+<ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.AzureKeyVault.HostingStartup" Version="2.0.4" />
+    <PackageReference Include="Microsoft.Azure.Management.DataFactory" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Azure.Management.ResourceManager" Version="3.3.0-preview" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.6" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.1" />
+	<PackageReference Include="Azure.Identity" Version="1.1.1" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+</Project>

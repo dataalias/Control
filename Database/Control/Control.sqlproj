@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>Control</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{d451e1b2-c43f-4429-a24a-36b1f18756c6}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>Control</RootNamespace>
+    <AssemblyName>Control</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Indexes" />
+    <Folder Include="Schemas" />
+    <Folder Include="Stored Procedures" />
+    <Folder Include="Tables" />
+    <Folder Include="Types" />
+    <Folder Include="Views" />
+    <Folder Include="Functions" />
+    <Folder Include="Domain" />
+    <Folder Include="Test" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Indexes\README.md" />
+    <None Include="Schemas\README.md" />
+    <None Include="Stored Procedures\README.md" />
+    <None Include="Tables\README.md" />
+    <None Include="Types\README.md" />
+    <None Include="Views\README.md" />
+    <None Include="Functions\README.md" />
+    <None Include="Domain\README.md" />
+    <None Include="README.md" />
+    <None Include="Script.Rollback.sql" />
+    <Build Include="Views\ctl.DistributionStatus.sql" />
+    <None Include="Test\TestScript.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeployment.sql" />
+    <None Include="Domain\Script.PassphraseDomain.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PreDeploy Include="Script.PreDeployment.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Schemas\ctl.sql" />
+    <Build Include="Schemas\pg.sql" />
+    <Build Include="Schemas\audit.sql" />
+    <Build Include="Tables\ctl.Contact.sql" />
+    <Build Include="Tables\ctl.Distribution.sql" />
+    <Build Include="Tables\ctl.Issue.sql" />
+    <Build Include="Tables\ctl.Publication.sql" />
+    <Build Include="Tables\ctl.Publisher.sql" />
+    <Build Include="Tables\ctl.RefInterface.sql" />
+    <Build Include="Tables\ctl.RefInterval.sql" />
+    <Build Include="Tables\ctl.RefMethod.sql" />
+    <Build Include="Tables\ctl.RefStatus.sql" />
+    <Build Include="Tables\ctl.Subscriber.sql" />
+    <Build Include="Tables\ctl.Subscription.sql" />
+    <Build Include="Tables\pg.PostingGroup.sql" />
+    <Build Include="Tables\pg.PostingGroupBatch.sql" />
+    <Build Include="Tables\pg.PostingGroupDependency.sql" />
+    <Build Include="Tables\pg.PostingGroupProcessing.sql" />
+    <Build Include="Tables\pg.RefStatus.sql" />
+    <Build Include="Stored Procedures\ctl.GetIssueNameToRetrieve.sql" />
+    <Build Include="Stored Procedures\ctl.GetJobList_Datahub.sql" />
+    <Build Include="Stored Procedures\ctl.GetShareIssuesToArchive.sql" />
+    <Build Include="Stored Procedures\ctl.GetStagedIssueList.sql" />
+    <Build Include="Stored Procedures\ctl.GetTablePublicationList.sql" />
+    <Build Include="Stored Procedures\ctl.usp_CheckSubscriberNotification.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetIssueDetails.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetIssueStatistics.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetLatestIssueRecordForPublication.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetOutboundPublication.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetParameterListing.sql" />
+    <Build Include="Stored Procedures\ctl.usp_SendEmail.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetPublicationList_DataFactory.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetPublicationList_Datahub.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetStagedIssueList.sql" />
+    <Build Include="Stored Procedures\ctl.usp_UpdateDistributionStatus.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewIssue.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewPublication.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewContact.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewSubscriber.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewSubscription.sql" />
+    <Build Include="Stored Procedures\ctl.usp_NotifySubscriberofDistribution.sql" />
+    <Build Include="Stored Procedures\ctl.usp_PutSubscriptionList_Datahub.sql" />
+    <Build Include="Stored Procedures\ctl.usp_UpdatePublisherFTP.sql" />
+    <Build Include="Stored Procedures\ctl.usp_UpdateIssue.sql" />
+    <Build Include="Stored Procedures\pg.ExecutePostingGroupProcessing.sql" />
+    <Build Include="Stored Procedures\pg.GetPostingGroupProcessingDetails.sql" />
+    <Build Include="Stored Procedures\pg.InsertPostingGroup.sql" />
+    <Build Include="Stored Procedures\pg.InsertPostingGroupDependency.sql" />
+    <Build Include="Stored Procedures\pg.InsertPostingGroupProcessingParent.sql" />
+    <Build Include="Stored Procedures\pg.UpdatePostingGroupProcessingStatus.sql" />
+    <Build Include="Stored Procedures\pg.usp_GetPostingGroupChild.sql" />
+    <Build Include="Stored Procedures\pg.usp_GetPostingGroupParent.sql" />
+    <Build Include="Functions\ctl.fn_GetOutboundFileDate.sql" />
+    <Build Include="Functions\pg.fn_GetPostingGroupProcessingDetails.sql" />
+    <Build Include="Functions\ctl.fn_GetLastSuccessfulIssuePeriodEndDtm.sql" />
+    <Build Include="Functions\ctl.fn_GetLastWeekSuccessfulETLExecutionId.sql" />
+    <Build Include="Functions\pg.fn_GetPostingGroupProcessingStatus.sql" />
+    <Build Include="Types\ctl.IssueNameLookup.sql" />
+    <Build Include="Types\ctl.udt_IssueNameLookup.sql" />
+    <Build Include="Types\pg.udt_PostingGroupProcessingDetails.sql" />
+    <Build Include="Views\pg.vw_PostingGroupProcessingStatus.sql" />
+    <Build Include="Views\ctl.vw_DelayedPublicationList.sql" />
+    <Build Include="Views\ctl.vw_DistributionStatus.sql" />
+    <Build Include="Views\pg.vw_PostingGroupDependencyDetails.sql" />
+    <Build Include="Tables\audit.StepLog.sql" />
+    <Build Include="Stored Procedures\audit.usp_InsertStepLog.sql" />
+    <Build Include="Stored Procedures\audit.usp_CreateStepLogDescription.sql" />
+    <Build Include="Functions\ctl.fn_CalculateNextExecutionDtm.sql" />
+    <Build Include="Stored Procedures\pg.usp_TriggerPostingGroupProcessing.sql" />
+    <Build Include="Functions\ctl.fn_GetIntervalInMinutes.sql" />
+    <Build Include="Stored Procedures\ctl.usp_RetryDatahub.sql" />
+    <Build Include="Stored Procedures\ctl.usp_TriggerDataFactory.sql" />
+    <Build Include="Stored Procedures\pg.usp_RetryPostingGroup.sql" />
+    <Build Include="Tables\ctl.MapContactToPublication.sql" />
+    <Build Include="Tables\ctl.MapContactToSubscription.sql" />
+    <Build Include="Tables\pg.MapContactToPostingGroup.sql" />
+    <Build Include="Stored Procedures\pg.InsertMapContactToPostingGroup.sql" />
+    <Build Include="Stored Procedures\ctl.InsertMapContactToPublication.sql" />
+    <Build Include="Stored Procedures\ctl.InsertMapContactToSubscription.sql" />
+    <None Include="Test\tst_DataHub.sql" />
+    <None Include="Test\tst_DataHubWithSSIS.sql" />
+    <None Include="Test\tst_GettingParentstoExecute.sql" />
+    <None Include="Test\tst_PostingGroupProcessing.sql" />
+    <None Include="Test\tst_PostingGroupProcessingWithSSIS.sql" />
+    <Build Include="Stored Procedures\ctl.usp_ExecuteSSISPackage.sql" />
+    <Build Include="Tables\ctl.Passphrase.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertNewPublisher.sql" />
+    <Build Include="Types\udt_SSISPackageParameters.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
+    </ArtifactReference>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseVariableLiteralValue>msdb</DatabaseVariableLiteralValue>
+    </ArtifactReference>
+    <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac">
+      <HintPath>$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseVariableLiteralValue>msdb</DatabaseVariableLiteralValue>
+    </ArtifactReference>
+    <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac">
+      <HintPath>$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
+    </ArtifactReference>
+    <ArtifactReference Include="..\SSISDB\dacpac\SSISDB.dacpac">
+      <HintPath>..\SSISDB\dacpac\SSISDB.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseSqlCmdVariable>SSISDB</DatabaseSqlCmdVariable>
+    </ArtifactReference>
+  </ItemGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="SSISDB">
+      <DefaultValue>SSISDB</DefaultValue>
+      <Value>$(SqlCmdVar__1)</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
+</Project>
