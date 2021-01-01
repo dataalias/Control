@@ -177,6 +177,8 @@
     <Build Include="Tables\ctl.Passphrase.sql" />
     <Build Include="Stored Procedures\ctl.usp_InsertNewPublisher.sql" />
     <Build Include="Types\udt_SSISPackageParameters.sql" />
+    <None Include="Domain\ctlDomainData.sql" />
+    <None Include="Domain\pgDomainData.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac">
