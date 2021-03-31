@@ -1,5 +1,5 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+A framework is required to manage the publication of data from a source system to a destination system. Publisher systems will be able to publish information to a centralized repository using various connectors. Information will be staged in a relational model. Subscribers interested in the publication will be notified of new information. When the subscriber has consumed the requested information datahub is notified of success or failure. Once all distributions of information have been consumed staged information can be archived.
 
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
