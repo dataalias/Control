@@ -2,29 +2,35 @@
 	 @pPublisherCode			varchar(20)
 	,@pPublicationCode			varchar(50)
 	,@pPublicationName			varchar(50)
-	,@pSrcPublicationName		varchar(255)
-	,@pPublicationFilePath		varchar(255)
-	,@pPublicationArchivePath	varchar(255)
-	,@pFeedFormat				varchar(10)
+	,@pSrcPublicationName		varchar(255)	= 'UNK'
+	,@pPublicationFilePath		varchar(255)	= 'N/A'
+	,@pPublicationArchivePath	varchar(255)	= 'N/A'
+	,@pSrcFileFormatCode		varchar(20)		= 'N/A'
 	,@pStageJobName				VARCHAR(255)	= 'N/A'
 	,@pSSISFolder				VARCHAR(255)	= 'N/A'
 	,@pSSISProject				VARCHAR(255)	= 'N/A'
 	,@pSSISPackage				VARCHAR(255)	= 'N/A'
 	,@pDataFactoryName			VARCHAR(255)	= 'N/A'
 	,@pDataFactoryPipeline		VARCHAR(255)	= 'N/A'
-	,@pSrcFilePath				varchar(255)
+	,@pSrcDeltaAttributes		varchar(2000)	= 'UNK'
+	,@pSrcFilePath				varchar(255)	= 'N/A'
+	,@pSrcFileRegEx				varchar(255)	= 'UNK'
+	,@pStandardFileRegEx		varchar(255)	= 'UNK'
+	,@pStandardFileFormatCode	varchar(20)		= 'UNK'
 --	,@pInterfaceCode			varchar(20)
-	,@pMethodCode				varchar(20)
-	,@pIntervalCode				varchar(20)
-	,@pIntervalLength			int
-	,@pRetryIntervalCode		varchar(20)		= 'HR'
+	,@pMethodCode				varchar(20)		= 'UNK'
+	,@pTransferMethodCode		varchar(20)		= 'UNK'
+	,@pStorageMethodCode		varchar(20)		= 'UNK'
+	,@pIntervalCode				varchar(20)		= 'UNK'
+	,@pIntervalLength			int				= 0
+	,@pRetryIntervalCode		varchar(20)		= 'MIN'
 	,@pRetryIntervalLength		int				= 1
 	,@pRetryMax					int				= 0
-	,@pPublicationEntity		varchar(255)
-	,@pDestTableName			varchar(255)
+	,@pPublicationEntity		varchar(255)	= 'UNK'
+	,@pDestTableName			varchar(255)	= 'UNK'
 	,@pSLATime					varchar(20)		= NULL
-	,@pSLAEndTime				varchar(20)		= NULL
-	,@pNextExecutionDtm			datetime		= '1900-01-01 00:00:00.000'
+	,@pSLAEndTimeInMinutes		int				= -1
+	,@pNextExecutionDtm			datetime		= NULL -- '1900-01-01 00:00:00.000'
 	,@pIsActive					BIT				= 1  -- Why insert it if it isn't active...
 	,@pIsDataHub				INT				= 0  -- Maybe it isn't data hub, shouldn't be...
 	,@pBound					varchar(5)		= 'In'	 --Inbound or Outbound
@@ -47,7 +53,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSrcPublicationName		= 'WD_ROSTER_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
 	,@pPublicationFilePath		= 'Workday\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= 'Workday\archive\'-- varchar(255)
-	,@pFeedFormat				= 'csv'
+	,@pSrcFileFormatCode				= 'csv'
 	,@pSrcFilePath				= @SourceRosterFilePath
 	,@pInterfaceCode			= 'FILE' -- varchar(20) 
 	,@pMethodCode				= 'DLT' -- varchar(20) 
@@ -57,7 +63,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength	= 1	--	int
 	,@pRetryMax				= 3				--	int
 	,@pPublicationEntity		= 'WD_ROSTER_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[Control].[wd].[WorkdayRoster]' -- varchar(255) 
+	,@pDestTableName			= '[BPI_DW_STAGE].[wd].[WorkdayRoster]' -- varchar(255) 
 	,@pIsActive					= 1  
 	,@pIsDataHub				= 1
 	,@pBound					= 'In'
@@ -73,7 +79,7 @@ Calls:
 Error(s):		50001 - Publisher Code could not be looked up.
 
 Author:		ffortunato
-Date:			20091020
+Date:		20091020
 
 *******************************************************************************
        CHANGE HISTORY
@@ -100,6 +106,7 @@ Date		Author			Description
 20190305	ochowkwale		Data is inbound or outbound	
 20190926	ochowkwale		Change IsDataHub to INT from BIT
 20201022	ochowkwale		Parameters for Retrys
+20210325	ffortunato		RegEx and FileFormat
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -131,6 +138,12 @@ DECLARE	 @Rows					int				= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
 		,@CreatedDate			datetime		= getdate()
 		,@PublisherId			int				= -1  -- Intentionally setting this to a bad value for the check later on.
+		,@StandardFileRegEx		varchar(255)	= 'UNK'
+		,@SrcFileRegEx			varchar(255)	= 'UNK'
+		,@StandardFileFormatCode varchar(20)	= 'UNK'
+		,@SrcFormatCode			varchar(20)		= 'UNK'
+		,@SrcFileFormatId		int				= -1
+		,@StandardFeedFormatId	int				= -1
 
 exec [audit].usp_InsertStepLog
 		 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -143,46 +156,53 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-      '***** Parameters Passed to exec ctl.usp_InsertNewPublication' + @CRLF +
-      '     @pPublisherCode = ''' + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pPublicationCode = ''' + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pPublicationName = ''' + isnull(@pPublicationName ,'NULL') + '''' + @CRLF + 
-      '    ,@pSrcPublicationName = ''' + isnull(@pSrcPublicationName ,'NULL') + '''' + @CRLF + 
-      '    ,@pPublicationFilePath = ''' + isnull(@pPublicationFilePath ,'NULL') + '''' + @CRLF + 
-      '    ,@pPublicationArchivePath = ''' + isnull(@pPublicationArchivePath ,'NULL') + '''' + @CRLF + 
-      '    ,@pFeedFormat = ''' + isnull(@pFeedFormat ,'NULL') + '''' + @CRLF + 
-      '    ,@pStageJobName = ''' + isnull(@pStageJobName ,'NULL') + '''' + @CRLF + 
-      '    ,@pSSISFolder = ''' + isnull(@pSSISFolder ,'NULL') + '''' + @CRLF + 
-      '    ,@pSSISProject = ''' + isnull(@pSSISProject ,'NULL') + '''' + @CRLF + 
-      '    ,@pSSISPackage = ''' + isnull(@pSSISPackage ,'NULL') + '''' + @CRLF + 
-	  '    ,@pDataFactoryName = ''' + isnull(@pDataFactoryName ,'NULL') + '''' + @CRLF + 
-	  '    ,@pDataFactoryPipeline = ''' + isnull(@pDataFactoryPipeline ,'NULL') + '''' + @CRLF + 
-      '    ,@pSrcFilePath = ''' + isnull(@pSrcFilePath ,'NULL') + '''' + @CRLF + 
---      '    ,@pInterfaceCode = ''' + isnull(@pInterfaceCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pMethodCode = ''' + isnull(@pMethodCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pIntervalCode = ''' + isnull(@pIntervalCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pIntervalLength = ' + isnull(cast(@pIntervalLength as varchar(100)),'NULL') + @CRLF + 
-	  '    ,@pRetryIntervalCode = ''' + isnull(@pRetryIntervalCode ,'NULL') + '''' + @CRLF + 
-	  '    ,@pRetryIntervalLength = ''' + isnull(cast(@pRetryIntervalLength as varchar(100)) ,'NULL') + '''' + @CRLF + 
-	  '    ,@pRetryMax = ''' + isnull(cast(@pRetryMax as varchar(100)),'NULL') + '''' + @CRLF + 
-      '    ,@pPublicationEntity = ''' + isnull(@pPublicationEntity ,'NULL') + '''' + @CRLF + 
-      '    ,@pDestTableName = ''' + isnull(@pDestTableName ,'NULL') + '''' + @CRLF + 
-      '    ,@pSLATime = ''' + isnull(@pSLATime ,'NULL') + '''' + @CRLF + 
-	  '    ,@pSLAEndTime = ''' + isnull(@pSLAEndTime ,'NULL') + '''' + @CRLF + 
-	  '    ,@pNextExecutionDtm = ' + isnull(cast(@pNextExecutionDtm as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pIsActive = ' + isnull(cast(@pIsActive as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pIsDataHub = ' + isnull(cast(@pIsDataHub as varchar(100)),'NULL') + @CRLF + 
-	  '    ,@pBound = ' + isnull(cast(@pBound as varchar(5)),'NULL') + @CRLF + 
-      '    ,@pCreatedBy = ''' + isnull(@pCreatedBy ,'NULL') + '''' + @CRLF + 
-      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-      '***** End of Parameters' + @CRLF 
+		'***** Parameters Passed to exec ctl.usp_insertnewpublication' + @CRLF +
+		'     @pPublisherCode = '''		 + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pPublicationCode = '''	 + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pPublicationName = '''	 + isnull(@pPublicationName ,'NULL') + '''' + @CRLF + 
+		'    ,@pSrcPublicationName = ''' + isnull(@pSrcPublicationName ,'NULL') + '''' + @CRLF + 
+		'    ,@pPublicationFilePath = ''' + isnull(@pPublicationFilePath ,'NULL') + '''' + @CRLF + 
+		'    ,@pPublicationArchivePath = ''' + isnull(@pPublicationArchivePath ,'NULL') + '''' + @CRLF + 
+		'    ,@pSrcFileFormatCode = '''		 + isnull(@pSrcFileFormatCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pStageJobName = '''		 + isnull(@pStageJobName ,'NULL') + '''' + @CRLF + 
+		'    ,@pSSISFolder = '''		 + isnull(@pSSISFolder ,'NULL') + '''' + @CRLF + 
+		'    ,@pSSISProject = '''		 + isnull(@pSSISProject ,'NULL') + '''' + @CRLF + 
+		'    ,@pSSISPackage = '''		 + isnull(@pSSISPackage ,'NULL') + '''' + @CRLF + 
+		'    ,@pDataFactoryName = '''	 + isnull(@pDataFactoryName ,'NULL') + '''' + @CRLF + 
+		'    ,@pDataFactoryPipeline = ''' + isnull(@pDataFactoryPipeline ,'NULL') + '''' + @CRLF + 
+		'    ,@pSrcFilePath = '''		 + isnull(@pSrcFilePath ,'NULL') + '''' + @CRLF + 
+		'    ,@pSrcFileRegEx = '''		 + isnull(@pSrcFileRegEx ,'NULL') + '''' + @CRLF + 
+		'    ,@pStandardFileRegEx = '''	 + isnull(@pStandardFileRegEx ,'NULL') + '''' + @CRLF + 
+		'    ,@pStandardFileFormatCode = ''' + isnull(@pStandardFileFormatCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pMethodCode = '''		 + isnull(@pMethodCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pTransferMethodCode = ''' + isnull(@pTransferMethodCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pStageMethodCode = '''	 + isnull(@pStorageMethodCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pIntervalCode = '''		 + isnull(@pIntervalCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pIntervalLength = '		 + isnull(cast(@pIntervalLength as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pRetryIntervalCode = '''	 + isnull(@pRetryIntervalCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pRetryIntervalLength = '	 + isnull(cast(@pRetryIntervalLength as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pRetryMax = '			 + isnull(cast(@pRetryMax as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pPublicationEntity = '''	 + isnull(@pPublicationEntity ,'NULL') + '''' + @CRLF + 
+		'    ,@pDestTableName = '''		 + isnull(@pDestTableName ,'NULL') + '''' + @CRLF + 
+		'    ,@pSLATime = '''			 + isnull(@pSLATime ,'NULL') + '''' + @CRLF + 
+		'    ,@pSLAEndTimeInMinutes = ''' + isnull(cast(@pSLAEndTimeInMinutes as varchar(20)) ,'NULL') + '''' + @CRLF + 
+		'    ,@pNextExecutionDtm = '''	 + isnull(convert(varchar(100),@pNextExecutionDtm ,13) ,'NULL') + '''' + @CRLF + 
+		'    ,@pIsActive = '			 + isnull(cast(@pIsActive as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pIsDataHub = '			 + isnull(cast(@pIsDataHub as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pBound = '''				 + isnull(@pBound ,'NULL') + '''' + @CRLF + 
+		'    ,@pCreatedBy = '''			 + isnull(@pCreatedBy ,'NULL') + '''' + @CRLF + 
+		'    ,@pETLExecutionId = '		 + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pPathId = '				 + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pVerbose = '				 + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
+		'***** End of Parameters' + @CRLF 
 
 if @pVerbose					= 1
 	begin 
 		print @ParametersPassedChar
 	end
+
+if @pNextExecutionDtm is null
+	select @pNextExecutionDtm			=  cast('1900-01-01 00:00:00.000' as datetime)
 
 -------------------------------------------------------------------------------
 --  Main
@@ -195,28 +215,41 @@ begin try
 --  publisher before inserting a new puclication into the controls
 -------------------------------------------------------------------------------
 
-	select	 @StepName			= 'Check Publisher Id'
+	select	 @StepName			= 'Id Lookups'
 			,@StepNumber		= @StepNumber + 1
 			,@StepOperation		= 'Select'
-			,@StepDesc			= 'Gathering PublicationId based on PublicationCode: ' + @pPublisherCode
+			,@StepDesc			= 'Gathering PublicationId based on PublicationCode: ' + @pPublisherCode + ' and FeedFormatId based on FeedFormatCode: ' + @pSrcFileFormatCode
 
 	select	 @PublisherId			= isnull(PublisherId, -1)
-	from	 ctl.Publisher 
+	from	 ctl.Publisher			  pbr
 	where	 PublisherCode			= @pPublisherCode
+
+	select	 @SrcFileFormatId		= isnull(FileFormatId, -1)
+	from	 ctl.RefFileFormat		  ff 
+	where	 FileFormatCode			= @pSrcFileFormatCode
+
+	select	 @StandardFeedFormatId	= isnull(FileFormatId, -1)
+	from	 ctl.RefFileFormat		  ff 
+	where	 FileFormatCode			= @pStandardFileFormatCode
+
 
 	if @pVerbose					= 1
 	begin 
 		print '@PublisherId = ' + cast(@PublisherId as varchar(200))
 	end
 
-	if @PublisherId					= -1
+	if ((@PublisherId				= -1) or (@SrcFileFormatId = -1) or (@StandardFeedFormatId = -1))
 	begin
 		select   @ErrNum		= 50001
 				,@MessageType	= 'ErrCust'
-				,@ErrMsg		= 'A valid PublisherId could not be determined.'
+				,@ErrMsg		= 'A valid PublisherId or FileFormatId could not be determined.'
 				,@JSONSnippet	= '{' + @CRLF +
-							'"PublisherId": "' + cast(@PublisherId as varchar(200)) + '"' + @CRLF +
+							'"PublisherId": "'	 + cast(@PublisherId as varchar(200)) + '"' + @CRLF +
 							'"PublisherCode": "' + @pPublisherCode + '"' + @CRLF +
+							'"FeedFileId": "'	 + cast(@SrcFileFormatId as varchar(200)) + '"' + @CRLF +
+							'"FeedFileCode": "'	 + @pSrcFileFormatCode + '"' + @CRLF +
+							'"StandardFileFormatId": "'		 + cast(@StandardFeedFormatId as varchar(200)) + '"' + @CRLF +
+							'"StandardFileFormatCode": "'	 + @pStandardFileFormatCode + '"' + @CRLF +
 							'}'+ @CRLF 
 
 		; throw @ErrNum, @ErrMsg, 1  -- This is thrown to the catch block below.
@@ -235,6 +268,47 @@ begin try
 				,@pVerbose
 		end
 
+
+	-- Prep some variables that can be standard.
+
+	select	 @StepName			= 'Derive Reg Ex'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'Select'
+			,@StepDesc			= 'Derive a regular expression for the various file names.'
+
+-- Source File
+	if (	(@pSrcFileRegEx			= 'UNK') or 
+			(@pSrcFileRegEx			= '')	 or 
+			(@pSrcFileRegEx			is null))
+	begin
+		select @SrcFileRegEx		= @pPublicationCode + '_[1-2][0-9][0-9][0-9]([0][1-9]|[1][0-2])([0-2][0-9]|[3][0-1])([0-1][0-9]|[2][0-4])[0-5][0-9][0-5][0-9]\.' + @pSrcFileFormatCode + '$'
+	end
+	else
+	begin
+		select @SrcFileRegEx		= @pSrcFileRegEx
+	end
+-- Data Lake File
+	if (	(@pStandardFileRegEx	= 'UNK') or 
+			(@pStandardFileRegEx	= '')	 or 
+			(@pStandardFileRegEx	is null))
+	begin
+		select @StandardFileRegEx 	= @pPublicationCode + '_[1-2][0-9][0-9][0-9]([0][1-9]|[1][0-2])([0-2][0-9]|[3][0-1])([0-1][0-9]|[2][0-4])[0-5][0-9][0-5][0-9]\.' + @pSrcFileFormatCode + '$'
+	end
+	else
+	begin
+		select @StandardFileRegEx	= @pStandardFileRegEx
+	end
+
+	-- Log successful validation.
+	select	 @PreviousDtm		= @CurrentDtm
+	select	 @CurrentDtm		= getdate()
+
+	exec [audit].usp_InsertStepLog
+			@MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+		,@pVerbose
+
 	select	 @StepName			= 'Insert New Publication'
 			,@StepNumber		= @StepNumber + 1
 			,@StepOperation		= 'Insert'
@@ -248,6 +322,8 @@ begin try
 			,[SrcPublicationName]
 --			,[InterfaceCode]
 			,[MethodCode]
+			,TransferMethodCode
+			,StorageMethodCode
 			,[IntervalCode]
 			,[IntervalLength]
 			,RetryIntervalCode
@@ -256,12 +332,15 @@ begin try
 			,[PublicationEntity]
 			,PublicationFilePath
 			,PublicationArchivePath
-			,FeedFormat
+			,SrcFileFormatCode
 			,SrcFilePath
+			,SrcFileRegEx			
+			,StandardFileRegEx	
+			,StandardFileFormatCode
 			,DestTableName
 			,StageJobName
 			,SLATime
-			,SLAEndTime
+			,SLAEndTimeInMinutes
 			,NextExecutionDtm
 			,IsActive
 			,IsDataHub
@@ -271,8 +350,11 @@ begin try
 			,SSISPackage
 			,DataFactoryName
 			,DataFactoryPipeline
-			,[CreatedBy]
-			,[CreatedDtm]
+			,SrcDeltaAttributes
+			,CreatedBy
+			,CreatedDtm
+			,ModifiedBy
+			,ModifiedDtm
 	) values (
 			 @PublisherId
 			,@pPublicationCode
@@ -280,6 +362,8 @@ begin try
 			,@pSrcPublicationName
 --			,@pInterfaceCode
 			,@pMethodCode
+			,@pTransferMethodCode
+			,@pStorageMethodCode
 			,@pIntervalCode
 			,@pIntervalLength
 			,@pRetryIntervalCode
@@ -288,12 +372,15 @@ begin try
 			,@pPublicationEntity
 			,@pPublicationFilePath
 			,@pPublicationArchivePath
-			,@pFeedFormat
+			,@pSrcFileFormatCode
 			,@pSrcFilePath
+			,@pSrcFileRegEx			
+			,@pStandardFileRegEx	
+			,@pStandardFileFormatCode
 			,@pDestTableName
 			,@pStageJobName
 			,@pSLATime
-			,@pSLAEndTime
+			,@pSLAEndTimeInMinutes
 			,@pNextExecutionDtm
 			,@pIsActive
 			,@pIsDataHub
@@ -303,6 +390,9 @@ begin try
 			,@pSSISPackage
 			,@pDataFactoryName
 			,@pDataFactoryPipeline
+			,@pSrcDeltaAttributes
+			,@pCreatedBy
+			,@CreatedDate
 			,@pCreatedBy
 			,@CreatedDate)
 

@@ -35,7 +35,7 @@ Date      Author			Description
 							message.
 20170120  ffortunato		publication code should be varchar(50)
 20170327  ffortunato		DW-635 ORDER BY should use data, not primary key
-20180323  ffortunato		Removing fully qualified reference to Control
+20180323  ffortunato		Removing fully qualified reference to BPI_DW_STAGE
 							database to allow for easier compile in db project.
 							
 20180828  ffortunato		InterfaceCode moving to publisher 'CANVAS'		

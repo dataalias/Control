@@ -9,7 +9,7 @@ AS
  Purpose:        Updates the distribution status when a process initiates
                  completes or fails.
 
- exec Control.ctl.usp_UpdateDistributionStatus
+ exec bpi_dw_stage.ctl.usp_UpdateDistributionStatus
  	 @pIssueId					= 1
 	,@pSubscriptionCode			= 'TSTPUBR01-TSTSUBR01-TSTPUBN01-ACCT'
 	,@pStatus					= 'DC'

@@ -42,15 +42,19 @@ BEGIN
 	--DECLARE @pIsFullLoad		INT			= 0
 	----------------------------------------------------
 
-	DECLARE @ETLExecutionID		INT
-	DECLARE @StepLogMessage		VARCHAR(50) = 'Canvas Data Load Complete - ' + @pInstitutionCode
+	DECLARE @ETLExecutionID		INT				= -1
+	DECLARE @StepLogMessage		VARCHAR(256)	= 'Canvas Data Load Complete - ' + @pInstitutionCode
 
 	IF (@pIsFullLoad = 1)
 		SET @ETLExecutionID = -2 -- catch any entries with a -1
 
 	ELSE
 		-- Find the ETLExecutionID from the last successful canvas data load using Step Logs.
-		SET @ETLExecutionID = (select max(ETLExecutionId) from [audit].StepLog where StepName=@StepLogMessage and StepStatus='Success')
+		SET		@ETLExecutionID = (
+			select max(ETLExecutionId) 
+			from	[audit].StepLog 
+			where	isnull(StepName,'NoMatch')		= @StepLogMessage 
+			and		isnull(StepStatus,'NoMatch')	= 'Success')
 
 	----------------------------------------------------
 	-- Return the result of the function

@@ -1,6 +1,6 @@
 ﻿create procedure [ctl].[usp_GetParameterListing](
 		 @pObjectName varchar(255)
-		,@pParameterString varchar(4000) output
+		,@pParameterString nvarchar(max) output
 		,@pVerbose bit = 0
 )
 
@@ -40,25 +40,25 @@ declare	@ParameterList table
 (
 	 ObjectType						nvarchar(60)
 	,ParameterName					nvarchar(128)
-	,ParameterId					int
+	,ParameterId					int					not null default -1
 	,ParameterDataType				nvarchar(128)
 	,IsOutput						bit
 	,SchemaName						nvarchar(200)
 )
 
-declare	 @ParameterString			nvarchar(4000)
+declare	 @ParameterString			nvarchar(max)
 		,@Max						int
 		,@Cnt						int
-		,@parameterpassedchar		nvarchar(4000)
-		,@LiteralCRLF				nvarchar(20)
+		,@parameterpassedchar		varchar(4000)
+		,@LiteralCRLF				varchar(20)
 		,@CRLF						nvarchar(20)
 		,@CurrentParameterName		varchar(255)
 		,@CurrentParameterType		varchar(255)
 		,@CurrentParameterOutput	int 
-		,@CurrentParameterSchema    nvarchar(200)
+		,@CurrentParameterSchema    varchar(200)
 		,@Tab						varchar(5)	= '    ' -- char(9)
-		,@2Tab						varchar(6)	= '        ' -- char(9) + char(9)
-		,@3Tab						varchar(6)	= '            ' -- char(9) + char(9) + char(9)
+		,@2Tab						varchar(8)	= '        ' -- char(9) + char(9)
+		,@3Tab						varchar(12)	= '            ' -- char(9) + char(9) + char(9)
 		,@ParmLength				int = -1
 		,@TabLenght					int = 4
 		,@MaxParmLength				int = -1

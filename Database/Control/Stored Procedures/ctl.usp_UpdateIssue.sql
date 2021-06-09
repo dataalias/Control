@@ -1,25 +1,27 @@
 ﻿CREATE PROCEDURE [ctl].[usp_UpdateIssue] (	
-		 @pIssueId				int			= -1
-		,@pStatusCode			varchar(20)	= NULL
-		,@pReportDate			datetime	= NULL
-		,@pSrcDFPublisherId		varchar(40)	= NULL
-		,@pSrcDFPublicationId	varchar(40)	= NULL
-		,@pSrcDFIssueId			varchar(100)= NULL
-		,@pSrcDFCreatedDate		datetime	= NULL
-		,@pIssueName			varchar(255)= NULL
-		,@pPublicationSeq		int			= NULL
-		,@pFirstRecordSeq		int			= NULL
-		,@pLastRecordSeq		int			= NULL
-		,@pFirstRecordChecksum	varchar(2048)  = NULL
-		,@pLastRecordChecksum	varchar(2048)  = NULL
-		,@pPeriodStartTime		datetime	= NULL
-		,@pPeriodEndTime		datetime	= NULL
-		,@pIssueConsumedDate	datetime	= NULL
-		,@pRecordCount			int			= NULL
-		,@pModifiedBy			varchar(50)	= NULL
-		,@pModifiedDtm			datetime	= NULL
-		,@pVerbose				bit			= 0
-		,@pETLExecutionId		int			= NULL)
+		 @pIssueId				int				= -1
+		,@pStatusCode			varchar(20)		= NULL
+		,@pReportDate			datetime		= NULL
+		,@pSrcDFPublisherId		varchar(40)		= NULL
+		,@pSrcDFPublicationId	varchar(40)		= NULL
+		,@pSrcDFIssueId			varchar(100)	= NULL
+		,@pSrcDFCreatedDate		datetime		= NULL
+		,@pDataLakePath			varchar(1000)	= NULL
+		,@pIssueName			varchar(255)	= NULL
+		,@pSrcIssueName			nvarchar(255)	= NULL
+		,@pPublicationSeq		int				= NULL
+		,@pFirstRecordSeq		int				= NULL
+		,@pLastRecordSeq		int				= NULL
+		,@pFirstRecordChecksum	varchar(2048)	= NULL
+		,@pLastRecordChecksum	varchar(2048)	= NULL
+		,@pPeriodStartTime		datetime		= NULL
+		,@pPeriodEndTime		datetime		= NULL
+		,@pIssueConsumedDate	datetime		= NULL
+		,@pRecordCount			int				= NULL
+		,@pModifiedBy			varchar(50)		= NULL
+		,@pModifiedDtm			datetime		= NULL
+		,@pVerbose				bit				= 0
+		,@pETLExecutionId		int				= NULL)
 AS 
 /*****************************************************************************
 File:			usp_UpdateIssue.sql
@@ -59,6 +61,9 @@ Date		Author		Description
 20190603	ochowkwale		In case of failure, check for number of retries and 
 							then set the issue to failed or to be retried. Send
 							email in case of failure
+20210316	ffortunato		Add SrcIssueName
+20210412	ffortunato		@pDataLakePath	
+
 ******************************************************************************/
 declare	 @Rows					integer
 		,@Err					integer
@@ -67,19 +72,20 @@ declare	 @Rows					integer
 		,@CRLF					varchar(20)		= char(13) + char(10)
 		,@ParametersPassedChar	nvarchar(2048)
 		,@ModifiedDtm			datetime
+		,@CurrentDtm			datetime
 		,@ModifiedBy			varchar(50)
 		,@StatusId				integer
 		,@StatusType			varchar(30)
 		,@IssueRetry			varchar(2)
 		,@IssueFail				varchar(2)
-		,@EmailFlag				bit
+		,@Severity				int
 		,@Servername			varchar(20)
-		,@From					varchar (50) 
-		,@Recipients			varchar(50)
-		,@Project				varchar(50) 
-		,@Package				varchar(50)
-		,@DataFactoryPipeline	varchar(50)
-		,@DataFactoryName		varchar(50)
+		,@From					varchar(50) 
+		,@Recipients			varchar(1000)
+		,@Project				varchar(255) 
+		,@Package				varchar(255)
+		,@DataFactoryPipeline	varchar(255)
+		,@DataFactoryName		varchar(255)
 		,@Subject				varchar(100)
 		,@Body					nvarchar(max)
 		,@Query					nvarchar(max)
@@ -99,6 +105,7 @@ SELECT	 @Rows					= -1
 		,@ErrMsg				= 'N/A'
 		,@FailedProcedure		= 'Stored Procedure : ' + OBJECT_NAME(@@PROCID) + ' failed.' + @CRLF
 		,@ModifiedDtm			= GETDATE()
+		,@CurrentDtm			= GETDATE()
 		,@ModifiedBy			= SYSTEM_USER
 		,@Servername			= @@SERVERNAME
 		,@StatusId				= -1 -- NULL -- Chose null to make update clause easy
@@ -117,6 +124,7 @@ select	 @ParametersPassedChar	=
       '    ,@pSrcDFIssueId = ''' + isnull(@pSrcDFIssueId ,'NULL') + '''' + @CRLF + 
       '    ,@pSrcDFCreatedDate = ''' + isnull(convert(varchar(100),@pSrcDFCreatedDate ,13) ,'NULL') + '''' + @CRLF + 
       '    ,@pIssueName = ''' + isnull(@pIssueName ,'NULL') + '''' + @CRLF + 
+      '    ,@pSrcIssueName = ''' + isnull(@pSrcIssueName ,'NULL') + '''' + @CRLF + 
       '    ,@pPublicationSeq = ' + isnull(cast(@pPublicationSeq as varchar(100)),'NULL') + @CRLF + 
       '    ,@pFirstRecordSeq = ' + isnull(cast(@pFirstRecordSeq as varchar(100)),'NULL') + @CRLF + 
       '    ,@pLastRecordSeq = ' + isnull(cast(@pLastRecordSeq as varchar(100)),'NULL') + @CRLF + 
@@ -129,8 +137,8 @@ select	 @ParametersPassedChar	=
       '    ,@pModifiedBy = ''' + isnull(@pModifiedBy ,'NULL') + '''' + @CRLF + 
       '    ,@pModifiedDtm = ''' + isnull(convert(varchar(100),@pModifiedDtm ,13) ,'NULL') + '''' + @CRLF + 
       '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-	  '    ,@pEtlExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
-      '***** End of Parameters' + @CRLF
+      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
+      '***** End of Parameters' + @CRLF 
 
 --	  raiserror ( @ParametersPassedChar, 16,1)
 
@@ -140,56 +148,43 @@ select	 @ParametersPassedChar	=
 --Switch the status to IR if MaxRetry limit has not reached
 IF (@pStatusCode = @IssueFail)
 BEGIN
-	SELECT @pStatusCode = CASE WHEN c.RetryMax > i.RetryCount THEN @IssueRetry	ELSE @IssueFail END
-		,@EmailFlag = CASE WHEN (c.RetryMax <= i.RetryCount) AND r.StatusCode <> @IssueFail THEN 1 ELSE 0 END
-		,@Project = c.SSISProject
-		,@Package = c.SSISPackage
-		,@DataFactoryName = c.DataFactoryName
-		,@DataFactoryPipeline = c.DataFactoryPipeline
-	FROM ctl.Publication AS c
-	INNER JOIN ctl.Issue AS i ON i.PublicationId = c.PublicationId
-	INNER JOIN ctl.RefStatus AS r ON i.StatusId = r.StatusId
-	WHERE i.IssueId = @pIssueId
-	AND c.IsActive = 1
-	AND c.IsDataHub IN (1,2)
+	SELECT @pStatusCode				= CASE WHEN (i.RetryCount >= c.RetryMax) OR (DATEADD(mi,SLAEndTimeInMinutes,i.CreatedDtm) < @CurrentDtm) 
+										THEN @IssueFail ELSE @IssueRetry END
+		,@Severity					= CASE WHEN (c.RetryMax <= i.RetryCount) AND r.StatusCode <> @IssueFail 
+										THEN 1 ELSE 0 END
+		,@Project					= c.SSISProject
+		,@Package					= c.SSISPackage
+		,@DataFactoryName			= c.DataFactoryName
+		,@DataFactoryPipeline		= c.DataFactoryPipeline
+	FROM	 ctl.Publication		  c
+	JOIN	 ctl.Issue				  i 
+	ON		 i.PublicationId		= c.PublicationId
+	JOIN	 ctl.RefStatus			  r 
+	ON		 i.StatusId				= r.StatusId
+	WHERE	 i.IssueId				= @pIssueId
+	AND		 c.IsActive				= 1
+	AND		 c.IsDataHub			= 1 -- IN (1,2)
+	--AND		 c.ProcessingMethodCode in ('ADFP','SSIS')
 
-	SELECT STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
+	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
 	FROM ctl.Issue AS i
-	INNER JOIN ctl.MapContactToPublication AS mctp ON mctp.PublicationId = i.PublicationId
-	INNER JOIN ctl.Contact AS ct ON ct.ContactId = mctp.ContactId
+	LEFT JOIN ctl.MapContactToPublication AS mctp 
+	ON mctp.PublicationId = i.PublicationId
+	LEFT JOIN ctl.Contact AS ct 
+	ON ct.ContactId = mctp.ContactId
 	WHERE i.IssueId = @pIssueId
 
 	--Send Email
-	set @Subject =  (@Servername + '||' + COALESCE(@Project,@DataFactoryName) + ' Staging Failure')
+	EXEC ctl.usp_SendMail 		 
+		 @pProject				= @Project
+		,@pPackage				= @Package
+		,@pDataFactoryName		= @DataFactoryName
+		,@pDataFactoryPipeline	= @DataFactoryPipeline
+		,@pTo					= @Recipients
+		,@pSeverity				= @Severity
+		,@pIssueId				= @pIssueId
 
-	set @From = CASE WHEN @Servername IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN 'DM-DEV-ETL@zovio.com'
-					 WHEN @Servername IN ('QME1EDLSQL01','QME3EDLSQL01') THEN 'DM-QA-ETL@zovio.com'
-					 WHEN @Servername IN ('PRODEDLSQL01') THEN 'DM-PROD-ETL@zovio.com'
-				END
-
-	set @Recipients = CASE WHEN @EmailFlag = 1 THEN @Recipients 
-						   ELSE 'DM-Development@bpiedu.com'
-					  END
-
-	set @Body = CHAR(13) + 'SSISProject: ' + @Project + CHAR(13)
-			   +'SSISPackage'+Char(9)+': '+ CONVERT(varchar(10),@Package)+CHAR(13)	
-			   +'DataFactoryName'+Char(9)+': '+ CONVERT(varchar(10),@DataFactoryName)+CHAR(13)
-			   +'DataFactoryPipeline'+Char(9)+': '+ CONVERT(varchar(10),@DataFactoryPipeline)+CHAR(13)
-			   +'IssueId'+Char(9)+': '+ CONVERT(varchar(10),@pIssueId)+CHAR(13)
-			   +'Date'+Char(9)+': '+ CONVERT(varchar(20),@modifiedDtm, 120)+CHAR(13)
-			   +'User'+Char(9)+': '+ SYSTEM_USER+CHAR(13)
-			   +'Contact'+Char(9)+': BI-Development@zovio.com' +CHAR(13) +CHAR(13)
-			   +'Error Messages'+CHAR(13)
-			   +'--------------------------------------------------------------------------------------------------'+CHAR(13) +CHAR(13) +CHAR(13)
-
-	exec msdb.dbo.sp_send_dbmail @from_address = @from
-		,@recipients = @Recipients
-		,@importance = 'High'
-		,@subject = @Subject
-		,@body = @Body
 END
-
---
 
 begin try
 
@@ -272,10 +267,18 @@ set      StatusId				= case  @StatusId when -1 then StatusId -- Keep the value i
 									when	((@pSrcDFIssueId is null) or (len(@pSrcDFIssueId) < 1)) then ISS.SrcDFIssueId
 									else    @pSrcDFIssueId
 								  end
-		,SrcDFCreatedDate		= isnull(@pSrcDFCreatedDate,SrcDFCreatedDate)
+		,SrcDFCreatedDate		= isnull(@pSrcDFCreatedDate,	SrcDFCreatedDate)
+		,DataLakePath			= case
+									when	((@pDataLakePath is null) or (len(@pDataLakePath) < 1)) then ISS.DataLakePath
+									else    @pDataLakePath
+								  end
 		,IssueName				= case
 									when	((@pIssueName is null) or (len(@pIssueName) < 1)) then ISS.IssueName
 									else    @pIssueName
+								  end
+		,SrcIssueName				= case
+									when	((@pSrcIssueName is null) or (len(@pSrcIssueName) < 1)) then ISS.SrcIssueName
+									else    @pSrcIssueName
 								  end
 		,PublicationSeq			= case
 									when	((@pPublicationSeq is null) or 

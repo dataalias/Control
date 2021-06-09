@@ -35,7 +35,8 @@ Date:		20200511
 *******************************************************************************
 date		author			description
 --------	-------------	---------------------------------------------------
-
+20210413	ffortunato		Changing user to CurrentUser for consistency
+							Adding modified date and user to insert.
 ******************************************************************************/
 
 DECLARE	 @Rows					int				= 0
@@ -60,7 +61,7 @@ DECLARE	 @Rows					int				= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
 		,@PassPhrase			varchar(256)	= ''
-		,@User					varchar(100)	= SYSTEM_USER
+		,@CurrentUser			varchar(50)		= SYSTEM_USER
 		,@PostingGroupId		int				= -1
 		,@ContactId				int				= -1
 
@@ -160,11 +161,15 @@ begin try
 		 ,ContactToPostingGroupDesc		
 		 ,CreatedBy
 		 ,CreatedDtm
+		 ,ModifiedBy
+		 ,ModifiedDtm
 	) values (
 		  @ContactId
 		 ,@PostingGroupId
 		 ,@pContactToPostingGroupDesc		
-		 ,@User
+		 ,@CurrentUser
+		 ,@CurrentDtm
+		 ,@CurrentUser
 		 ,@CurrentDtm
 	)
 

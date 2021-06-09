@@ -37,7 +37,7 @@ Date		Author			Description
 --  Declarations
 -------------------------------------------------------------------------------
 
-DECLARE	 @Rows					varchar(10)		= 0
+DECLARE	 @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -48,12 +48,12 @@ DECLARE	 @Rows					varchar(10)		= 0
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(50)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(max)	= 'Procedure started' 
+		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
@@ -61,7 +61,7 @@ DECLARE	 @Rows					varchar(10)		= 0
 
 		,@PassPhrase			varchar(256)	= 'N/A'
 		,@StatusId				int				= -1
-		,@LookBack				datetime		= GETDATE() - 3
+		,@LookBack				datetime		= dateadd(d,-3,GETDATE())
 		,@PublicationId			int				= -1
 		,@StatusCode			varchar(10)		= 'IP'
 
@@ -81,7 +81,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_GetPublicationList' + @CRLF +
+			'exec bpi_dw_stage.ctl.usp_GetPublicationList' + @CRLF +
 			'     @pPublicationCode = ' + isnull(@pPublicationCode,'NULL') + @CRLF + 
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 

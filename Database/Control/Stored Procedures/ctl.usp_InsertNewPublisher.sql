@@ -115,7 +115,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'EXEC Control.ctl.usp_InsertNewPublisher' + @CRLF +
+			'EXEC BPI_DW_Stage.ctl.usp_InsertNewPublisher' + @CRLF +
 			'    ,@p_PUBLISHER_CODE		= ' + isnull(cast(@pPublisherCode as varchar(100)),'NULL') + @CRLF +
 			'    ,@p_CONTACT_NAME		= ' + isnull(cast(@pContactName as varchar(100)),'NULL') + @CRLF +
 			'    ,@pPublisherName		= ' + isnull(cast(@pPublisherName as varchar(100)),'NULL') + @CRLF +
@@ -167,7 +167,7 @@ BEGIN TRY
 
 		  SELECT @ErrNum = 50001,
 			    @ErrMsg = 'Error Number: '+CAST(@ErrNum AS VARCHAR(10))+@CRLF+
-			    'Custom Error: Passphrase for the Publisher table does not exist in the Control.ctl.Passshrase table.'+@CRLF+
+			    'Custom Error: Passphrase for the Publisher table does not exist in the BPI_DW_STAGE.ctl.Passshrase table.'+@CRLF+
 			    'Phrase must be created for this table.'+@CRLF+
 			    isnull(@ParametersPassedChar, 'Parmeter input resulted in NULL or non-existing output');
 

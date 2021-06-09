@@ -1,52 +1,33 @@
-﻿CREATE procedure [ctl].[usp_GetPublicationList_DataHub] (
-		 @pETLExecutionId		int				= -1
-		,@pPathId				int				= -1
-		,@pVerbose				bit				= 0)
-as
+﻿CREATE PROCEDURE [lms_canvas].[usp_LMS_GetPublicationList]
+	@pPublisherCode			varchar(50) 
+	,@pETLExecutionId		int				= -1
+	,@pPathId				int				= -1
+	,@pVerbose				bit				= 0
+AS
+
 /*****************************************************************************
-File:		usp_GetPublicationList_DataHub.sql
-Name:		usp_GetPublicationList_DataHub
-Purpose:	
+ File:			usp_LMS_GetPublicationList.sql
+ Name:			usp_LMS_GetPublicationList
+ Purpose:		Returns all active publications related to a Canvas Publisher.
+				
+exec lms_canvas.[usp_LMS_GetPublicationList] NULL, 1
+exec lms_canvas.[usp_LMS_GetPublicationList] 'CANVAS-AU', 1
+exec lms_canvas.[usp_LMS_GetPublicationList] 'CANVAS-UoR' ,1 
 
-			This procedure gathers all the relevant information required by
-			DataHub to process new data into the staging system. FTP and SHARE
-			locations are returned for file based connectors. TBL connectors
-			are automatically entered when the interval is met.
+ Parameters:    
 
-exec ctl.usp_GetPublicationList_DataHub -1, -1, 0
+ Called by:		Application
+ Calls:          
 
-Parameters:    
-
-Called by:	
-Calls:          
-
-Errors:		
-
-Author:		
-Date:		
-
+ Author:		ochowkwale
+ Date:			20190503
 *******************************************************************************
        CHANGE HISTORY
 *******************************************************************************
-Date		Author			Description
---------	-------------	---------------------------------------------------
-20180226	ffortunato		SiteKey that is returned must be varchar (256)
-20180307	ffortunato		Adding SSIS parameters for kicking off packages.
-20180604	ffortunato		Adding SLATime and format to return set.
-20180703	ffortunato		formatting only. testing .editorconfig
-20180710	ffortunato		Prepping for some new retry attributes.
-							Removing status check for "last" update. 
-							Retry neeeds to retry any issue status.
-20180822	ffortunato		Adding Bound (In or Out).
-							PublisherType --> InterfaceCode
-							Rows char --> int
-20180925	ffortunato		Cleaning up some validations.
-20181018	ffortunato		SLA and Interval Check added.
-20181029	ffortunato		Updating interval logic. Cleaning out old code.
-20190530	ochowkwale		No Interface code - CANVAS
-20201118	ffortunato		Passphrase changes
-20210312	ffortunato		IsDataHub back to a bit.
-							Adding ProcessingMEthodCode to replace the functionality.
+ Date		Author			Description
+ --------	-------------	-----------------------------------------------------
+ 20190503	ochowkwale		Original draft
+ 20210401	ffortunato		Geting feedofrmat out.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -80,13 +61,14 @@ declare	 @Rows					int				= 0
 		,@SchemaName			nvarchar(256)	= 'ctl'
 		,@PassphraseTableName	nvarchar(256)	= 'Publisher'
 
-
-exec [audit].usp_InsertStepLog
-		 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@ParentStepLogId output	
-		,@pVerbose
-
+SELECT	 @Passphrase =
+	(
+		SELECT	 Passphrase
+		FROM	 ctl.[Passphrase]
+		WHERE	 DatabaseName	= @DbName
+		AND		 SchemaName		= @SchemaName
+		AND		 TableName		= @PassphraseTableName
+	)
 
 -------------------------------------------------------------------------------
 --  Initializations
@@ -109,15 +91,6 @@ if @pVerbose					= 1
 
 begin try
 
-	SELECT	@Passphrase =
-	(
-		SELECT	 Passphrase
-		FROM	 ctl.[Passphrase]
-		WHERE	 DatabaseName	= @DbName
-		AND		 SchemaName		= @SchemaName
-		AND		 TableName		= @PassphraseTableName
-	)
-
 -------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
@@ -130,7 +103,6 @@ begin try
 	select	 pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
---			,pr.PublisherType
 			,pr.InterfaceCode
 			,pr.SiteURL
 			,pr.SiteUser
@@ -142,16 +114,14 @@ begin try
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
 			,pn.IntervalCode
 			,pn.IntervalLength
-			,pn.RetryIntervalCode
-			,pn.RetryIntervalLength
-			,pn.RetryMax
-			,pn.MethodCode
+			--,pn.RetryIntervalCode
+			--,pn.RetryIntervalLength
+			--,pn.RetryMax
 			,pn.NextExecutionDtm
 			,pn.SLATime
 			,ri.[SLAFormat]
 			,ri.[SLARegEx]
-			--,pn.SrcFileFormatCode	AS FeedFormat
-			,rff.FileExtension		as FeedFormat
+			,pn.SrcFileFormatCode  as FeedFormat
 			,pn.SSISFolder
 			,pn.SSISProject
 			,pn.SSISPackage
@@ -165,14 +135,11 @@ begin try
 	on		pr.PublisherId		= pn.PublisherId
 	join	ctl.RefInterval		  ri
 	on		pn.IntervalCode		= ri.IntervalCode
-	join	ctl.RefFileFormat	  rff
-	on		rff.FileFormatCode	= pn.SrcFileFormatCode
-	where	pn.IsActive			= 1 -- We only want active records.
+	where	pn.IsActive			= 1 
 	and		pn.IsDataHub		= 1
-	and		pn.ProcessingMethodCode = 'SSIS'
- 	and		pr.InterfaceCode	!= 'CANVAS'
 	and		pn.Bound			= 'In'
 	and		pn.NextExecutionDtm <= @CurrentDtm
+	and		pr.PublisherCode	= @pPublisherCode
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
@@ -222,23 +189,3 @@ end catch
 -------------------------------------------------------------------------------
 --  Procedure End
 -------------------------------------------------------------------------------
-/*
-select 	 @PreviousDtm			= @CurrentDtm
-select	 @CurrentDtm			= getdate()
-		,@StepNumber			= @StepNumber + 1
-		,@StepName				= 'End'
-		,@StepDesc				= 'Procedure completed'
-		,@Rows					= 0
-		,@StepOperation			= 'N/A'
-
--- Passing @ProcessStartDtm so the total duration for the procedure is added.
--- @ProcessStartDtm (if you want total duration) 
--- @PreviousDtm (if you want 0)
-exec [audit].usp_InsertStepLog
-		 @MessageType		,@CurrentDtm	,@ProcessStartDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-		,@pVerbose
-*/
-
-

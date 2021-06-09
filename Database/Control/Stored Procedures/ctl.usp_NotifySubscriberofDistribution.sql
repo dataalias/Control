@@ -2,7 +2,8 @@
 		 @pIssueId				int				= -1
 		,@pStageStart			datetime		= NULL
 		,@pStageEnd				datetime		= NULL
-		,@pIsDataHub			int				= -1
+-- This needs to be removed too. IsDataHub $$$$$
+		--,@pIsDataHub			int				= -1
 		,@pETLExecutionId		int				= -1
 		,@pPathId				int				= -1
 		,@pVerbose				bit				= 0)
@@ -11,47 +12,37 @@ AS
 File:		usp_NotifySubscriberOfDistribution.sql
 Name:		usp_NotifySubscriberOfDistribution
 
-Purpose:	
+Purpose:	This procedure determines if a process that has just completed 
+			has downstream (parent) processes that should be executed.
+			This code executes that parent process. This process is used 
+			specifically for staging ETL jobs.
 
-exec ctl.usp_NotifySubscriberOfDistribution
-		 @pIssueId								= 9532
-		 ,@pIsDataHub							= -1
-		,@pETLExecutionId						= -1
-		,@pPathId								= -1
-		,@pVerbose								= 0
+Sample Execution:
+		exec ctl.usp_NotifySubscriberOfDistribution
+			 @pIssueId								= 9532
+			--,@pIsDataHub							= -1
+			,@pETLExecutionId						= -1
+			,@pPathId								= -1
+			,@pVerbose								= 0
 
-Parameters:     
+Parameters:  @pIssueId		Issue that has just completed staging.
+			,@pStageStart	Start time of staging process		
+			,@pStageEnd		End time of staging process	
+			,@pETLExecutionId	SSIS execution Id	
+			,@pPathId		SSIS PathID
+			,@pVerbose		Determines if the procedure will run in verbose mode (additional logging)
 
-Called by:	
-Calls:          
 
-Errors:		
+Called by:	Called at the completion of an (child) ETL process that needs 
+			to fire a downstream (parent) process.
+
+Calls:      pg.ExecutePostingGroupProcess    
+
+Errors:		Logged to audit table.
 
 Author:		ffortunato
 Date:		20180413
 
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
-Date		Author			Description
---------	-------------	---------------------------------------------------
-20180413	ffortunato		Initial Iteration
-20180801	ffortunato		Hax. Check the @SubscriberCode logic at top of 
-							procedure.
-
-20180806	ffortunato		Calling Execute as well. (inline)
-
-20180907	ffortunato		Adding functionality for multiple internal 
-							subscribers.
-
-20190624	ochowkwale		Switching th logic for calculating BatchId from 
-							CurrentDtm to ReportDate
-
-20190812	ochowkwale		Compatibility with Azure Data Factory. 
-							Passing the IsDataHub parameter further.
-
-20200515	ffortunato		making sure txn for new batch doesnt fail.
-							ISOLATION LEVEL SERIALIZABLE
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -342,11 +333,11 @@ begin try
 				,@StepOperation		= 'validate'
 				,@StepDesc			= 'Make sure each of the lookups above returned appropriate values.'
 
-		if		 @SubscriptionCode	 = 'N/A' or 
-				 @PostingGroupId	 = -1 or 
-				 @PostingGroupBatchId = -1 or 
-				 @DateId			 = -1 or 
-				 @PGPSeq			 = -1 or -- error test condition
+		if		 @SubscriptionCode	 = 'N/A'	or 
+				 @PostingGroupId	 = -1		or 
+				 @PostingGroupBatchId = -1		or 
+				 @DateId			 = -1		or 
+				 @PGPSeq			 = -1		or -- error test condition
 				 exists (select top 1 1 
 						from	 pg.[PostingGroupProcessing]
 						where 	 PostingGroupBatchId	 = @PostingGroupBatchId
@@ -386,19 +377,18 @@ begin try
 		-- Gathers the information for each distribution assoicated with an Issue that 
 		-- can be used to notify the subscribing system that processing can commense
 		-------------------------------------------------------------------------------
+		select	 @PostingGroupStatusId	= isnull(StatusId,-2)
+		from	 pg.RefStatus			  rs
+		where	 rs.StatusCode			= @PostingGroupStatusCode
+		and		 rs.StatusType			= 'PostingGroup'
+
 		select	 @StepName			= 'Insert Distribution Information'
 				,@StepNumber		= @StepNumber + 0
 				,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
 				,@StepOperation		= 'insert'
 				,@StepDesc			= 'Gathers the information for each distribution assoicated with an Issue that can be used to notify the subscribing system that processing can commense.'
 
-		select	 @PostingGroupStatusId	= isnull(StatusId,-2)
-		from	 pg.RefStatus			  rs
-		where	 rs.StatusCode			= @PostingGroupStatusCode
-		and		 rs.StatusType			= 'PostingGroup'
-
-
-		insert into pg.[PostingGroupProcessing](
+		insert	 into pg.[PostingGroupProcessing](
 				 [PostingGroupBatchId]	--[int] NOT NULL,
 				,[PostingGroupId]		--[int] NOT NULL,
 				,[PostingGroupStatusId]	--[int] NOT NULL,
@@ -544,7 +534,8 @@ begin try
 			 @pPGBId				= @PostingGroupBatchId
 			,@pPGId					= @PostingGroupId
 			,@pPGBatchSeq			= @PGPSeq
-			,@pIsDataHub			= @pIsDataHub
+			-- Need to  get rid of this $$$$$
+			--,@pIsDataHub			= @pIsDataHub
 			,@pETLExecutionId		= @pETLExecutionId
 			,@pPathId				= @pPathId
 			,@pVerbose				= @pVerbose
@@ -625,3 +616,31 @@ exec [audit].usp_InsertStepLog
 		,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 		,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
+
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20180413	ffortunato		Initial Iteration
+
+20180801	ffortunato		Hax. Check the @SubscriberCode logic at top of 
+							procedure.
+
+20180806	ffortunato		Calling Execute as well. (inline)
+
+20180907	ffortunato		Adding functionality for multiple internal 
+							subscribers.
+
+20190624	ochowkwale		Switching th logic for calculating BatchId from 
+							CurrentDtm to ReportDate
+
+20190812	ochowkwale		Compatibility with Azure Data Factory. 
+							Passing the IsDataHub parameter further.
+
+20200515	ffortunato		making sure txn for new batch doesnt fail.
+							ISOLATION LEVEL SERIALIZABLE
+
+******************************************************************************/

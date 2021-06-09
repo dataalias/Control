@@ -1,35 +1,53 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList_DataFactory]
-	 @pPublisherCode		varchar(50)		
-	,@pETLExecutionId		int				= -1
-	,@pPathId				int				= -1
-	,@pVerbose				bit				= 0
+﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
+	 @pPublisherCode			varchar(50)		= 'UNK'	
+--	,@pProcessingMethodCode		varchar(20)		= 'ADFP'
+--	,@pStandardFileFormatCode	varchar(20)		= 'UNK'
+	,@pNextExecutionDateTime	datetime		= NULL --'3001-Jan-01'
+	,@pPublicationGroupSequence int				= 1
+	,@pETLExecutionId			int				= -1
+	,@pPathId					int				= -1
+	,@pVerbose					bit				= 0
 AS
 
 /*****************************************************************************
- File:			usp_GetPublicationList_DataFactory.sql
- Name:			usp_GetPublicationList_DataFactory
- Purpose:		Returns all active data factory publications related to a publisher.
-				exec ctl.usp_GetPublicationList_DataFactory NULL,-1,-1,0	-returns all data factory publications
-				exec ctl.usp_GetPublicationList_DataFactory 'SF',-1,-1,0	-returns Salesforce data factory publications
+ File:			usp_GetPublicationList.sql
+ Name:			usp_GetPublicationList
+ Purpose:		Returns all publications related to a particular publisher.
+				Both Active and InActive publications are returned.
+				It is the applications responsibility to decide what to do
+				with active or inactive records.
+
+	exec ctl.[usp_GetPublicationList] NULL, 1
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AU', 1
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' ,1 
+
  Parameters:    
- Called by:		Data Factory
+
+ Called by:		Application
  Calls:          
- Author:		jsardina
- Date:			20190812
+
+ Author:		dbay
+ Date:			20161114
 *******************************************************************************
- CHANGE HISTORY
+       CHANGE HISTORY
 *******************************************************************************
  Date		Author			Description
  --------	-------------	-----------------------------------------------------
- 20190812	jsardina		Original draft
- 20210121	ochowkwale		Get Retry Publications without looking at NextExecutionDtm
- 20210312	ffortunato		IsDataHub back to a bit.
-							Adding ProcessingMEthodCode to replace the functionality.
+ 20161114	Barry Day		Original draft
+ 20161116	Barry Day		Support for institution code filtering
+ 20161205	Barry Day		Existence check
+ 20170109	ffortunato		Adding parameters to allow for getting publication 
+							list from based on a specific publisher code.
+ 20170110	ffortunato		Error handling
+ 20170120a	ffortunato		publication code should be varchar(50)
+ 20170120b	ffortunato		returning 2 additional attributes
+							PublicationFilePath
+							PublicationArchivePath
+20170126	ffortunato		adding IsActive indicator to result set.
+20210312	ffortunato		modifying to be generic again.
+20210524	ffortunato		adding @pPublicationGroupSequence. so different pipelines can be called for a single publisher's publication..
 ******************************************************************************/
 
--------------------------------------------------------------------------------
---  Declarations
--------------------------------------------------------------------------------
 
 declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
@@ -58,31 +76,40 @@ declare	 @Rows					int				= 0
 		,@SchemaName			nvarchar(256)	= 'ctl'
 		,@PassphraseTableName	nvarchar(256)	= 'Publisher'
 		,@IssueRetry			varchar(2)		= 'IR'
-
+		,@NextExecutionDateTime datetime		= cast('3002-Jan-10' as datetime)
+		
 declare @RetryPublications table (
-		 PublicationId			int				NOT NULL
-		,StatusCode				VARCHAR(20)		NOT NULL
-		,IssueId				int				NOT NULL)
+		 PublicationId			int
+		,StatusCode				VARCHAR(20)
+		,IssueId				int)
 -------------------------------------------------------------------------------
 --  Initializations
 -------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
-			'exec bpi_dw_stage.ctl.usp_GetPublicationList_DataFactory' + @CRLF +
-			'     @pPublisherCode = ' + ISNULL(CAST(@pETLExecutionId AS VARCHAR(100)),'NULL') + @CRLF + 
-			'     @pETLExecutionId = ' + ISNULL(CAST(@pETLExecutionId AS VARCHAR(100)),'NULL') + @CRLF + 
-			'    ,@pPathId = ' + ISNULL(CAST(@pPathId AS VARCHAR(100)),'NULL') + @CRLF + 
-			'    ,@pVerbose = ' + ISNULL(CAST(@pVerbose AS VARCHAR(100)),'NULL')
+      '***** Parameters Passed to exec ctl.usp_GetPublicationList' + @CRLF +
+      '     @pPublisherCode = ''' + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
+--      '    ,@pProcessingMethodCode = ''' + isnull(@pProcessingMethodCode ,'NULL') + '''' + @CRLF + 
+--      '    ,@pStandardFileFormatCode = ''' + isnull(@pStandardFileFormatCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pNextExecutionDateTime = ''' + isnull(convert(varchar(100),@pNextExecutionDateTime ,13) ,'NULL') + '''' + @CRLF + 
+	  '    ,@pPublicationGroupSequence = ' + isnull(cast(@pPublicationGroupSequence as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
+      '***** End of Parameters' + @CRLF 
 
 if @pVerbose					= 1
 	begin 
 		print @ParametersPassedChar
 	end
 
+If @pNextExecutionDateTime is null
+	select @pNextExecutionDateTime = cast('3001-Jan-01' as datetime)
+
 -------------------------------------------------------------------------------
 --  Main
 -------------------------------------------------------------------------------
-
+-- Figure out passphrase
 begin try
 
 	SELECT	@Passphrase =
@@ -93,24 +120,40 @@ begin try
 		AND		 SchemaName		= @SchemaName
 		AND		 TableName		= @PassphraseTableName
 	)
+
+-- Figure out Next Execution
+if (@pNextExecutionDateTime			= cast('3001-Jan-01' as datetime))
+-- No value was passed by the calling procedure so process normally.
+	select @NextExecutionDateTime	= @CurrentDtm
+else if (@pNextExecutionDateTime	= cast('1900-Jan-01' as datetime))
+-- Calling procedure is not insterested in being constrained on next executation date time it wants to see all publication.
+	select @NextExecutionDateTime	= cast('3001-Jan-01' as datetime)
+else
+-- Just let the ssytem check normally.
+	select @NextExecutionDateTime	= @pNextExecutionDateTime
+
 -------------------------------------------------------------------------------
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
 INSERT INTO @RetryPublications (
-	PublicationId
-	,StatusCode
-	,IssueId)
-SELECT p.PublicationId
-	,r.StatusCode
-	,max(IssueId) AS IssueId
-FROM ctl.Publication AS p
-INNER JOIN ctl.Publisher AS pu ON p.PublisherId = pu.PublisherId
-INNER JOIN ctl.Issue AS i ON i.PublicationId = p.PublicationId
-INNER JOIN ctl.RefStatus AS r ON r.StatusId = i.StatusId
-WHERE pu.PublisherCode = @pPublisherCode
-	AND r.StatusCode = @IssueRetry
-GROUP BY p.PublicationId
-	,r.StatusCode
+		 PublicationId
+		,StatusCode
+		,IssueId)
+SELECT	 p.PublicationId
+		,r.StatusCode
+		,max(IssueId)		  IssueId
+FROM	ctl.Publication		  p
+JOIN	ctl.Publisher		  pu 
+ON		p.PublisherId		= pu.PublisherId
+JOIN	ctl.Issue			  i 
+ON		i.PublicationId		= p.PublicationId
+JOIN	ctl.RefStatus		  r 
+ON		r.StatusId			= i.StatusId
+WHERE	pu.PublisherCode	= @pPublisherCode
+AND		r.StatusCode		= @IssueRetry
+GROUP BY
+		p.PublicationId
+		,r.StatusCode
 
 -------------------------------------------------------------------------------
 --  Generate Publication List
@@ -138,13 +181,14 @@ GROUP BY p.PublicationId
 			,pn.RetryIntervalCode
 			,pn.RetryIntervalLength
 			,pn.RetryMax
-			,pn.MethodCode
+			,pn.ProcessingMethodCode
+			,pn.TransferMethodCode
 			,pn.NextExecutionDtm
 			,pn.SLATime
 			,ri.[SLAFormat]
 			,ri.[SLARegEx]
-			--,pn.SrcFileFormatCode AS FeedFormat -- If powershell breaks use this ::AS FeedFormat
-			,rff.FileExtension AS FeedFormat -- If powershell breaks use this ::AS FeedFormat
+			,pn.SrcFileFormatCode  -- As FeedFormat
+			,pn.StandardFileFormatCode
 			,pn.SSISFolder
 			,pn.SSISProject
 			,pn.SSISPackage
@@ -152,21 +196,21 @@ GROUP BY p.PublicationId
 			,pn.SrcFilePath
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
-	from 	[ctl].[Publication]	  pn
-	left join @RetryPublications  rpn
-	on		rpn.PublicationId = pn.PublicationId
-	join	[ctl].[Publisher]	  pr 
-	on		pr.PublisherId		= pn.PublisherId
-	join	ctl.RefInterval		  ri
-	on		pn.IntervalCode		= ri.IntervalCode
-	join	ctl.RefFileFormat	  rff
-	on		rff.FileFormatCode	= pn.SrcFileFormatCode
-	where	pn.IsActive			= 1 
-	and		pn.ProcessingMethodCode = 'ADFP'  -- Azure Data Factory Pipeline
-	and		pn.IsDataHub		= 1
-	and		pn.Bound			= 'In'
-	and		(pn.NextExecutionDtm <= @CurrentDtm OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
-	and		pr.PublisherCode	= @pPublisherCode
+			,pn.PublicationGroupSequence
+	from 	ctl.Publication				  pn
+	left join @RetryPublications		  rpn
+	on		rpn.PublicationId			= pn.PublicationId
+	join	ctl.Publisher				  pr 
+	on		pr.PublisherId				= pn.PublisherId
+	join	ctl.RefInterval				  ri
+	on		pn.IntervalCode				= ri.IntervalCode
+	where	pn.IsActive					= 1 
+	and		pn.IsDataHub				= 1
+	and		pn.Bound					= 'In'
+	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+	and		pr.PublisherCode			= @pPublisherCode
+	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+	
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm

@@ -57,7 +57,7 @@ BEGIN
 		,@IssueId INT
 
 	IF (@pIsFullLoad = 1)
-		SET @PeriodStartTime = '1900-01-01'
+		SET @PeriodStartTime = cast('1900-01-01' as datetime)
 
 	ELSE
 		BEGIN

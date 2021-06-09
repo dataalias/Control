@@ -50,6 +50,7 @@ date		author			description
 20180906	ffortunato		code validation changes.
 20180912	ffortunato		no more passing ID's.
 20201130	ffortunato		Adding code and name values.
+20210415	ffortunato		warnings clean up
 ******************************************************************************/
 
 DECLARE	 @Rows					int				= 0
@@ -206,7 +207,7 @@ begin try
 		or @pDependencyCode = ''
 
 		update	 pgd
-		set		 pgd.DependencyCode			= pgC.PostingGroupCode + ' --To-- ' + pgP.PostingGroupCode
+		set		 pgd.DependencyCode			= cast(pgC.PostingGroupCode + ' --To-- ' + pgP.PostingGroupCode as varchar(100))
 		from	 pg.PostingGroupDependency	  pgd
 		join	 pg.PostingGroup			  pgC
 		on		 pgC.PostingGroupId			= pgd.ChildId
@@ -219,7 +220,7 @@ begin try
 		or @pDependencyName = ''
 
 		update	 pgd
-		set		 pgd.DependencyName			= pgC.PostingGroupName + '--To--' + pgP.PostingGroupName
+		set		 pgd.DependencyName			= cast(pgC.PostingGroupName + '--To--' + pgP.PostingGroupName as varchar(250))
 		from	 pg.PostingGroupDependency	  pgd
 		join	 pg.PostingGroup			  pgC
 		on		 pgC.PostingGroupId			= pgd.ChildId

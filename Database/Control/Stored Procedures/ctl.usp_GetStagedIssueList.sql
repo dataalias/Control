@@ -35,6 +35,8 @@ AS
 20170602	ffortunato		adding IsActive indicator to result set.
 20171205	jbonilla        adding logic for processing only prior day RT records
 20201118	ffortunato		cleaning up warnings, formatting and case. It's my birthday.
+20210415	ffortunato		@CurrentDate so formatting isn't done in query
+							Taxes!!!
 ******************************************************************************/
 
 DECLARE	 @Rows					int
@@ -43,8 +45,9 @@ DECLARE	 @Rows					int
 		,@FailedProcedure		varchar(1000)
 		,@ParametersPassedChar	varchar(1000)
 		,@CRLF					varchar(20)
+		,@CurrentDate			datetime
 
-
+SELECT	 @CurrentDate			= cast(cast(getdate()  as date) as datetime)
 -------------------------------------------------------------------------------
 --  Initializations
 -------------------------------------------------------------------------------
@@ -122,7 +125,7 @@ BEGIN
 	on		 iss.StatusId		= stat.StatusId
 	where 	 pn.PublicationCode	= @pPublicationCode
 	and      stat.StatusCode	= @pStatusCode
-	and		 ReportDate			< cast(getdate()  as date)
+	and		 ReportDate			< @CurrentDate -- cast(cast(getdate()  as date) as datetime)
 END
 ELSE 
 BEGIN

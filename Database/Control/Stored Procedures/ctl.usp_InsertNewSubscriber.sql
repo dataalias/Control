@@ -19,7 +19,7 @@
     ,@pCreatedBy				varchar(30)
 	,@pETLExecutionId			int				= -1
 	,@pPathId					int				= -1
-	,@pVerbose					int)
+	,@pVerbose					bit				= 0)
 
 AS 
 /*****************************************************************************

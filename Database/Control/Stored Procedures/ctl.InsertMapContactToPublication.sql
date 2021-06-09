@@ -60,7 +60,7 @@ DECLARE	 @Rows					int				= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
 		,@PassPhrase			varchar(256)	= ''
-		,@CurrentUser			varchar(100)	= SYSTEM_USER
+		,@CurrentUser			varchar(50)		= SYSTEM_USER
 		,@PublicationId			int				= -1
 		,@ContactId				int				= -1
 

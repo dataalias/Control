@@ -79,7 +79,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_PutSubscriptionList' + @CRLF +
+			'exec bpi_dw_stage.ctl.usp_PutSubscriptionList' + @CRLF +
 			'     @pIssueId = ' + ISNULL(CAST(@pIssueId AS VARCHAR(100)),'NULL') + @CRLF + 
 			'     @pETLExecutionId = ' + ISNULL(CAST(@pETLExecutionId AS VARCHAR(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + ISNULL(CAST(@pPathId AS VARCHAR(100)),'NULL') + @CRLF + 

@@ -34,6 +34,7 @@ Date		Author			Description
 20201120	ffortunato		Mapping tables to contact need to be deleted.
 							Adding test contacts to ensure mapping works.
 20201130	ffortunato		Modifications to make posting group work.
+20210325	ffortunato		FeedFormat --> FileFormatCode
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -43,18 +44,17 @@ Date		Author			Description
 -- test process.
 
 -- Cleanup
-USE Control
-GO
+
 
 delete ctl.[distribution]			where IssueId			in (select IssueId from ctl.Issue where  publicationid in (select publicationid from ctl.publication where publicationcode in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR')))
 delete ctl.Issue					where publicationid		in (select publicationid from ctl.publication where publicationcode in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR'))
 delete ctl.MapContactToPublication	where publicationid		in (select publicationid from ctl.publication where publicationcode in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR'))
 delete ctl.MapContactToSubscription	where SubscriptionId	in (select SubscriptionId from ctl.Subscription where Subscriptioncode in ('PUBR02-SUBR01-PUBN03-COUR','PUBR01-SUBR01-PUBN01-ACCT','PUBR01-SUBR01-PUBN02-ASSG','PUBR01-SUBR02-PUBN02-ASSG','PUBR02-SUBR02-PUBN03-COUR'))
-delete ctl.Subscription	 where subscriptioncode	in ('PUBR02-SUBR01-PUBN03-COUR','PUBR01-SUBR01-PUBN01-ACCT','PUBR01-SUBR01-PUBN02-ASSG','PUBR01-SUBR02-PUBN02-ASSG','PUBR02-SUBR02-PUBN03-COUR')
-delete ctl.Publication	 where PublicationCode	in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR')
-delete ctl.Subscriber	 where subscribercode	in ('SUBR01' , 'SUBR02')
-delete ctl.Publisher	 where publishercode	in('PUBR01','PUBR02')
-delete ctl.Contact		 where [Name]			in ('PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02')
+delete ctl.Subscription				where subscriptioncode	in ('PUBR02-SUBR01-PUBN03-COUR','PUBR01-SUBR01-PUBN01-ACCT','PUBR01-SUBR01-PUBN02-ASSG','PUBR01-SUBR02-PUBN02-ASSG','PUBR02-SUBR02-PUBN03-COUR')
+delete ctl.Publication				where PublicationCode	in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR')
+delete ctl.Subscriber				where subscribercode	in ('SUBR01' , 'SUBR02')
+delete ctl.Publisher				where publishercode		in ('PUBR01','PUBR02')
+delete ctl.Contact					where [Name]			in ('PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02')
 
 
 
@@ -63,20 +63,14 @@ delete ctl.Contact		 where [Name]			in ('PUB_Contact_Test01','PUB_Contact_Test02
 -- Declaration and Initialization
 -------------------------------------------------------------------------------
 
-declare @Verbose       int
-       ,@PassVerbose   bit
-	   ,@Start         datetime
-	   ,@End		   datetime
-	   ,@IssueId	   int
+declare @Verbose       int			= 0
+       ,@PassVerbose   bit			= 1
+	   ,@Start         datetime		= getdate()
+	   ,@End		   datetime		= getdate()
+	   ,@IssueId	   int			= -1
 	   ,@CurrentUser   varchar(250)	= CURRENT_USER
 
 	   
-select  @Verbose     = 0
-       ,@PassVerbose = 1
-	   ,@Start       = getdate()
-	   ,@End         = getdate()
-	   ,@IssueId     = -1
-
 /*
 @Verbose -- Parameter for local testing.
 0 - Nothing
@@ -136,23 +130,23 @@ if not exists (select top 1 1 from ctl.Publisher where PublisherCode	= 'PUBR01')
 begin
 
 exec [ctl].usp_InsertNewPublisher 
-		 @pPublisherCode		= 'PUBR01'
-		,@pContactName			= 'BI-Development'
-		,@pPublisherName		= '01 Test Publisher'
-		,@pPublisherDesc		= 'First Test Publisher'
-		,@pInterfaceCode		= 'TBL'
-		,@pCreatedBy			= 'ffortunato'  -- @CurrentUser -- @CurrentUser
-		,@pSiteURL				= NULL
-		,@pSiteUser				= NULL
-		,@pSitePassword			= NULL
-		,@pSiteHostKeyFingerprint = NULL
-		,@pSitePort				= NULL
-		,@pSiteProtocol			= NULL
-		,@pPrivateKeyPassPhrase = NULL
-		,@pPrivateKeyFile		= NULL
-		,@pETLExecutionId		= 0
-		,@pPathId				= 0
-		,@pVerbose				= 1
+		 @pPublisherCode			= 'PUBR01'
+		,@pContactName				= 'BI-Development'
+		,@pPublisherName			= '01 Test Publisher'
+		,@pPublisherDesc			= 'First Test Publisher'
+		,@pInterfaceCode			= 'TBL'
+		,@pCreatedBy				= 'ffortunato'  -- @CurrentUser -- @CurrentUser
+		,@pSiteURL					= NULL
+		,@pSiteUser					= NULL
+		,@pSitePassword				= NULL
+		,@pSiteHostKeyFingerprint	= NULL
+		,@pSitePort					= NULL
+		,@pSiteProtocol				= NULL
+		,@pPrivateKeyPassPhrase		= NULL
+		,@pPrivateKeyFile			= NULL
+		,@pETLExecutionId			= 0
+		,@pPathId					= 0
+		,@pVerbose					= @Verbose
 
 end
 
@@ -160,23 +154,23 @@ if not exists (select top 1 1 from ctl.Publisher where PublisherCode	= 'PUBR02')
 begin
 
 exec [ctl].usp_InsertNewPublisher 
-		 @pPublisherCode		= 'PUBR02'
-		,@pContactName			= 'BI-Development'
-		,@pPublisherName		= '02 Test Publisher'
-		,@pPublisherDesc		= 'Second Test Publisher'
-		,@pInterfaceCode		= 'TBL'
-		,@pCreatedBy			= 'ffortunato'  -- @CurrentUser -- @CurrentUser
-		,@pSiteURL				= NULL
-		,@pSiteUser				= NULL
-		,@pSitePassword			= NULL
-		,@pSiteHostKeyFingerprint = NULL
-		,@pSitePort				= NULL
-		,@pSiteProtocol			= NULL
-		,@pPrivateKeyPassPhrase = NULL
-		,@pPrivateKeyFile		= NULL
-		,@pETLExecutionId		= 0
-		,@pPathId				= 0
-		,@pVerbose				= 0
+		 @pPublisherCode			= 'PUBR02'
+		,@pContactName				= 'BI-Development'
+		,@pPublisherName			= '02 Test Publisher'
+		,@pPublisherDesc			= 'Second Test Publisher'
+		,@pInterfaceCode			= 'TBL'
+		,@pCreatedBy				= 'ffortunato'  -- @CurrentUser -- @CurrentUser
+		,@pSiteURL					= NULL
+		,@pSiteUser					= NULL
+		,@pSitePassword				= NULL
+		,@pSiteHostKeyFingerprint	= NULL
+		,@pSitePort					= NULL
+		,@pSiteProtocol				= NULL
+		,@pPrivateKeyPassPhrase		= NULL
+		,@pPrivateKeyFile			= NULL
+		,@pETLExecutionId			= 0
+		,@pPathId					= 0
+		,@pVerbose					= @Verbose
 
 end
 
@@ -192,25 +186,25 @@ if not exists (select top 1 1 from ctl.Subscriber where SubscriberCode	= 'SUBR01
 begin
 
 exec [ctl].[usp_InsertNewSubscriber]   
-     @pSubscriberCode			= 'SUBR01'
-    ,@pContactName				= 'BI-Development'
-    ,@pSubscriberName			= '01 Test Subscriber'
-    ,@pInterfaceCode			= 'TBL'
-	,@pSiteURL					= NULL  
-	,@pSiteUser					= NULL 
-	,@pSitePassword				= NULL           
-	,@pSiteHostKeyFingerprint	= NULL                             
-	,@pSitePort					= NULL
-	,@pSiteProtocol				= NULL
-	,@pPrivateKeyPassPhrase		= NULL 
-	,@pPrivateKeyFile			= NULL 
-	,@pNotificationHostName		= 'SBXSRV01'
-	,@pNotificationInstance		= 'SBXSRV01'
-	,@pNotificationDatabase		= 'SBXSRV01'
-	,@pNotificationSchema		= 'schema'
-	,@pNotificationProcedure	= 'usp_NA'
-    ,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
-	,@pVerbose					= 0
+     @pSubscriberCode				= 'SUBR01'
+    ,@pContactName					= 'BI-Development'
+    ,@pSubscriberName				= '01 Test Subscriber'
+    ,@pInterfaceCode				= 'TBL'
+	,@pSiteURL						= NULL  
+	,@pSiteUser						= NULL 
+	,@pSitePassword					= NULL           
+	,@pSiteHostKeyFingerprint		= NULL                             
+	,@pSitePort						= NULL
+	,@pSiteProtocol					= NULL
+	,@pPrivateKeyPassPhrase			= NULL 
+	,@pPrivateKeyFile				= NULL 
+	,@pNotificationHostName			= 'SBXSRV01'
+	,@pNotificationInstance			= 'SBXSRV01'
+	,@pNotificationDatabase			= 'SBXSRV01'
+	,@pNotificationSchema			= 'schema'
+	,@pNotificationProcedure		= 'usp_NA'
+    ,@pCreatedBy					= 'ffortunato'  -- @CurrentUser
+	,@pVerbose						= @Verbose
 
 end
 
@@ -218,25 +212,25 @@ if not exists (select top 1 1 from ctl.Subscriber where SubscriberCode	= 'SUBR02
 begin
 
 exec [ctl].[usp_InsertNewSubscriber]   
-     @pSubscriberCode			= 'SUBR02'
-    ,@pContactName				= 'BI-Development'
-    ,@pSubscriberName			= '02 Test Subscriber'
-    ,@pInterfaceCode			= 'TBL'
-	,@pSiteURL					= NULL  
-	,@pSiteUser					= NULL 
-	,@pSitePassword				= NULL           
-	,@pSiteHostKeyFingerprint	= NULL                             
-	,@pSitePort					= NULL
-	,@pSiteProtocol				= NULL
-	,@pPrivateKeyPassPhrase		= NULL 
-	,@pPrivateKeyFile			= NULL 
-	,@pNotificationHostName		= 'SBXSRV02'
-	,@pNotificationInstance		= 'SBXSRV02'
-	,@pNotificationDatabase		= 'SBXSRV02'
-	,@pNotificationSchema		= 'schema'
-	,@pNotificationProcedure	= 'usp_NA'
-    ,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
-	,@pVerbose					= 0
+     @pSubscriberCode				= 'SUBR02'
+    ,@pContactName					= 'BI-Development'
+    ,@pSubscriberName				= '02 Test Subscriber'
+    ,@pInterfaceCode				= 'TBL'
+	,@pSiteURL						= NULL  
+	,@pSiteUser						= NULL 
+	,@pSitePassword					= NULL           
+	,@pSiteHostKeyFingerprint		= NULL                             
+	,@pSitePort						= NULL
+	,@pSiteProtocol					= NULL
+	,@pPrivateKeyPassPhrase			= NULL 
+	,@pPrivateKeyFile				= NULL 
+	,@pNotificationHostName			= 'SBXSRV02'
+	,@pNotificationInstance			= 'SBXSRV02'
+	,@pNotificationDatabase			= 'SBXSRV02'
+	,@pNotificationSchema			= 'schema'
+	,@pNotificationProcedure		= 'usp_NA'
+    ,@pCreatedBy					= 'ffortunato'  -- @CurrentUser
+	,@pVerbose						= @Verbose
 
 end
 
@@ -252,36 +246,38 @@ if not exists (select top 1 1 from ctl.Publication where PublicationCode	= 'PUBN
 begin
 
 EXEC [ctl].[usp_InsertNewPublication] 
-	 @pPublisherCode			= 'PUBR01' -- varchar(20) 
-	,@pPublicationCode			= 'PUBN01-ACCT'-- varchar(50) 
-	,@pPublicationName			= 'Test Account Dim Feed' -- varchar(50) 
-	,@pSrcPublicationName		= 'PUBN01-ACCT'--_[1..9]{8}_[1..9]{8}\.csv$ -- varchar(255) 
-	,@pPublicationFilePath		= '' -- '\PUBR01\inbound\'-- varchar(255) 
-	,@pPublicationArchivePath	= '' -- '\PUBR01\archive\'-- varchar(255)
-	,@pFeedFormat				= '' -- 'csv'
-	,@pStageJobName				= ''
-	,@pSSISProject				= 'PostingGroup'
-	,@pSSISFolder				= 'ETLFolder'
-	,@pSSISPackage				= 'TSTPUBN01-ACCT.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
-	,@pDataFactoryName			= 'N/A'
-	,@pDataFactoryPipeline		= 'N/A'
---	,@pInterfaceCode			= 'FILE' -- varchar(20) 
-	,@pMethodCode				= 'DLT' -- varchar(20) 
-	,@pIntervalCode				= 'DLY' -- varchar(20) 
-	,@pIntervalLength			= 1 -- int 
-	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
-	,@pRetryIntervalLength		= 1	--	int
-	,@pRetryMax					= 0	--	int
-	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[Control].[schema].[TBL-ACCT]' -- varchar(255) 
-	,@pSLATime					= '01:00'
-	,@pSLAEndTime				= NULL
-	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'
-	,@pIsActive					= 1  
-	,@pIsDataHub				= 1
-	,@pBound					= 'In'
-	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser 
+	 @pPublisherCode				= 'PUBR01' -- varchar(20) 
+	,@pPublicationCode				= 'PUBN01-ACCT'-- varchar(50) 
+	,@pPublicationName				= 'Test Account Dim Feed' -- varchar(50) 
+	,@pSrcPublicationName			= 'PUBN01-ACCT'--_[1..9]{8}_[1..9]{8}\.csv$ -- varchar(255) 
+	,@pPublicationFilePath			= '' -- '\PUBR01\inbound\'-- varchar(255) 
+	,@pPublicationArchivePath		= '' -- '\PUBR01\archive\'-- varchar(255)
+	,@pSrcFileFormatCode			= 'UNK' -- 'csv'
+	,@pStageJobName					= ''
+	,@pSSISProject					= 'PostingGroup'
+	,@pSSISFolder					= 'ETLFolder'
+	,@pSSISPackage					= 'TSTPUBN01-ACCT.dtsx'
+	,@pSrcFilePath					= '' -- '\\bpe-aesd-cifs\Share'
+	,@pDataFactoryName				= 'N/A'
+	,@pDataFactoryPipeline			= 'N/A'
+--	,@pInterfaceCode				= 'FILE' -- varchar(20) 
+	,@pMethodCode					= 'DLT' -- varchar(20) 
+	,@pIntervalCode					= 'DLY' -- varchar(20) 
+	,@pIntervalLength				= 1 -- int 
+	,@pRetryIntervalCode			= 'HR'	--	varchar(20)
+	,@pRetryIntervalLength			= 1	--	int
+	,@pRetryMax						= 0	--	int
+	,@pPublicationEntity			= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
+	,@pDestTableName				= '[control].[schema].[TBL-ACCT]' -- varchar(255) 
+	,@pSLATime						= '01:00'
+	,@pSLAEndTimeInMinutes			= NULL
+	,@pNextExecutionDtm				= '1900-01-01 00:00:00.000'
+	,@pIsActive						= 1  
+	,@pIsDataHub					= 1
+	,@pBound						= 'In'
+	,@pCreatedBy					= 'ffortunato'  -- @CurrentUser 
+	,@pVerbose						= @Verbose
+
 end
 
 if not exists (select top 1 1 from ctl.Publication where PublicationCode	= 'PUBN02-ASSG')
@@ -295,7 +291,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSrcPublicationName		= 'PUBN02-ASSG'--_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
 	,@pPublicationFilePath		= '' -- '\PUBR01\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= '' -- '\PUBR01\archive\'-- varchar(255)
-	,@pFeedFormat				= '' -- 'csv'
+	,@pSrcFileFormatCode		= 'UNK' -- 'csv'
 	,@pStageJobName				= ''
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
@@ -311,14 +307,15 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[Control].[schema].[TBL-ASSG]' -- varchar(255) 
+	,@pDestTableName			= '[control].[schema].[TBL-ASSG]' -- varchar(255) 
 	,@pSLATime					= '01:00'
-	,@pSLAEndTime				= NULL
+	,@pSLAEndTimeInMinutes				= NULL
 	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'
 	,@pIsActive					= 1  
 	,@pIsDataHub				= 1
 	,@pBound					= 'In'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser -- varchar(50)	
+	,@pVerbose					= @Verbose
 end
 
 if not exists (select top 1 1 from ctl.Publication where PublicationCode	= 'PUBN03-COUR')
@@ -331,7 +328,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSrcPublicationName		= 'PUBN03-COUR'--_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
 	,@pPublicationFilePath		= '' -- '\PUBR01\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= '' -- '\PUBR01\archive\'-- varchar(255)
-	,@pFeedFormat				= '' -- 'csv'
+	,@pSrcFileFormatCode		= 'UNK' -- 'csv'
 	,@pStageJobName				= ''
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
@@ -347,14 +344,15 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[Control].[schema].[TBL-COUR]' -- varchar(255) 
+	,@pDestTableName			= '[control].[schema].[TBL-COUR]' -- varchar(255) 
 	,@pSLATime					= '01:00'
-	,@pSLAEndTime				= NULL
+	,@pSLAEndTimeInMinutes				= NULL
 	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'
 	,@pIsActive					= 1  
 	,@pIsDataHub				= 1
 	,@pBound					= 'In'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser -- varchar(50)	
+	,@pVerbose				= @Verbose
 end
 
 if @Verbose in (1,3)
@@ -402,7 +400,7 @@ exec ctl.usp_InsertNewSubscription
 	,@pSubscriptionArchivePath  = 'N/A'
 	,@pSrcFilePath				= 'N/A'
 	,@pDestTableName			= 'N/A'
-	,@pFeedFormat				= 'N/A'
+	,@pDestFileFormatCode		= 'N/A'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
 	,@pVerbose					= 0
 
@@ -422,9 +420,9 @@ exec ctl.usp_InsertNewSubscription
 	,@pSubscriptionArchivePath  = 'N/A'
 	,@pSrcFilePath				= 'N/A'
 	,@pDestTableName			= 'N/A'
-	,@pFeedFormat				= 'N/A'
+	,@pDestFileFormatCode		= 'N/A'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
-	,@pVerbose					= 0
+	,@pVerbose					= @Verbose
 
 end 
 if not exists (select top 1 1 from ctl.Subscription where SubscriptionName	= 'SUB02 Assignment Data')
@@ -441,9 +439,9 @@ exec ctl.usp_InsertNewSubscription
 	,@pSubscriptionArchivePath  = 'N/A'
 	,@pSrcFilePath				= 'N/A'
 	,@pDestTableName			= 'N/A'
-	,@pFeedFormat				= 'N/A'
+	,@pDestFileFormatCode		= 'N/A'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
-	,@pVerbose					= 0
+	,@pVerbose					= @Verbose
 
 
 end 
@@ -461,7 +459,7 @@ exec ctl.usp_InsertNewSubscription
 	,@pSubscriptionArchivePath  = 'N/A'
 	,@pSrcFilePath				= 'N/A'
 	,@pDestTableName			= 'N/A'
-	,@pFeedFormat				= 'N/A'
+	,@pDestFileFormatCode		= 'N/A'
 	,@pCreatedBy				= 'ffortunato'  -- @CurrentUser
 	,@pVerbose					= 0
 
@@ -551,7 +549,7 @@ exec ctl.[usp_InsertNewIssue]
 	,@pETLExecutionId= 99
 	,@pCreateBy= 'ffortunato'  -- @CurrentUser
 	,@pIssueId = @MyIssueId output
-	,@pVerbose= 0
+	,@pVerbose					= @Verbose
 
 end 
 
@@ -573,7 +571,7 @@ exec ctl.[usp_InsertNewIssue]
 	,@pETLExecutionId= 99
 	,@pCreateBy= 'ffortunato'  -- @CurrentUser
 	,@pIssueId = @MyIssueId output
-	,@pVerbose= 0
+	,@pVerbose					= @Verbose
 
 print 'Returned Issue Id: ' + cast(@MyIssueId as varchar(200))
 
@@ -616,7 +614,7 @@ exec ctl.[usp_InsertNewIssue]
 	,@pETLExecutionId= 99
 	,@pCreateBy= 'ffortunato'  -- @CurrentUser
 	,@pIssueId = @MyIssueId output
-	,@pVerbose= 0
+	,@pVerbose					= @Verbose
 
 print 'Returned Issue Id: ' + cast(@MyIssueId as varchar(200))
 
@@ -656,7 +654,7 @@ exec ctl.[usp_InsertNewIssue]
 	,@pETLExecutionId= 99
 	,@pCreateBy= 'ffortunato'  -- @CurrentUser
 	,@pIssueId = @MyIssueId output
-	,@pVerbose= 0
+	,@pVerbose					= @Verbose
 
 	print 'Returned Issue Id: ' + cast(@MyIssueId as varchar(200))
 

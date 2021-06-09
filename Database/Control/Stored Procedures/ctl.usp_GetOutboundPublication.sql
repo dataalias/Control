@@ -31,6 +31,7 @@ Date		Author			Description
 --------	-------------	---------------------------------------------------
 20190305	ochowkwale		Initial creation	
 20191017	xli				Adding NextExecutionDtm as a return Parameter
+20210415	ffortunato		feedformat --> SrcFileFormat TAXES!!!
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -104,7 +105,7 @@ begin try
 	BEGIN
 		SELECT SrcPublicationName
 			,SrcFilePath
-			,FeedFormat
+			,SrcFileFormatCode		As FeedFormat  -- This is being renamed for backward compatibility.
 			,NextExecutionDtm
 		FROM ctl.Publication
 		WHERE PublicationCode = @pPublicationCode

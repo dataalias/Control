@@ -26,6 +26,7 @@ CREATE TABLE [pg].[PostingGroupProcessing](
 	[PostingGroupStatusId] [int] NOT NULL,
 	[PGPBatchSeq] [bigint] NOT NULL,
 	[SrcBatchSeq] [bigint] NOT NULL,
+	[ProcessingModeCode] varchar(20) NOT NULL,
 	[DateId] [int] NOT NULL,
 	[StartTime] [datetime] NULL,
 	[EndTime] [datetime] NULL,
@@ -54,6 +55,9 @@ ALTER TABLE [pg].[PostingGroupProcessing] ADD  CONSTRAINT [DF__PostingGroupProce
 GO
 
 ALTER TABLE [pg].[PostingGroupProcessing] ADD  CONSTRAINT [DF__PostingGroupProcessing__SrcBatchSeq__1]  DEFAULT ((1)) FOR [SrcBatchSeq]
+GO
+
+ALTER TABLE [pg].[PostingGroupProcessing] ADD  CONSTRAINT [DF__PostingGroupProcessing__ProcessingModeCode__NORM]  DEFAULT (('NORM')) FOR [ProcessingModeCode]
 GO
 
 ALTER TABLE [pg].[PostingGroupProcessing] ADD  CONSTRAINT [DF__PostingGroupProcessing__DurationChar__0]  DEFAULT ('00:00:00') FOR [DurationChar]
@@ -94,6 +98,9 @@ GO
 
 --ALTER TABLE [pg].[PostingGroupProcessing] CHECK CONSTRAINT [FK_PGP_PostingGroupStatusId]
 --GO
+ALTER TABLE [pg].[PostingGroupProcessing]   ADD  CONSTRAINT [FK_ProcessingMode_PostingGroupProcessing__ProcessingModeCode] FOREIGN KEY([ProcessingModeCode])
+REFERENCES [pg].[RefProcessingMode] ([ProcessingModeCode]) 
+GO
 
 CREATE NONCLUSTERED INDEX [idx_PGP_PGID]
     ON [pg].[PostingGroupProcessing]([PostingGroupId] ASC)
@@ -125,6 +132,7 @@ date:           20181011
 date		author			description
 --------	-------------	---------------------------------------------------
 20181011	ffortunato		initial iteration
+20210413	ffortunato		lots of ints here should be bigints...
 
 ******************************************************************************/
 
@@ -139,11 +147,11 @@ declare
 	,@DistributionId			bigint			= -1
 	,@DistributionStatusId		int				= -1
     ,@DistributionStatusCode	varchar(20)		= 'DN'
-	,@ChildPostingGroupId		int				= -1
+	,@ChildPostingGroupId		bigint				= -1
 	,@PostingGroupProcessingId	bigint			= -1
 	,@PostingGroupId			int				= -1
-	,@PostingGroupBatchId		int				= -1
-	,@PGPBatchSeq				int				= -1
+	,@PostingGroupBatchId		bigint			= -1
+	,@PGPBatchSeq				bigint			= -1
 	,@PostingGroupProcessingStatusId	int		= -1
 	,@PostingGroupProcessingStatusCode	varchar(20) = 'N/A'
     ,@CreatedBy					varchar(30)		= SYSTEM_USER
@@ -160,7 +168,7 @@ declare @Inserted table (
 	,PostingGroupProcessingId			bigint		not null
 	,PostingGroupId						int			not null
 	,PostingGroupBatchId				int			not null
-	,PGPBatchSeq						int			not null
+	,PGPBatchSeq						bigint		not null
 	,PostingGroupProcessingStatusId		int			not null
 	,PostingGroupProcessingStatusCode	varchar(20) not null
 )
@@ -168,8 +176,8 @@ declare @Inserted table (
 declare @AllMyChildren table (
 	 AllMyChildrenId					int identity (1,1)		not null
 	,ChildPostingGroupId				bigint		not null
-	,PostingGroupBatchId				int			not null
-	,PGPBatchSeq						int			not null
+	,PostingGroupBatchId				bigint		not null
+	,PGPBatchSeq						bigint		not null
 	,PostingGroupProcessingStatusId		int			not null
 	,DistributionId						bigint		not null
 )

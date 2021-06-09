@@ -46,7 +46,7 @@ Execute:
 			,@pStepName				= ' Insert some data...'
 			,@pStepDesc				= @StepDescription output
 			,@pStepStatus			= 'Success'
-			,@pDBName				= 'Control'
+			,@pDBName				= 'BPI_DW_STAGE'
 			,@pRecordCount			= 666
 			,@pETLExecutionId		= 12345
 			,@pPathId				= 99

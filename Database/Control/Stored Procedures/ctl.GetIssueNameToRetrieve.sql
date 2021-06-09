@@ -71,7 +71,7 @@ DECLARE	 @Rows					int				= 0
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.GetIssueNamesToRetrieve' + @CRLF +
+			'exec bpi_dw_stage.ctl.GetIssueNamesToRetrieve' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')
