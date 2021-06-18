@@ -47,6 +47,9 @@ BEGIN
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(mm, @pIntervalLength, @CurrentDtm))
 			WHEN 'YRLY'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(yyyy, @pIntervalLength, @CurrentDtm))
+			WHEN 'IMM'
+				THEN 0
+			ELSE	 0
 			END 
 
 	RETURN @pIntervalMinutes

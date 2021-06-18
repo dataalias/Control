@@ -2,7 +2,8 @@
 		 @pPGBId				int				= -1
 		,@pPGId					int				= -1
 		,@pPGBatchSeq			int				= -1
-		,@pIsDataHub			int				= -1
+		--IsDataHub needs to be removed!!
+		--,@pIsDataHub			int				= -1
 		,@pETLExecutionId		int				= -1
 		,@pPathId				int				= -1
 		,@pVerbose				bit				= 0)
@@ -98,22 +99,35 @@ DECLARE	 @Rows					int				= 0
 		,@SSISFolder			varchar(255)	= 'N/A'     
 		,@SSISProject			varchar(255)	= 'N/A'
 		,@SSISPackage			varchar(255)	= 'N/A'
+		,@DataFactoryName		varchar(255)	= 'N/A'
+		,@DataFactoryPipeline	varchar(255)	= 'N/A'
+		,@DataFactoryStatus		varchar(255)	= 'N/A'
 		,@ExecutionString		varchar(2000)	= 'N/A'
 		,@DateId				int				= -1
 --		,@MaxPGPBatchSeq		int				= -1
 		,@CurPGPBatchSeq		int				= -1
 		,@NextPGPBatchSeq		int				= -1
-		,@ExecutingPostingGroupId	int			= -1
+		,@ExecutingPostingGroupId		int		= -1
 		,@ExecutingChildPostingGroupId	int		= -1
 		,@ExecutionId			int				= -1
 		,@ReferenceId			int				= -1
 		,@SSISParameters		udt_SSISPackageParameters
 		,@ObjectType			int				= 30 -- package parameter
-		,@CurrentNextExecutionDtm	datetime	= '1900-01-01 00:00:00.000'
-		,@NextExecutionDtm		datetime		= '1900-01-01 00:00:00.000'
-		,@IntervalCode			varchar(10)		= 'N/A'
+		,@CurrentNextExecutionDtm	datetime	= cast('1900-01-01 00:00:00.000' as datetime)
+		,@NextExecutionDtm		datetime		= cast('1900-01-01 00:00:00.000' as datetime)
+		,@IntervalCode			varchar(20)		= 'N/A'
 		,@IntervalLength		int				= -1
-		,@TriggerType			varchar(20)		= 'Immediate'
+		--,@TriggerType			varchar(20)		= 'Immediate'
+		,@IntervalCodeImmediate	varchar(20)		= 'IMM'
+		,@JobName				varchar(255)	= 'Unknown'
+		,@JobReturnCode			int				= 1 -- 0 (success) or 1 (failure)
+		,@ProcessStatus			varchar(255)	= 'N/A'
+		,@ParentProcessingMethodCode		varchar(20)		= 'UNK'
+		,@ParentProcessingModeCode			varchar(20)		= 'UNK'
+		,@PostingGroupProcessingIdToExecute bigint			= -1
+		,@PostingGroupCodeToExecute			varchar(100)	= 'UNK'
+		,@ExecuteProcessStatus				varchar(20)		= 'ISF' -- Instant start failed
+		,@AllowMultipleInstances			bit				= 0
 
 
 declare @PostingGroupParents	table (
@@ -125,6 +139,8 @@ declare @PostingGroupParents	table (
 		,ParentSeq				bigint		not null default -1
 		,ChildSeq				bigint
 		,PGPBatchSeq			int			not null default -1
+--		,ParentProcessingMethodCode	varchar(20)		Not null default 'UNK'
+--		,ParentProcessingModeCode	varchar(20)		not null default 'UNK'
 )
 
 declare @PostingGroupReady		table (
@@ -194,6 +210,8 @@ begin try
 			,ParentSeq
 			,ChildSeq
 			,PGPBatchSeq
+--			,ParentProcessingMethodCode	
+--			,ParentProcessingModeCode	
 			)
 	select
 			 'N/A' -- @PGStatusReady					as ParentStatusCode
@@ -204,6 +222,8 @@ begin try
 			,PGP.PGPBatchSeq				as ParentSeq
    			,PGP.PGPBatchSeq				as ChildSeq
 			,@pPGBatchSeq
+--			,pg.ProcessingMethodCode
+--			,pg.ProcessingModeCode
 	from     pg.PostingGroupProcessing		  PGP
 	join     pg.RefStatus					  RS 
 	on       RS.StatusId					= PGP.PostingGroupStatusId
@@ -215,7 +235,7 @@ begin try
 	and      PGP.PostingGroupId				= @pPGId  -- Child's posting group.
 	and      PGP.PostingGroupBatchId		= @pPGBId -- Only get data from today's process.
 	and		 PGP.PGPBatchSeq				= @pPGBatchSeq
-	and		 pg.IsActive = 1
+	and		 pg.IsActive					= 1
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
@@ -367,19 +387,24 @@ so other instances of this stored procedure do not run the same processes.
 				 @SSISFolder					= PG.SSISFolder
 				,@SSISProject					= PG.SSISProject
 				,@SSISPackage					= PG.SSISPackage
+				,@DataFactoryName				= PG.DataFactoryName
+				,@DataFactoryPipeline			= PG.DataFactoryPipeline
+				,@JobName						= PG.JobName
 				,@TotalCount					= PGCR.TotalCount
 				,@ReadyCount					= PGCR.ReadyCount
 				,@ExecutingPostingGroupId		= PGCR.PostingGroupId
 				,@ExecutingChildPostingGroupId	= PGCR.ChildPostingGroupId
 				,@CurrentNextExecutionDtm		= PG.NextExecutionDtm
-				,@TriggerType					= PG.TriggerType
+				--,@TriggerType					= PG.TriggerType
 				,@IntervalCode					= PG.IntervalCode
 				,@IntervalLength				= PG.IntervalLength
-		from    @PostingGroupReady		  PGCR
-		join    pg.PostingGroup			  PG
-		on      PG.PostingGroupId		= PGCR.PostingGroupId
-		where   PostingGroupReadyId		= @LoopCount
-		and     TotalCount				= ReadyCount
+				,@ParentProcessingMethodCode	= PG.ProcessingMethodCode
+				,@ParentProcessingModeCode		= PG.ProcessingModeCode
+		from     @PostingGroupReady				  PGCR
+		join     PG.PostingGroup				  PG
+		on       PG.PostingGroupId				= PGCR.PostingGroupId
+		where    PostingGroupReadyId			= @LoopCount
+		and      TotalCount						= ReadyCount
 
 			-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
@@ -426,36 +451,51 @@ so other instances of this stored procedure do not run the same processes.
 					,[DateId]
 					,PGPBatchSeq
 					,SrcBatchSeq
+					,ProcessingModeCode
 					,[CreatedDtm]
 					,[CreatedBy])
 			select 
-					PostingGroupId
+					 pg.PostingGroupId
 					,@pPGBId
 					,@PGStatusReadyId
 					,@DateId
 					,@NextPGPBatchSeq 
 					,-1 --@pSrcBatchSeq
+					,pg.ProcessingModeCode  --maybe use this :: @ParentProcessingMethodCode $$$$
 					,@CreatedDtm
 					,@CreatedBy
-			from	pg.PostingGroup		  pg
-			where	pg.IsActive			= 1
-			and		pg.PostingGroupId	= @ExecutingPostingGroupId
-
+			from	pg.PostingGroup						  pg
+			where	pg.IsActive							= 1
+			and		pg.PostingGroupId					= @ExecutingPostingGroupId
 			and exists (
 				select	 top 1 1 
-				from	 pg.PostingGroupProcessing	  pgp
-				where	 pgp.PostingGroupBatchId	= @pPGBId
-				and		 pgp.PostingGroupId			= @ExecutingChildPostingGroupId
-				and		 pgp.PGPBatchSeq			= @NextPGPBatchSeq )
+				from	 pg.PostingGroupProcessing		  pgp
+				where	 pgp.PostingGroupBatchId		= @pPGBId
+				and		 pgp.PostingGroupId				= @ExecutingChildPostingGroupId
+				and		 pgp.PGPBatchSeq				= @NextPGPBatchSeq )
+
+			select	 @Rows								= @@ROWCOUNT 
+
+			select	 @PostingGroupProcessingIdToExecute = pgp.PostingGroupProcessingId
+					,@PostingGroupCodeToExecute			= pg.PostingGroupCode
+			from	 pg.PostingGroupProcessing			  pgp
+			join	 pg.PostingGroup					  pg
+			on		 pg.PostingGroupId					= pgp.PostingGroupId
+			where	 pgp.PostingGroupId					= @ExecutingPostingGroupId
+			and		 pgp.PostingGroupBatchId			= @pPGBId
+			and		 pgp.PostingGroupStatusId			= @PGStatusReadyId
+			and		 pgp. PGPBatchSeq					= @NextPGPBatchSeq
 
 			-- Upon completion of the step, log it!
 			select	 @PreviousDtm		= @CurrentDtm
-					,@Rows				= @@ROWCOUNT 
+
 			select	 @CurrentDtm		= getdate()
 					,@JSONSnippet		= '{"@CurPGPBatchSeq":"'	+ cast(isnull(@CurPGPBatchSeq,-1) as varchar(20)) +
 										'","@NextPGPBatchSeq":"'	+ cast(isnull(@NextPGPBatchSeq,-1)  as varchar(20))+
 										'","@pPGBId":"'				+ cast(isnull(@pPGBId,-1) as varchar(20)) +
 										'","@DateId":"'				+ cast(isnull(@DateId,-1) as varchar(20)) +
+										'","@PostingGroupProcessingIdToExecute":"'	+ cast(isnull(@PostingGroupProcessingIdToExecute,-1) as varchar(20)) +
+										'","@ProcessingMethodCode":"'				+ isnull(@ParentProcessingMethodCode,'Unknown') +
 										'","@CreatedDtm":"'			+ cast(isnull(@CreatedDtm,'01-jan-1900') as varchar(20)) +
 										'","@CreatedBy":"'			+ isnull(@CreatedBy,'Unknown') + '"}'
 
@@ -468,18 +508,44 @@ so other instances of this stored procedure do not run the same processes.
 			select	 @JSONSnippet		= NULL
 
 			-- Move to the next item in loop if it is not triggered immediately and NextExecutionDtm is greater than Current Date
-			IF (@TriggerType = 'Interval' AND @CurrentNextExecutionDtm > @CurrentDtm)
+			--IF (@TriggerType = 'Interval' AND @CurrentNextExecutionDtm > @CurrentDtm)
+			IF (@IntervalCode <> @IntervalCodeImmediate AND @CurrentNextExecutionDtm > @CurrentDtm)
 			BEGIN
+
+				select	 @StepName			= 'Should Posting Group Run'
+						,@StepNumber		= @StepNumber + 0
+						,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+						,@StepOperation		= 'if'
+						,@StepDesc			= 'Determine if the posting group should run or if it needs to wait for a bit.'
+
 				select	 @LoopCount			= @LoopCount + 1
-				,@SSISFolder		= 'N/A'
-				,@SSISProject		= 'N/A'
-				,@SSISPackage		= 'N/A'
-				,@TotalCount		= -1
-				,@ReadyCount		= -2
-				,@ExecutingPostingGroupId = -1
-				,@ExecutingChildPostingGroupId = -1
-				,@CurPGPBatchSeq	= -1
-				,@NextPGPBatchSeq	= -1
+						,@SSISFolder		= 'N/A'
+						,@SSISProject		= 'N/A'
+						,@SSISPackage		= 'N/A'
+						,@TotalCount		= -1
+						,@ReadyCount		= -2
+						,@ExecutingPostingGroupId		= -1
+						,@ExecutingChildPostingGroupId	= -1
+						,@CurPGPBatchSeq	= -1
+						,@NextPGPBatchSeq	= -1
+
+				select	 @PreviousDtm		= @CurrentDtm
+
+				select	 @CurrentDtm		= getdate()
+						,@JSONSnippet		= '{"@NextPGPBatchSeq":"'	+ cast(isnull(@NextPGPBatchSeq,-1) as varchar(20)) +
+											'","@PGStatusReady":"'		+ cast(isnull(@PGStatusReady,-1)  as varchar(20))+
+											'","@pPGBId":"'				+ cast(isnull(@pPGBId,-1) as varchar(20)) +
+											'","@IntervalCode":"'		+ cast(isnull(@IntervalCode,-1)  as varchar(20))+
+											'","@CurrentNextExecutionDtm":"'+ cast(isnull(@CurrentNextExecutionDtm,-1) as varchar(20)) +
+											'","@CurrentDtm":"'				+ cast(isnull(@CurrentDtm,-1) as varchar(20)) +
+											'","@ExecutingPostingGroupId":"'+ cast(isnull(@ExecutingPostingGroupId,-1) as varchar(20)) + '"}'
+				exec audit.usp_InsertStepLog
+						 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+						,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+						,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+						,@pVerbose
+
+				select	 @JSONSnippet		= NULL
 				
 				CONTINUE
 			END
@@ -501,21 +567,29 @@ so other instances of this stored procedure do not run the same processes.
 				begin
 					rollback transaction PostingGroup
 				end
-			else
+			else -- Status for record is set to ready.
 				begin 						
 					--Find out the Next Expected Execution Runtime for PostingGroup
-					UPDATE pg.PostingGroup
-					SET NextExecutionDtm = @NextExecutionDtm
-					WHERE PostingGroupId = @ExecutingPostingGroupId
+					UPDATE	pg.PostingGroup
+					SET		NextExecutionDtm	= @NextExecutionDtm
+					WHERE	PostingGroupId		= @ExecutingPostingGroupId
 
 					--If it needs to be fired immediately
-					IF (@TriggerType = 'Immediate')
+					IF (@IntervalCode = @IntervalCodeImmediate)
 					BEGIN
+						select	 @StepName			= 'Queue Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'update'
+								,@StepDesc			= 'Set the posting group to queued.'
+
 						update	 pgp
-						set		 pgp.PostingGroupStatusId = (select   StatusId 
-																from     pg.RefStatus
-																where    StatusCode		= @PGStatusQueued)
+						set		 pgp.PostingGroupStatusId = (	select	StatusId 
+																from    pg.RefStatus
+																where   StatusCode		= @PGStatusQueued)
 								,StartTime					= @CreatedDtm
+								,pgp.ModifiedBy				= @CreatedBy
+								,pgp.ModifiedDtm			= @CurrentDtm
 						from	 pg.PostingGroupProcessing	  pgp
 						join	 pg.RefStatus				  rs
 						on		 pgp.PostingGroupStatusId	= rs.StatusId
@@ -523,79 +597,14 @@ so other instances of this stored procedure do not run the same processes.
 						and		 pgp.PostingGroupId			= @ExecutingPostingGroupId
 						and		 rs.StatusCode				= @PGStatusReady
 						and		 pgp.PGPBatchSeq			= @NextPGPBatchSeq
-					END
-
-					--Update all the PostingGroup records in status PI for the PostingGroup which is not triggered 
-					--immediately and NextExecutionDtm is in the past
-					IF (@TriggerType = 'Interval' AND @CurrentNextExecutionDtm <= @CurrentDtm)
-					BEGIN
-						update	 pgp
-						set		 pgp.PostingGroupStatusId = (select   StatusId 
-															 from     pg.RefStatus
-															 where    StatusCode		= @PGStatusQueued)
-								,StartTime					= @CreatedDtm
-						from	 pg.PostingGroupProcessing	  pgp
-						join	 pg.RefStatus				  rs
-						on		 pgp.PostingGroupStatusId	= rs.StatusId
-						where	 pgp.PostingGroupId			= @ExecutingPostingGroupId
-						and		 rs.StatusCode				= @PGStatusReady
-						and		 pgp.CreatedDtm				> DATEADD(mi,DATEDIFF(mi,@CurrentNextExecutionDtm,@NextExecutionDtm) * -1,@CurrentNextExecutionDtm)
-					END
-					commit transaction PostingGroup
-
-					IF(@pIsDataHub <> 2)
-					BEGIN
-						-- Note when calling the next package Batch and Posting Group must be sent as well.
-						select	 @StepName			= 'Execute Posting Group'
-								,@StepNumber		= @StepNumber + 0
-								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
-								,@StepOperation		= 'execute'
-								,@StepDesc			= 'Execute SSIS Package: ' + @SSISPackage
-
-					-- pretend execution
-					/*
-					print 'execute '	+ isnull(@SSISPackage, 'BAD RESULT') 
-										+ ' PostingGroupBatchId:='	+ cast(@pPGBId as varchar) 
-										+ ' ParentPostingGroupId='	+ cast(@ExecutingPostingGroupId as varchar(20))
-										+ ' ChildPostingGroupId='	+ cast(@pPGId as varchar(20))
-										+ ' Cur Sequence Number='	+ cast(@CurPGPBatchSeq as varchar(20))
-										+ ' Next Sequence Number='	+ cast(@NextPGPBatchSeq as varchar(20))
-										+ ' @SSISProject='	+ @SSISProject
-										+ ' @ServerName='	+ @ServerName
-										+ ' @SSISFolder='	+ @SSISFolder
-										+ ' @SSISPackage='	+ @SSISPackage
-					*/
-
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupId',		@ExecutingPostingGroupId)
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchSeq',	@NextPGPBatchSeq)
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchId',	@pPGBId)
-
-						exec pg.usp_ExecuteSSISPackage 
-								 @pSSISProject		= @SSISProject
-								,@pServerName		= @ServerName
-								,@pSSISFolder		= @SSISFolder
-								,@pSSISPackage		= @SSISPackage
-								,@pSSISParameters	= @SSISParameters
-								,@pETLExecutionId	= @pETLExecutionId
-								,@pPathId			= @pPathId
-								,@pVerbose			= @pVerbose
 
 						select	 @PreviousDtm		= @CurrentDtm
-								,@Rows				= @@ROWCOUNT 
+
 						select	 @CurrentDtm		= getdate()
-								,@JSONSnippet		= '{"@SSISFolder":"'	+ @SSISFolder  + '",'
-													+  '"@SSISProject":"'	+ @SSISProject + '",'
-													+  '"@SSISPackage":"'	+ @SSISPackage + '",'
-													+  '"@TotalCount":"'	+ cast(@TotalCount as varchar(20)) + '",'
-													+  '"@ReadyCount":"'	+ cast(@ReadyCount as varchar(20)) + '",'
-													+  '"@PostingGroupBatchId":"'	+ cast(@pPGBId as varchar(20)) + '",'
-													+  '"@PGPBatchSeq":"'	+ cast(@CurPGPBatchSeq as varchar(20)) + '",'
-													+  '"@ExecutingPostingGroupId Parent":"'+ cast(@ExecutingPostingGroupId as varchar(20))  + '",'
-													+  '"@ChildPostingGroupId Child":"'+ cast(@pPGId as varchar(20))  + '",'
-													+  '"@CurPGPBatchSeq Parent":"'+ cast(@CurPGPBatchSeq as varchar(20))  + '",'
-													+  '"@NextPGPBatchSeq Child":"'+ cast(@NextPGPBatchSeq as varchar(20))  + '",'
-													+  '"@ExecutionId":"'	+ cast(@ExecutionId as varchar(20)) + '",'
-													+  '"@ReferenceId":"'	+ cast(@ReferenceId as varchar(20))+ '"}' 	
+								,@JSONSnippet		= '{"@NextPGPBatchSeq":"'	+ cast(isnull(@NextPGPBatchSeq,-1) as varchar(20)) +
+													'","@PGStatusReady":"'		+ cast(isnull(@PGStatusReady,-1)  as varchar(20))+
+													'","@pPGBId":"'				+ cast(isnull(@pPGBId,-1) as varchar(20)) +
+													'","@ExecutingPostingGroupId":"'	+ cast(isnull(@ExecutingPostingGroupId,-1) as varchar(20)) + '"}'
 
 						exec audit.usp_InsertStepLog
 								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -604,7 +613,113 @@ so other instances of this stored procedure do not run the same processes.
 								,@pVerbose
 
 						select	 @JSONSnippet		= NULL
-					END
+					END -- IF (@IntervalCode = @IntervalCodeImmediate)
+
+					--Update all the PostingGroup records in status PI for the PostingGroup which is not triggered 
+					--immediately and NextExecutionDtm is in the past
+					--IF (@TriggerType = 'Interval' AND @CurrentNextExecutionDtm <= @CurrentDtm)
+					ELSE IF (@IntervalCode <> @IntervalCodeImmediate AND @CurrentNextExecutionDtm <= @CurrentDtm)
+					BEGIN
+						select	 @StepName			= 'Queue Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'update'
+								,@StepDesc			= 'Set the posting group to queued.'
+
+						update	 pgp
+						set		 pgp.PostingGroupStatusId = (select   StatusId 
+															 from     pg.RefStatus
+															 where    StatusCode		= @PGStatusQueued)
+								,StartTime					= @CreatedDtm
+								,pgp.ModifiedBy				= @CreatedBy
+								,pgp.ModifiedDtm			= @CurrentDtm
+						from	 pg.PostingGroupProcessing	  pgp
+						join	 pg.RefStatus				  rs
+						on		 pgp.PostingGroupStatusId	= rs.StatusId
+						where	 pgp.PostingGroupId			= @ExecutingPostingGroupId
+						and		 rs.StatusCode				= @PGStatusReady
+						and		 pgp.CreatedDtm				> DATEADD(mi,DATEDIFF(mi,@CurrentNextExecutionDtm,@NextExecutionDtm) * -1,@CurrentNextExecutionDtm)
+
+						select	 @PreviousDtm		= @CurrentDtm
+
+						select	 @CurrentDtm		= getdate()
+								,@JSONSnippet		= '{"@NextPGPBatchSeq":"'	+ cast(isnull(@NextPGPBatchSeq,-1) as varchar(20)) +
+													'","@PGStatusReady":"'		+ cast(isnull(@PGStatusReady,-1)  as varchar(20))+
+													'","@pPGBId":"'				+ cast(isnull(@pPGBId,-1) as varchar(20)) +
+													'","@ExecutingPostingGroupId":"'	+ cast(isnull(@ExecutingPostingGroupId,-1) as varchar(20)) + '"}'
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+
+						select	 @JSONSnippet		= NULL
+					END  -- (@IntervalCode <> @IntervalCodeImmediate AND @CurrentNextExecutionDtm <= @CurrentDtm)
+					ELSE 
+					BEGIN -- Just logging the failure.
+						/*
+						print 'WE FAILED'
+						print 'IntervalCode: ' +isnull(cast(@IntervalCode as varchar(200)),'NULL')
+						print '@IntervalCodeImmediate: ' +isnull(cast(@IntervalCodeImmediate as varchar(200)),'NULL')
+						print '@CurrentNextExecutionDtm: ' +isnull(cast(@CurrentNextExecutionDtm as varchar(200)),'NULL')
+						print '@CurrentDtm: ' +isnull(cast(@CurrentDtm as varchar(200)),'NULL')
+						*/
+
+						select	 @StepName			= 'Queue Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'error'
+								,@StepDesc			= 'Posting Group Failed to Queue.'
+
+						-- Do nothing just log.
+						-- Upon completion of the step, log it!
+						select	 @PreviousDtm		= @CurrentDtm
+								,@StepStatus		= 'failure'
+
+						select	 @CurrentDtm		= getdate()
+								,@JSONSnippet		= '{"IntervalCode: "' + isnull(cast(@IntervalCode as varchar(200)),'NULL') +
+													'","@IntervalCodeImmediate":" ' + isnull(cast(@IntervalCodeImmediate as varchar(200)),'NULL') +
+													'","@CurrentNextExecutionDtm":" ' + isnull(cast(@CurrentNextExecutionDtm as varchar(200)),'NULL') +
+													'","@NextPGPBatchSeq":"'	+ cast(isnull(@NextPGPBatchSeq,-1) as varchar(20)) +
+													'","@PGStatusReady":"'		+ cast(isnull(@PGStatusReady,-1)  as varchar(20))+
+													'","@pPGBId":"'				+ cast(isnull(@pPGBId,-1) as varchar(20)) +
+													'","@ExecutingPostingGroupId":"'	+ cast(isnull(@ExecutingPostingGroupId,-1) as varchar(20)) + 
+													'","@CurrentDtm":" ' + isnull(cast(@CurrentDtm as varchar(200)),'NULL')+ '"}'
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+
+						select	 @JSONSnippet		= NULL
+								,@StepStatus		= 'success'
+					
+					END -- ELSE
+					commit transaction PostingGroup
+
+					print 'exec [pg].[usp_ExecuteProcess]
+						 @pPostingGroupProcessingId				= ' + isnull(cast(@PostingGroupProcessingIdToExecute as varchar(20)),'NULL') + @CRLF +
+						',@pIssueId								= -1' + @CRLF +
+						',@pProcessStatus						= ' + @ProcessStatus +' output' +  @CRLF 
+
+					exec [pg].[usp_ExecuteProcess]
+						 @pPostingGroupProcessingId				= @PostingGroupProcessingIdToExecute
+						,@pIssueId								= -1 -- No issue date neeeds to be sent.
+						/*
+						,@pProcessingMethodCode					= @ParentProcessingMethodCode
+						,@pSSISFolder							= @SSISFolder
+						,@pSSISProject							= @SSISProject
+						,@pSSISPackage							= @SSISPackage
+						,@pSSISParameters						= @SSISParameters
+						,@pDataFactoryName						= @DataFactoryName
+						,@pDataFactoryPipeline					= @DataFactoryPipeline
+						,@pSQLJobName							= @JobName
+						*/
+						,@pAllowMultipleInstances				= @AllowMultipleInstances
+						,@pExecuteProcessStatus					= @ExecuteProcessStatus	output
+
 				end
 		end try
 
@@ -613,6 +728,7 @@ so other instances of this stored procedure do not run the same processes.
 			-- still want to fire other parent jobs so allow the loop to continue.
 			-- Note: the loop will continue even if 1 job fails to fire
 			--       each job that could fire will be attempted.
+			-- why is this a throw and not a continue...?? doesn't lign up with comment. ^
 			select 	 @PreviousDtm		= @CurrentDtm
 					,@ErrNum			= @@ERROR
 					,@ErrMsg			= ERROR_MESSAGE()
@@ -630,16 +746,20 @@ so other instances of this stored procedure do not run the same processes.
 			;throw	 @ErrNum, @ErrMsg, 1
 		end catch
 
-		select	 @LoopCount			= @LoopCount + 1
-				,@SSISFolder		= 'N/A'
-				,@SSISProject		= 'N/A'
-				,@SSISPackage		= 'N/A'
-				,@TotalCount		= -1
-				,@ReadyCount		= -2
-				,@ExecutingPostingGroupId = -1
-				,@ExecutingChildPostingGroupId = -1
-				,@CurPGPBatchSeq	= -1
-				,@NextPGPBatchSeq	= -1
+		select	 @LoopCount							= @LoopCount + 1
+				,@SSISFolder						= 'N/A'
+				,@SSISProject						= 'N/A'
+				,@SSISPackage						= 'N/A'
+				,@DataFactoryName					= 'N/A'
+				,@DataFactoryPipeline				= 'N/A'
+				,@TotalCount						= -1
+				,@ReadyCount						= -2
+				,@ExecutingPostingGroupId			= -1
+				,@ExecutingChildPostingGroupId		= -1
+				,@CurPGPBatchSeq					= -1
+				,@NextPGPBatchSeq					= -1
+				,@PostingGroupProcessingIdToExecute	= -1
+				,@PostingGroupCodeToExecute			= 'UNK'
 	end -- while loop
 
 
@@ -773,4 +893,174 @@ Date		Author			Description
 
 202011118	ffortunato		small fix to step logging.
 
+20210212	ffortunato		Ability to call SQL Server agent job.
+							Adding Mode Code so we know if running NORM, HIST.
+
+20210407	ffortunato		This thing should be able to call data factory too.
+
+20210413	ffortunato		Generic call to processes.
+
+20215026	ffortunato		BIG ELSE.
 ******************************************************************************/
+
+
+
+--leaving this here for postarity for a bit.
+/*
+
+					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupId',		@ExecutingPostingGroupId)
+					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchSeq',	@NextPGPBatchSeq)
+					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchId',	@pPGBId)
+
+					IF (@ParentProcessingMethodCode = 'SSIS')
+					BEGIN
+						-- Note when calling the next package Batch and Posting Group must be sent as well.
+						select	 @StepName			= 'Execute Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'execute'
+								,@StepDesc			= 'Execute SSIS Package: ' + @SSISPackage
+
+					-- pretend execution   COMMENT THIS print OUT WHEN YOU WANT TO KICK THINGS OFF.
+					
+					print 'execute '	+ isnull(@SSISPackage, 'BAD RESULT') 
+										+ ' PostingGroupBatchId:='	+ cast(@pPGBId as varchar) 
+										+ ' ParentPostingGroupId='	+ cast(@ExecutingPostingGroupId as varchar(20))
+										+ ' ChildPostingGroupId='	+ cast(@pPGId as varchar(20))
+										+ ' Cur Sequence Number='	+ cast(@CurPGPBatchSeq as varchar(20))
+										+ ' Next Sequence Number='	+ cast(@NextPGPBatchSeq as varchar(20))
+										+ ' @SSISProject='	+ @SSISProject
+										+ ' @ServerName='	+ @ServerName
+										+ ' @SSISFolder='	+ @SSISFolder
+										+ ' @SSISPackage='	+ @SSISPackage
+					
+
+						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupId',		@ExecutingPostingGroupId)
+						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchSeq',	@NextPGPBatchSeq)
+						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchId',	@pPGBId)
+						
+						--insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupMethod',	@PostingGroupMethod)    $$$$ NEver pass method becuase it know what was called
+						--insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupMode',		@PostingGroupMode)  -- Passing mode to determin how I should run. This can be picked up by the ETL instead.
+/*
+						exec pg.usp_ExecuteSSISPackage 
+								 @pSSISProject		= @SSISProject
+								,@pServerName		= @ServerName
+								,@pSSISFolder		= @SSISFolder
+								,@pSSISPackage		= @SSISPackage
+								,@pSSISParameters	= @SSISParameters
+								,@pETLExecutionId	= @pETLExecutionId
+								,@pPathId			= @pPathId
+								,@pVerbose			= @pVerbose
+*/
+						select	 @PreviousDtm		= @CurrentDtm
+								,@Rows				= @@ROWCOUNT 
+						select	 @CurrentDtm		= getdate()
+								,@JSONSnippet		= '{"@SSISFolder":"'	+ @SSISFolder  + '",'
+													+  '"@SSISProject":"'	+ @SSISProject + '",'
+													+  '"@SSISPackage":"'	+ @SSISPackage + '",'
+													+  '"@TotalCount":"'	+ cast(@TotalCount as varchar(20)) + '",'
+													+  '"@ReadyCount":"'	+ cast(@ReadyCount as varchar(20)) + '",'
+													+  '"@PostingGroupBatchId":"'	+ cast(@pPGBId as varchar(20)) + '",'
+													+  '"@PGPBatchSeq":"'	+ cast(@CurPGPBatchSeq as varchar(20)) + '",'
+													+  '"@ExecutingPostingGroupId Parent":"'+ cast(@ExecutingPostingGroupId as varchar(20))  + '",'
+													+  '"@ChildPostingGroupId Child":"'+ cast(@pPGId as varchar(20))  + '",'
+													+  '"@CurPGPBatchSeq Parent":"'+ cast(@CurPGPBatchSeq as varchar(20))  + '",'
+													+  '"@NextPGPBatchSeq Child":"'+ cast(@NextPGPBatchSeq as varchar(20))  + '",'
+													+  '"@ExecutionId":"'	+ cast(@ExecutionId as varchar(20)) + '",'
+													+  '"@ReferenceId":"'	+ cast(@ReferenceId as varchar(20))+ '"}' 	
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+
+						select	 @JSONSnippet		= NULL
+					END -- Call SSIS Package
+					ELSE IF (@ParentProcessingMethodCode = 'ADFP')    --$$$$ Get me in coach.
+					begin
+
+						-- Note when calling the next package Batch and Posting Group must be sent as well.
+						select	 @StepName			= 'Execute Posting Group ADFP'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'execute'
+								,@StepDesc			= 'Execute Azure Data Factory Pipeline: '
+
+						print 'execute  [pg].[usp_ExecuteDataFactory]'										+ @CRLF
+										+ ' @pDataFactoryName		= '''	+ @DataFactoryName		+ ''''	+ @CRLF
+										+ ' @pDataFactoryPipeline	= '''	+ @DataFactoryPipeline	+ ''''	+ @CRLF
+										+ ' @pStatus				= @DataFactoryStatus  output'			+ @CRLF
+										+ ' PostingGroupBatchId:'	+ cast(@pPGBId as varchar) 
+										+ ' ParentPostingGroupId:'	+ cast(@ExecutingPostingGroupId as varchar(20))
+										+ ' ChildPostingGroupId:'	+ cast(@pPGId as varchar(20))
+										+ ' Cur Sequence Number:'	+ cast(@CurPGPBatchSeq as varchar(20))
+										+ ' Next Sequence Number:'	+ cast(@NextPGPBatchSeq as varchar(20))
+/*
+						-- We are assuming that we can get the posting group processing id from within the job.
+						EXEC	 [pg].[usp_ExecuteDataFactory] 
+								 @pDataFactoryName		= @DataFactoryName
+								,@pDataFactoryPipeline	= @DataFactoryPipeline
+								,@pStatus				= @DataFactoryStatus output
+								,@pETLExecutionId		= -1
+								,@pPathId				= -1
+								,@pVerbose				= 0
+*/
+						-- Upon completion of the step, log it!
+						select	 @PreviousDtm		= @CurrentDtm
+								,@Rows				= @@ROWCOUNT 
+						select	 @CurrentDtm		= getdate()
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+
+					end -- Execute a SQL Job
+					ELSE IF (@ParentProcessingMethodCode = 'SQLJ')    --$$$$ Get me in coach.
+					begin
+
+						-- Note when calling the next package Batch and Posting Group must be sent as well.
+						select	 @StepName			= 'Execute Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'execute'
+								,@StepDesc			= 'Execute SQL Server Job: ' + @JobName
+
+						-- We are assuming that we can get the posting group processing id from within the job.
+						EXEC	 @JobReturnCode		= msdb.dbo.sp_start_job 
+									@job_name		= @JobName
+
+						-- Upon completion of the step, log it!
+						select	 @PreviousDtm		= @CurrentDtm
+								,@Rows				= @@ROWCOUNT 
+						select	 @CurrentDtm		= getdate()
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+
+					end -- Execute a SQL Job
+					else -- Unable to find anything to run.
+					begin
+						select	 @StepName			= 'Unable to Execute Posting Group'
+								,@StepNumber		= @StepNumber + 0
+								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+								,@StepOperation		= 'warning'
+								,@StepDesc			= 'Unknown execution type' + @JobName
+
+						-- Upon completion of the step, log it!
+						select	 @PreviousDtm		= @CurrentDtm
+								,@Rows				= @@ROWCOUNT 
+						select	 @CurrentDtm		= getdate()
+
+						exec audit.usp_InsertStepLog
+								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+								,@pVerbose
+					end -- Bad else
+*/

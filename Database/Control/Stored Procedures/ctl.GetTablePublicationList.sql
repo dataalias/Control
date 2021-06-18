@@ -42,13 +42,16 @@ Date		Author			Description
 20180906	ffortunato		Code validation changes, checking data types.
 20180924	ffortunato		Adding IL to a success status to pull new data.
 20190812	ochowkwale		Compatibility with azure data factory
+20210121	ochowkwale		Making Issue Retry as a part of Processing IssueIds
+20210413	ffortunato		IsDataHub is going back to a bit. 
+							Correcting where clauses.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
 --  Declarations
 -------------------------------------------------------------------------------
 
-declare	 @Rows					int		= 0
+declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -59,7 +62,7 @@ declare	 @Rows					int		= 0
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(50)	= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@CurrentUser			varchar(256)	= CURRENT_USER
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
@@ -70,7 +73,6 @@ declare	 @Rows					int		= 0
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
-
 		,@MaxIssueId			bigint			= -1
 		,@MidnightCurrentDay	datetime
 
@@ -129,7 +131,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
-			'exec Control.ctl.GetTablePublicationList' + @CRLF +
+			'exec bpi_dw_stage.ctl.GetTablePublicationList' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')
@@ -164,7 +166,7 @@ begin try
 	on		 pbr.PublisherId	= pbn.PublisherId
 	where	 rs.StatusCode		in ('IC','IA','IN','IL')
 	and		 pbn.IsActive		= 1
-	and		 pbn.IsDataHub		IN (1,2)
+	and		 pbn.IsDataHub		= 1	 -- IN (1,2)
 	and		 pbn.PublicationCode  = @pPublicationCode
 	group by iss.PublicationId
 
@@ -189,7 +191,7 @@ begin try
 	on		 pbr.PublisherId	= pbn.PublisherId
 	where	 rs.StatusCode		in ('IF')
 	and		 pbn.IsActive		= 1
-	and		 pbn.IsDataHub		IN (1,2)
+	and		 pbn.IsDataHub		= 1 -- IN (1,2)
 	and		 pbn.PublicationCode  = @pPublicationCode
 	group by iss.PublicationId
 	
@@ -203,7 +205,7 @@ begin try
 
 	select	 @MaxIssueId		= -1
 
-	-- Get all the latest failed table issue records.
+	-- Get all the latest processing table issue records.
 	select	 @MaxIssueId		= max(iss.IssueId)
 	from	 ctl.Issue			  iss
 	join	 ctl.RefStatus		  rs
@@ -212,9 +214,9 @@ begin try
 	on		 pbn.PublicationId	= iss.PublicationId
 	join	 ctl.Publisher		  pbr
 	on		 pbr.PublisherId	= pbn.PublisherId
-	where	 rs.StatusCode		in ('IP','IS')
+	where	 rs.StatusCode		in ('IP','IS','IR')
 	and		 pbn.IsActive		= 1
-	and		 pbn.IsDataHub		IN (1,2)
+	and		 pbn.IsDataHub		= 1 -- IN (1,2)
 	and		 pbn.PublicationCode  = @pPublicationCode
 	group by iss.PublicationId
 
@@ -273,7 +275,7 @@ begin try
 	on		 pbr.PublisherId	= pbn.PublisherId
 	join	 ctl.RefInterval	  ri
 	on		 pbn.IntervalCode	= ri.IntervalCode
-	where	 pbn.IsDataHub IN (1,2)
+	where	 pbn.IsDataHub = 1--IN (1,2)
 	and		 pbn.IsActive = 1
 	and		 pbn.PublicationCode = @pPublicationCode
 

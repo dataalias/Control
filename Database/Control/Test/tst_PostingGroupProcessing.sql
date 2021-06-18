@@ -10,6 +10,16 @@ Purpose:        Series of test cases for posting groups. This series of scripts
 				and the associated dim and fact loads should be in a state of 
 				PC complete.
 
+				01) Script Cleans up previous run.
+				10) script builds the assoicated posting groups for the loaded files.
+				20) script builds the assoicated posting groups for the down stream processes (DIM, FACT and SQL Job loads).
+				30) script builds the dependencies between each of the posting groups children and parents. 
+					(When Child processes complete the Partent process is kicked off.)
+				40) script kicks off round 1 of processing. Using first round of loaded files (from previous script)
+				50) script kicks off round 2 of file loads
+				60) script kicks off round 2 of posting group processing. Using second round of loaded files (from this script 50)
+
+
 Parameters:     The parameters for this procedure are those from the posting 
 
   ,@Verbose     
@@ -36,6 +46,7 @@ Date      Author         Description
 						 coded ids.
 20180921  ffortunato     final updates for second round of processes to fire.
 20201201  ffortunato     Adding cour2 file to complete.
+20210325  ffortunato     FeedFOrmat --> FileFormatCode
 ******************************************************************************/
 
 
@@ -44,22 +55,23 @@ Date      Author         Description
 -------------------------------------------------------------------------------
 -- Verbose Helps dtermin how much output you want to see from the 
 -- test process.
-
+/*
 use Control
 go
-
+*/
 -- Cleanup
 
 /*
-
-select top 1000 * from   [pg].[PostingGroupProcessing]
-select top 1000 * from    [pg].[PostingGroupProcessingStatus]
-select top 1000 * from    [pg].[PostingGroupDependency]
-select top 1000 * from     [pg].[PostingGroupBatch] 
-select top 1000 * from     [pg].[PostingGroup] 
-select top 1000 * from     [pg].refstatus
+select top 1000 * from   [pg].[PostingGroup]  order by 1 asc 
+select top 1000 * from   [pg].[PostingGroupProcessing] order by 1 asc 
+select top 1000 * from   [pg].[PostingGroupProcessingStatus]
+select top 1000 * from   [pg].[PostingGroupDependency]
+select top 1000 * from   [pg].[PostingGroupBatch] 
+select top 1000 * from   [pg].refstatus
 
 */
+
+-- 01) Script cleans up previous run.
 
 delete PGP
 from  [pg].[PostingGroupProcessing] PGP
@@ -72,7 +84,8 @@ where PG.PostingGroupCode in (
 ,'PUBR02-SUBR01-PUBN03-COUR'
 ,'TST-ACCT-ASSG-DIM-LOAD'
 ,'TST-ACCT-ASSG-FACT-LOAD'
-,'TST-COUR-FACT-LOAD')
+,'TST-COUR-FACT-LOAD'
+,'TST-SQL-JOB-EXEC')
 
 
 delete PGD
@@ -86,7 +99,8 @@ where PG.PostingGroupCode in (
 ,'PUBR02-SUBR01-PUBN03-COUR'
 ,'TST-ACCT-ASSG-DIM-LOAD'
 ,'TST-ACCT-ASSG-FACT-LOAD'
-,'TST-COUR-FACT-LOAD')
+,'TST-COUR-FACT-LOAD'
+,'TST-SQL-JOB-EXEC')
 
 delete PGD
 from [pg].[PostingGroupDependency]PGD
@@ -99,7 +113,8 @@ where PG.PostingGroupCode in (
 ,'PUBR02-SUBR01-PUBN03-COUR'
 ,'TST-ACCT-ASSG-DIM-LOAD'
 ,'TST-ACCT-ASSG-FACT-LOAD'
-,'TST-COUR-FACT-LOAD')
+,'TST-COUR-FACT-LOAD'
+,'TST-SQL-JOB-EXEC')
 
 
 delete pg.PostingGroup 
@@ -110,7 +125,8 @@ where PostingGroupCode in (
 ,'PUBR02-SUBR01-PUBN03-COUR'
 ,'TST-ACCT-ASSG-DIM-LOAD'
 ,'TST-ACCT-ASSG-FACT-LOAD'
-,'TST-COUR-FACT-LOAD')
+,'TST-COUR-FACT-LOAD'
+,'TST-SQL-JOB-EXEC')
 
 print 'Clean Up complete'
 
@@ -198,6 +214,7 @@ end
 */
 
 -------------------------------------------------------------------------------
+-- 10) Create Posting Group records.
 -- Create domain data specific to posting groups.
 -- These are the inital connections of publications to an associated posting group.
 -- There are the data staged from data hub.
@@ -216,9 +233,10 @@ end
 				 @pCode			= 'PUBR01-SUBR01-PUBN01-ACCT'		
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 01 Account'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'				
 				,@pInterval		= 'DLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN01-ACCT.dtsx'	
@@ -238,9 +256,10 @@ end
 				 @pCode			= 'PUBR01-SUBR01-PUBN02-ASSG'		
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 02 Assignment'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'								
 				,@pInterval		= 'WKLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN02-ASSG.dtsx'	
@@ -261,9 +280,10 @@ end
 				 @pCode			= 'PUBR01-SUBR02-PUBN02-ASSG'		
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 02. Publication 02 Assignment'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'							
 				,@pInterval		= 'WKLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN02-ASSG.dtsx'	
@@ -284,9 +304,10 @@ end
 				 @pCode			= 'PUBR02-SUBR01-PUBN03-COUR'		
 				,@pName			= 'Test Publisher 02 Sending Data to Subscriber 01. Publication 03 Course'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup. This is a fact.'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'						
 				,@pInterval		= 'DLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN01-COUR.dtsx'	
@@ -311,9 +332,10 @@ end
 				 @pCode			= 'TST-ACCT-ASSG-DIM-LOAD'		
 				,@pName			= 'Test the account and assignment dimension load'
 				,@pDesc			= 'This is the parent posting group to the Account and Assignment data hub staging load.'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'						
 				,@pInterval		= 'DLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'ACCT-ASSG-DIM-LOAD.dtsx'	
@@ -338,12 +360,16 @@ end
 				 @pCode			= 'TST-ACCT-ASSG-FACT-LOAD'		
 				,@pName			= 'Test the account and assignment fact load'
 				,@pDesc			= 'This is the parent posting group to the Account and Assignment Dim load.'
-				,@pCategory		= 'N/A'				
+				,@pCategoryCode	= 'UNK'				
+				,@pProcessingMethodCode			= 'ADFP'
+				,@pProcessingModeCode			= 'INIT'
 				,@pInterval		= 'DLY'				
 				,@pLength		= 1
-				,@pSSISFolder	= 'RegressionTesting'	
-				,@pSSISProject	= 'PostingGroup'		
-				,@pSSISPackage	= 'ACCT-ASSG-FACT-LOAD.dtsx'	
+				,@pSSISFolder	= 'N/A'	
+				,@pSSISProject	= 'N/A'		
+				,@pSSISPackage	= 'N/A'
+				,@pDataFactoryName     = 'PostingGroup'		
+				,@pDataFactoryPipeline = 'PL-AccountAssgnmentFactLoad'
 				,@pIsActive		= 1
 				,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
@@ -360,9 +386,10 @@ end
 				 @pCode			= 'TST-COUR-FACT-LOAD'		
 				,@pName			= 'Test the course fact load'
 				,@pDesc			= 'This is the parent posting group to the Course staging process.'
-				,@pCategory		= 'N/A'				
+			,@pCategoryCode	= 'UNK'						
 				,@pInterval		= 'DLY'				
 				,@pLength		= 1
+				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'		
 				,@pSSISPackage	= 'COUR-FACT-LOAD.dtsx'	
@@ -378,6 +405,36 @@ end
 
 	end
 
+	-- New Posting group to test sql job execution.
+	IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'TST-SQL-JOB-EXEC')
+	begin		
+			EXEC pg.InsertPostingGroup 	
+				 @pCode			= 'TST-SQL-JOB-EXEC'		
+				,@pName			= 'Test Posting Group SQL Job Execution'
+				,@pDesc			= 'See if we can get a sql server job to run.'
+			,@pCategoryCode	= 'UNK'				
+				,@pProcessingMethodCode			= 'SQLJ'
+				,@pProcessingModeCode			= 'NORM'
+				,@pInterval		= 'DLY'				
+				,@pLength		= 1
+				,@pSSISFolder	= 'N/A'
+				,@pSSISProject	= 'N/A'
+				,@pSSISPackage	= 'N/A'
+				,@pJobName		= 'Test Posting Group SQL Job Execution'
+				,@pIsActive		= 1
+				,@pTriggerType			= 'Immediate'
+				,@pNextExecutionDtm		= '01-Jan-1900'
+				,@pCreatedBy	= 'ffortunato'
+				,@pETLExecutionId	= -1
+				,@pPathId		= -1
+				,@pVerbose		= 0
+		end
+
+-- Meh add the actual codes to the scripts later.
+update pg.PostingGroup
+set ProcessingMethodCode = 'SSIS'
+where ProcessingMethodCode = 'DFP'
+
 print '----------------------------------------------------------'
 print 'Posting Groups Created.'
 print '----------------------------------------------------------'
@@ -388,11 +445,13 @@ print '----------------------------------------------------------'
 
 
 -------------------------------------------------------------------------------
+-- 20) Build posting group dependencies.
 -- PUBR01-SUBR01-PUBN01-ACCT --To-- TST-ACCT-ASSG-DIM-LOAD
 -- PUBR01-SUBR01-PUBN02-ASSG --To-- TST-ACCT-ASSG-DIM-LOAD
 -- PUBR02-SUBR01-PUBN03-COUR --To-- TST-ACCT-ASSG-FACT-LOAD
 -- PUBR02-SUBR01-PUBN03-COUR --To-- TST-COUR-FACT-LOAD
 -- TST-ACCT-ASSG-DIM-LOAD    --To-- TST-ACCT-ASSG-FACT-LOAD
+-- TST-ACCT-ASSG-FACT-LOAD   --To-- TST-SQL-JOB-EXEC
 -------------------------------------------------------------------------------
 
 
@@ -508,6 +567,23 @@ print '----------------------------------------------------------'
 			,@pVerbose				= 0
 	end
 
+	IF NOT EXISTS (SELECT TOP 1 1 FROM pg.[PostingGroupDependency] WHERE  DependencyCode = 'TST-ACCT-FACT-LOAD--To--TST-SQL-JOB-EXEC')
+	begin
+-------------------------------------------------------------------------------
+-- Building Dependency
+-- ASSG-FACT --> TST-SQL-JOB-EXEC
+-------------------------------------------------------------------------------
+
+--		table need to stage for fact to work
+		exec pg.[InsertPostingGroupDependency] 
+			 @pParentCode			=	'TST-SQL-JOB-EXEC'
+			,@pChildCode			=	'TST-ACCT-ASSG-FACT-LOAD'
+			,@pCreatedBy			=	'ffortunato'
+			,@pETLExecutionId		= -1
+			,@pPathId				= -1
+			,@pVerbose				= 0
+	end
+
 -- Take a look to see that data propogated correctly.
 print '----------------------------------------------------------'
 print 'Posting Group Dependencies Created.'
@@ -521,7 +597,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Test Case: Generate Notification
---
+-- 40) Kicking off the first round of posting groups.
 -- Mimic a datahub notification for new isues comming across.
 -- Mimic the processing for checking for downstream dependencies.
 -- Mimic processing for packacges that have their dependencies met.
@@ -561,7 +637,7 @@ exec ctl.usp_NotifySubscriberOfDistribution
 		 @pIssueId								= @IssueId -- PUBN01-ACCT_20070112_01.txt
 --		,@pStageStart							= '2020-11-24 02:24:13.483'
 --		,@pStageEnd								= '2020-11-24 08:24:13.483'
-		,@pIsDataHub							= 1
+--		,@pIsDataHub							= 1
 		,@pETLExecutionId						= -1
 		,@pPathId								= -1
 		,@pVerbose								= 0
@@ -649,6 +725,7 @@ declare @BatchId int
 
 
 -- Waiting for 5 seconds to ensure logging in postingGropuProcessing works.
+-- Process is queued from previous step. Gathering associated processing data then mimicing the run of an ETL package moving the process from PP to PC
 WAITFOR DELAY '00:00:01'
 
 select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
@@ -692,7 +769,7 @@ exec pg.UpdatePostingGroupProcessingStatus
 		,@pPostingGroupStatusCode ='PC'
 
 print '----------------------------------------------------------'
-print 'Round 1 status update complete.'
+print 'TST-ACCT-ASSG-DIM-LOAD run to completion.'
 print '----------------------------------------------------------'
 
 -------------------------------------------------------------------------------
@@ -739,6 +816,7 @@ exec pg.ExecutePostingGroupProcessing
 		,@pPathId				= -1
 		,@pVerbose				= 0
 
+
 print '----------------------------------------------------------'
 print 'Round 1 ExecutePostingGroupProcessing.'
 print '----------------------------------------------------------'
@@ -758,13 +836,16 @@ if @Verbose in (1,3) begin
 				where PostingGroupCode in ('PUBR01-SUBR01-PUBN01-ACCT','PUBR01-SUBR01-PUBN02-ASSG','PUBR01-SUBR02-PUBN02-ASSG','PUBR02-SUBR01-PUBN03-COUR','TST-ACCT-ASSG-DIM-LOAD','TST-ACCT-ASSG-FACT-LOAD','TST-COUR-FACT-LOAD'))
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Post Condition:
 -- All standalone staging jobs are set to Queued. TST-ACCT-ASSG-FACT-LOAD 
 -- Results
 -- Posting Groups 'TST-ACCT-ASSG-FACT-LOAD' = status: 'PQ'
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- Test Case: Mimic the run of TST-ACCT-ASSG-FACT-LOAD
+-- Update statuses for TST-ACCT-ASSG-FACT-LOAD accordingly
 -------------------------------------------------------------------------------
 
 select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
@@ -805,8 +886,58 @@ exec pg.UpdatePostingGroupProcessingStatus
 		,@pPostingGroupBatchSeq	= @PGBatchSeq
 		,@pPostingGroupStatusCode			='PC'
 
+print '----------------------------------------------------------------'
+print 'Round 1 TST-ACCT-ASSG-FACT-LOAD PostingGroupProcessing complete.'
+print '----------------------------------------------------------------'
+
+-------------------------------------------------------------------------------
+-- Post Condition:
+-- All standalone staging jobs are set to Queued. TST-ACCT-ASSG-FACT-LOAD 
+-- Results:
+-- Posting Groups 'TST-ACCT-ASSG-FACT-LOAD' status = 'PC'
+-------------------------------------------------------------------------------
+
+select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
+select @PostingGroup = PostingGroupId from pg.postinggroup where PostingGroupCode = 'TST-ACCT-ASSG-FACT-LOAD'
+
+-- Getting TST-COUR-FACT-LOAD kicked off. $$$$
+
+select @PGBatchSeq = max(PGPBatchSeq) 
+from	 pg.PostingGroupProcessing	  pgp 
+join	 pg.PostingGroup			  pg
+on		 pgp.PostingGroupId			= pg.PostingGroupId 
+where	 PostingGroupCode			= 'TST-COUR-FACT-LOAD' 
+and		 pgp.PostingGroupBatchId	= @BatchId
+
+
+select @Verbose = 3
+
+if @Verbose in (1,3) begin
+	print 'UpdatePostingGroupProcessingStatus for: TST-COUR-FACT-LOAD'
+	print '@BatchId: ' + cast(isnull(@BatchId,-1)as varchar(20))
+	print '@PostingGroup: ' + cast(isnull(@PostingGroup,-1)as varchar(20))
+	print '@PGBatchSeq: ' + cast(isnull(@PGBatchSeq,-1)as varchar(20))
+	print '... for TST-COUR-FACT-LOAD'
+end
+
+select @Verbose = 0
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PP'
+
+WAITFOR DELAY '00:00:01'
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PC'
+
 print '----------------------------------------------------------'
-print 'Round 2 status update complete.'
+print 'Round 1 TST-COUR-FACT-LOAD status update complete.'
 print '----------------------------------------------------------'
 
 -------------------------------------------------------------------------------
@@ -815,6 +946,90 @@ print '----------------------------------------------------------'
 -- Results
 -- Posting Groups 'TST-ACCT-ASSG-FACT-LOAD' = status: 'PC'
 -------------------------------------------------------------------------------
+
+--$$$$ HERERE
+
+print '----------------------------------------------------------'
+print 'Test Case: TST-SQL-JOB-EXEC Run Process with met Dependicies.'
+print '----------------------------------------------------------'
+
+
+/*
+declare @BatchId int 
+       ,@PostingGroup int
+	   ,@PGBatchSeq int
+	   ,@PGChildId int = -1
+	   ,@Verbose int = 0
+*/
+
+-- simulate the previous job executing to completion and calling to see if the next job should run.
+
+select @BatchId		 = max(PostingGroupBatchId) from pg.postinggroupbatch
+select @PGChildId	 = PostingGroupId from pg.PostingGroup where [PostingGroupCode] = 'TST-ACCT-ASSG-FACT-LOAD'
+select @PGBatchSeq   = max(PGPBatchSeq) 
+from	 pg.PostingGroupProcessing  pgp
+join	 pg.PostingGroup pg
+on		 pgp.PostingGroupId = pg.PostingGroupId
+where	 pg.PostingGroupCode = 'TST-ACCT-ASSG-FACT-LOAD'  --= 1 -- SHOULD GET THIS DYNAMIC...
+
+exec pg.ExecutePostingGroupProcessing 
+		 @pPGBId				= @BatchId
+		,@pPGId					= @PGChildId -- 2 -- one of the child PGIds
+		,@pPGBatchSeq			= @PGBatchSeq
+		,@pETLExecutionId		= -1
+		,@pPathId				= -1
+		,@pVerbose				= 0
+
+-- now im queued. ill pretend to run the job.
+-- Getting TST-COUR-FACT-LOAD kicked off. $$$$
+/* Doing this directly in the job instead
+
+
+select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
+select @PostingGroup = PostingGroupId from pg.postinggroup where PostingGroupCode = 'TST-SQL-JOB-EXEC'
+
+
+select @PGBatchSeq = max(PGPBatchSeq) 
+from	 pg.PostingGroupProcessing	  pgp 
+join	 pg.PostingGroup			  pg
+on		 pgp.PostingGroupId			= pg.PostingGroupId 
+where	 PostingGroupCode			= 'TST-SQL-JOB-EXEC' 
+and		 pgp.PostingGroupBatchId	= @BatchId
+
+
+select @Verbose = 3
+
+if @Verbose in (1,3) begin
+	print 'UpdatePostingGroupProcessingStatus for: TST-SQL-JOB-EXEC'
+	print '@BatchId: ' + cast(isnull(@BatchId,-1)as varchar(20))
+	print '@PostingGroup: ' + cast(isnull(@PostingGroup,-1)as varchar(20))
+	print '@PGBatchSeq: ' + cast(isnull(@PGBatchSeq,-1)as varchar(20))
+	print '... for TST-SQL-JOB-EXEC'
+end
+
+select @Verbose = 0
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PP'
+
+WAITFOR DELAY '00:00:01'
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PC'
+*/
+print '----------------------------------------------------------'
+print 'Round 1 Execute TST-ACCT-ASSG-FACT-LOAD PostingGroupProcessing.'
+print '----------------------------------------------------------'
+
+-- ENDING HERE
+--return
+
 
 -------------------------------------------------------------------------------
 -- Test Case: Mark Distributions as complete.
@@ -1144,6 +1359,55 @@ exec pg.UpdatePostingGroupProcessingStatus
 		,@pPostingGroupStatusCode			='PC'
 
 print 'TST-COUR-FACT-LOAD is complete'
+
+WAITFOR DELAY '00:00:01'
+-- NEED THE EXECUTE HERE $$$$$
+select @PGChildId =  PostingGroupId from pg.PostingGroup where [PostingGroupCode] = 'TST-ACCT-ASSG-FACT-LOAD'
+select @PGBatchSeq   = max(PGPBatchSeq) 
+from	 pg.PostingGroupProcessing  pgp
+join	 pg.PostingGroup pg
+on		 pgp.PostingGroupId = pg.PostingGroupId
+where	 pg.PostingGroupCode = 'TST-ACCT-ASSG-FACT-LOAD'  --= 1 -- SHOULD GET THIS DYNAMIC...
+
+
+exec pg.ExecutePostingGroupProcessing 
+		 @pPGBId				= @BatchId
+		,@pPGId					= @PGChildId -- 2 -- one of the child PGIds
+		,@pPGBatchSeq			= @PGBatchSeq
+		,@pETLExecutionId		= -1
+		,@pPathId				= -1
+		,@pVerbose				= 0
+
+
+
+select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
+select @PostingGroup = PostingGroupId from pg.postinggroup where PostingGroupCode = 'TST-SQL-JOB-EXEC'
+
+select	 @PGBatchSeq				= max(PGPBatchSeq) 
+from	 pg.PostingGroupProcessing	  pgp
+join	 pg.PostingGroup			  pg
+on		 pgp.PostingGroupId			= pg.PostingGroupId
+where	 PostingGroupCode			= 'TST-SQL-JOB-EXEC'  --= 1 -- SHOULD GET THIS DYNAMIC...
+and		 pgp.PostingGroupBatchId	= @BatchId
+
+--print 'SHOULD BE SENDING DATA TO GRID'
+--select 		isnull(@BatchId,-1),isnull(@PostingGroup,-1),isnull( @PGBatchSeq,-1)
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PP'
+
+WAITFOR DELAY '00:00:01'
+
+exec pg.UpdatePostingGroupProcessingStatus
+		 @pPostingGroupBatchId	= @BatchId
+		,@pPostingGroupId		= @PostingGroup
+		,@pPostingGroupBatchSeq	= @PGBatchSeq
+		,@pPostingGroupStatusCode			='PC'
+
+print 'TST-SQL-JOB-EXEC is complete'
 
 -------------------------------------------------------------------------------
 -- Post Condition:

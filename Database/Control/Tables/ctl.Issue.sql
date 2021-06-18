@@ -19,6 +19,7 @@ date		author			description
 20201118	ffortunato		fixing some warnings etc.... 
 							naming default constraints
 							renaming indixes to conform to standards
+20210316	ffortunato		adding SrcIssueName
 ******************************************************************************/
 
 CREATE TABLE [ctl].[Issue](
@@ -29,7 +30,9 @@ CREATE TABLE [ctl].[Issue](
 	[SrcDFPublisherId] [varchar](40) NULL,
 	[SrcDFPublicationId] [varchar](40) NULL,
 	[SrcDFIssueId] [varchar](100) NULL,
+	[SrcIssueName] [nvarchar](255) NULL,
 	[SrcDFCreatedDate] [datetime] NULL,
+	DataLakePath [varchar](1000) NOT NULL,
 	[IssueName] [varchar](255) NOT NULL,
 	[PublicationSeq] [int] NOT NULL,
 	[DailyPublicationSeq] [int] NOT NULL,
@@ -54,14 +57,17 @@ CREATE TABLE [ctl].[Issue](
 )
 GO
 
-ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__PublicationSeq_-1]  DEFAULT ((-1)) FOR [PublicationSeq]
+ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__PublicationSeq_-1]  DEFAULT -1 FOR [PublicationSeq]
 GO
 
-ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__DailyPublicationSeq_-1]  DEFAULT ((-1)) FOR [DailyPublicationSeq]
+ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__DailyPublicationSeq_-1]  DEFAULT -1 FOR [DailyPublicationSeq]
 GO
 
-ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__RetryCount__0]  DEFAULT ((0)) FOR [RetryCount]
+ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__RetryCount__0]  DEFAULT 0 FOR [RetryCount]
 GO
+
+ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__DataLakePath__Raw]  DEFAULT '/Raw Data Zone/...' FOR [DataLakePath]
+go
 
 ALTER TABLE [ctl].[Issue]  ADD  CONSTRAINT [FK_IssuePublicationId] FOREIGN KEY([PublicationId])
 REFERENCES [ctl].[Publication] ([PublicationId])

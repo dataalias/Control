@@ -1,20 +1,32 @@
 ﻿CREATE procedure [pg].[InsertPostingGroup] (	
-		 @pCode					VARCHAR(100)
-		,@pName					VARCHAR(250)
-		,@pDesc					VARCHAR(1000)
-		,@pCategory				VARCHAR(50)
-		,@pInterval				VARCHAR(20)
-		,@pLength				INT
-		,@pSSISFolder			VARCHAR(255)
-		,@pSSISProject			VARCHAR(255)
-		,@pSSISPackage			VARCHAR(255)
-		,@pIsActive				BIT
-		,@pTriggerType			VARCHAR(20)			= 'Immediate'
-		,@pNextExecutionDtm		datetime			= '01-Jan-1900'
-		,@pCreatedBy			VARCHAR(50)
-		,@pETLExecutionId		INT					= -1
-		,@pPathId				INT					= -1
-		,@pVerbose				BIT					= 0
+		 @pCode					varchar(100)	= 'UNK'
+		,@pName					varchar(250)	= 'Unknown'
+		,@pDesc					varchar(1000)	= 'Description for this posting group is unknown.'
+		,@pCategoryCode			varchar(20)		= 'UNK'
+		,@pCategoryName			varchar(250)	= 'Unknown'
+		,@pCategoryDesc			varchar(max)	= 'Category for this posting group is unknown.'
+		,@pProcessingMethodCode	varchar(20)		= 'ADFP'
+		,@pProcessingModeCode	varchar(20)		= 'NORM'
+		,@pInterval				varchar(20)		= 'UNK'
+		,@pLength				int				= 0
+		,@pSSISFolder			varchar(255)	= 'N/A'
+		,@pSSISProject			varchar(255)	= 'N/A'
+		,@pSSISPackage			varchar(255)	= 'N/A'
+		,@pDataFactoryName		varchar(255)	= 'N/A'
+		,@pDataFactoryPipeline	varchar(255)	= 'N/A'
+		,@pJobName				varchar(255)	= 'N/A'
+		,@pRetryIntervalCode	varchar(20)		= 'MIN'
+		,@pRetryIntervalLength	int				= 1
+		,@pRetryMax				int				= 0
+		,@pTriggerProcess		varchar(100)	= 'N/A'
+		,@pIsActive				bit				= 0
+		,@pIsRoot				bit				= 0
+		,@pTriggerType			varchar(20)		= 'Immediate'
+		,@pNextExecutionDtm		datetime		= NULL -- '1900-01-01 00:00:00.000'
+		,@pCreatedBy			varchar(50)		= 'Unknown'
+		,@pETLExecutionId		int				= -1
+		,@pPathId				int				= -1
+		,@pVerbose				bit				= 0
 ) AS 
 
 /*****************************************************************************
@@ -26,7 +38,9 @@ Purpose:        Allows for the creation of new posting groups.
 		 @pCode			= 'PUBR01-SUBR01-PUBN01-ACCT'		
 		,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 01 Account'
 		,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
-		,@pCategory		= 'N/A'				
+		,@pCategory		= 'N/A'		
+		--,@pProcessingMethodCode	= 'NORM'
+		--,@pProcessingModeCode	= 'DFP'
 		,@pInterval		= 'DLY'				
 		,@pLength		= 1
 		,@pSSISFolder	= 'RegressionTesting'	
@@ -70,13 +84,15 @@ Date:           20091020
 *******************************************************************************
       change history
 *******************************************************************************
-date      author         description
+date		author			description
 --------	-------------	---------------------------------------------------
 20161020	ffortunato		adding process name to the postinggroup table.
 20161122	jprom			updated parameter comments and added examples.
 20180409	ffortunato		dusting off and preping for implementation.
 20180906	ffortunato		code validation changes.
 20200725	ochowkwale		parameters for NextExecutionDtm, TriggerType
+20210217	ffortunato		Adding Job Name to fire SQL Server Jobs
+20210327	ffortunato		Category stuff.
 ******************************************************************************/
 
 DECLARE	 @Rows					int				= 0
@@ -106,22 +122,38 @@ DECLARE	 @Rows					int				= 0
 --  initializations
 ----------------------------------------------------------------------------------
 select	 @ParametersPassedChar   =       
-		'***** Parameters Passed to exec pg.usp_InsertPostingGroup' + @CRLF +
-		'     @pCode = '''			+ ISNULL(@pCode ,'NULL') + '''' + @CRLF + 
-		'    ,@pName = '''			+ ISNULL(@pName ,'NULL') + '''' + @CRLF + 
-		'    ,@pDesc = '''			+ ISNULL(@pDesc ,'NULL') + '''' + @CRLF + 
-		'    ,@pCategory = '''		+ ISNULL(@pCategory ,'NULL') + '''' + @CRLF + 
-		'    ,@pInterval = '''		+ ISNULL(@pInterval ,'NULL') + '''' + @CRLF + 
-		'    ,@pLength = '			+ ISNULL(CAST(@pLength as varchar(100)),'NULL') + @CRLF + 
-		'    ,@pSSISFolder = '''	+ ISNULL(@pSSISFolder ,'NULL') + '''' + @CRLF + 
-		'    ,@pSSISProject = '''	+ ISNULL(@pSSISProject ,'NULL') + '''' + @CRLF + 
-		'    ,@pSSISPackage = '''	+ ISNULL(@pSSISPackage ,'NULL') + '''' + @CRLF + 
-		'    ,@pIsActive = '		+ ISNULL(CAST(@pIsActive as varchar(100)),'NULL') + @CRLF + 
-		'    ,@pCreatedBy = '''		+ ISNULL(@pCreatedBy ,'NULL') + '''' + @CRLF + 
-		'    ,@pETLExecutionId = '	+ ISNULL(CAST(@pETLExecutionId AS varchar(100)),'NULL') + @CRLF + 
-		'    ,@pPathId = '			+ ISNULL(CAST(@pPathId as varchar(100)),'NULL') + @CRLF + 
-		'    ,@pVerbose = '			+ ISNULL(CAST(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-		'***** End of Parameters' + @CRLF  
+      '***** Parameters Passed to exec pg.InsertPostingGroup' + @CRLF +
+      '     @pCode = ''' + isnull(@pCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pName = ''' + isnull(@pName ,'NULL') + '''' + @CRLF + 
+      '    ,@pDesc = ''' + isnull(@pDesc ,'NULL') + '''' + @CRLF + 
+      '    ,@pCategoryCode = ''' + isnull(@pCategoryCode ,'NULL') + '''' + @CRLF + 
+	  '    ,@pCategoryName = ''' + isnull(@pCategoryName ,'NULL') + '''' + @CRLF + 
+	  '    ,@pCategoryDesc = ''' + isnull(@pCategoryDesc ,'NULL') + '''' + @CRLF + 
+      '    ,@pProcessingMethodCode = ''' + isnull(@pProcessingMethodCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pProcessingModeCode = ''' + isnull(@pProcessingModeCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pInterval = ''' + isnull(@pInterval ,'NULL') + '''' + @CRLF + 
+      '    ,@pLength = ' + isnull(cast(@pLength as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pSSISFolder = ''' + isnull(@pSSISFolder ,'NULL') + '''' + @CRLF + 
+      '    ,@pSSISProject = ''' + isnull(@pSSISProject ,'NULL') + '''' + @CRLF + 
+      '    ,@pSSISPackage = ''' + isnull(@pSSISPackage ,'NULL') + '''' + @CRLF + 
+      '    ,@pDataFactoryName = ''' + isnull(@pDataFactoryName ,'NULL') + '''' + @CRLF + 
+      '    ,@pDataFactoryPipeline = ''' + isnull(@pDataFactoryPipeline ,'NULL') + '''' + @CRLF + 
+      '    ,@pJobName = ''' + isnull(@pJobName ,'NULL') + '''' + @CRLF + 
+      '    ,@pRetryIntervalCode = ''' + isnull(@pRetryIntervalCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pRetryIntervalLength = ' + isnull(cast(@pRetryIntervalLength as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pRetryMax = ' + isnull(cast(@pRetryMax as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pTriggerProcess = ''' + isnull(@pTriggerProcess ,'NULL') + '''' + @CRLF + 
+      '    ,@pIsActive = ' + isnull(cast(@pIsActive as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pTriggerType = ''' + isnull(@pTriggerType ,'NULL') + '''' + @CRLF + 
+      '    ,@pNextExecutionDtm = ''' + isnull(convert(varchar(100),@pNextExecutionDtm ,13) ,'NULL') + '''' + @CRLF + 
+      '    ,@pCreatedBy = ''' + isnull(@pCreatedBy ,'NULL') + '''' + @CRLF + 
+      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
+      '***** End of Parameters' + @CRLF 
+
+if @pNextExecutionDtm is null
+	  select @pNextExecutionDtm		= cast('1900-01-01 00:00:00.000' as datetime)
 
 ----------------------------------------------------------------------------------
 --  main
@@ -148,14 +180,26 @@ begin try
 		 [PostingGroupCode]
 		,[PostingGroupName]
 		,[PostingGroupDesc]
-		,[PostingGroupCategory]
+		,[ProcessingMethodCode]
+		,[ProcessingModeCode]
+		,[PostingGroupCategoryCode]
+		,[PostingGroupCategoryName]
+		,[PostingGroupCategoryDesc]
 		,[IntervalCode]
 		,[IntervalLength]
 		,SSISFolder
 		,SSISProject
-		,SSISPackage
+		,SSISPackage		
+		,DataFactoryName		
+		,DataFactoryPipeline	
+		,JobName
+		,RetryIntervalCode	
+		,RetryIntervalLength	
+		,RetryMax				
+--		,TriggerProcess		
 		,[IsActive]
-		,[TriggerType]
+		,IsRoot
+--		,[TriggerType]
 		,[NextExecutionDtm]
 		,[CreatedDtm]
 		,CreatedBy
@@ -163,14 +207,26 @@ begin try
 		 @pCode
 		,@pName
 		,@pDesc
-		,@pCategory
+		,@pProcessingMethodCode
+		,@pProcessingModeCode
+		,@pCategoryCode
+		,@pCategoryName
+		,@pCategoryDesc
 		,@pInterval
 		,@pLength
 		,@pSSISFolder	
 		,@pSSISProject	
 		,@pSSISPackage	
+		,@pDataFactoryName		
+		,@pDataFactoryPipeline	
+		,@pJobName
+		,@pRetryIntervalCode	
+		,@pRetryIntervalLength	
+		,@pRetryMax				
+--		,@pTriggerProcess		
 		,@pIsActive
-		,@pTriggerType
+		,@pIsRoot
+--		,@pTriggerType
 		,@pNextExecutionDtm
 		,@CurrentDtm
 		,@pCreatedBy

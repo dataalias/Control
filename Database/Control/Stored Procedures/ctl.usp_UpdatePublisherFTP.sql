@@ -6,7 +6,7 @@
 		,@pSiteKey				varchar(256)			--FTPkey in dimvendor    
 		,@pSitePort				varchar(10)
 		,@pSiteProtocol			varchar(100)
-		,@pUser					varchar(100)
+		,@pUser					varchar(50)
 		,@pVerbose				bit				= 0
 		,@pETLExecutionId		int				= -1
 		,@pPathId				int				= 0
@@ -53,6 +53,7 @@ Date		Author			Description
 20180111	jbonilla        Update FTP fields in existing data
 20201118	ffortunato      cleaning up formatting and warnings
 20201123	ffortunato      Cleaning up bi config
+20210415	ffortunato      Cleaning warnings.
 
 ******************************************************************************/
 
@@ -61,7 +62,7 @@ Date		Author			Description
 -------------------------------------------------------------------------------
 
 DECLARE	 
-         @Rows					varchar(10)		= 0
+         @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -72,20 +73,20 @@ DECLARE
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@SchemaName			nvarchar(256)	= 'ctl'
 		,@PassphraseTableName	nvarchar(256)	= 'Publisher'
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(50)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(max)	= 'Procedure started' 
+		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
-		,@Contact_ID			INT				= -1
-		,@CREATE_DATE           DATETIME		= getdate()
+		--,@Contact_ID			INT				= -1
+		--,@CREATE_DATE           DATETIME		= getdate()
 		,@PassPhrase			VARCHAR(100)	= NULL
 
 exec	[audit].usp_InsertStepLog
@@ -99,7 +100,7 @@ exec	[audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_UpdatePublisherFTP' + @CRLF +
+			'exec BPI_DW_Stage.ctl.usp_UpdatePublisherFTP' + @CRLF +
 			'    ,@pPublisherCode	= ' + isnull(cast(@pPublisherCode as varchar(100)),'NULL') + @CRLF +
 			'    ,@pSiteURL			= ' + isnull(cast(@pSiteURL as varchar(100)),'NULL') + @CRLF +
 			'    ,@pSiteUser		= ' + isnull(cast(@pSiteUser as varchar(100)),'NULL') + @CRLF +
@@ -155,10 +156,8 @@ begin try
 	exec	[audit].usp_InsertStepLog
 			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
 			,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId, @pPathId,	@PrevStepLog output
+			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 			,@pVerbose
-
-
 
 END TRY
 
@@ -177,30 +176,28 @@ Begin try
 			,@StepOperation		= 'Update'
 			,@StepDesc			= 'Update Existing Publisher FTP Data'
 
- 
-update	 p 				 
-SET		 ModifiedBy		= @pUser
-		,ModifiedDtm	= getdate()
-		,SiteURL		= @pSiteURL
-		,SiteUser		= @pSiteUser
-		,SitePassword	= ENCRYPTBYPASSPHRASE(@Passphrase, @pSitePassword)  --Only AWS@pSitePassword, 
-		,SiteHostKeyFingerprint	= ENCRYPTBYPASSPHRASE(@Passphrase, @pSiteKey)   --FTP key in DimVendor
-		,SitePort		= @pSitePort
-		,SiteProtocol	= @pSiteProtocol
-FROM  [ctl].[Publisher]   p
-where PublisherCode		= @pPublisherCode
-
+	update	 p 				 
+	SET		 ModifiedBy			= @pUser
+			,ModifiedDtm		= getdate()
+			,SiteURL			= @pSiteURL
+			,SiteUser			= @pSiteUser
+			,SitePassword		= ENCRYPTBYPASSPHRASE(@Passphrase, @pSitePassword)  --Only AWS@pSitePassword, 
+			,SiteHostKeyFingerprint	= ENCRYPTBYPASSPHRASE(@Passphrase, @pSiteKey)   --FTP key in DimVendor
+			,SitePort			= @pSitePort
+			,SiteProtocol		= @pSiteProtocol
+	FROM	 [ctl].[Publisher]   p
+	where	 PublisherCode		= @pPublisherCode
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
-			        ,@Rows				= @@ROWCOUNT 
-                 	,@CurrentDtm		= getdate()
+			,@Rows				= @@ROWCOUNT 
+			,@CurrentDtm		= getdate()
 			--,@JSONSnippet		= '<JSON Snippet>' -- Only if needed.
 
 	exec [audit].usp_InsertStepLog
 			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
 			,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,-1	,-1			,@PrevStepLog output
+			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,-1	,-1				,@PrevStepLog output
 			,@pVerbose
 
 	select	 @JSONSnippet		= NULL

@@ -64,7 +64,7 @@ DECLARE	 @Rows					int				= 0
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.GetIssuesToArchive' + @CRLF +
+			'exec BPI_DW_STAGE.ctl.GetIssuesToArchive' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')

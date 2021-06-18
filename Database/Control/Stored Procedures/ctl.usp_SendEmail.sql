@@ -1,11 +1,12 @@
 ﻿CREATE PROCEDURE ctl.usp_SendMail (
-		 @pProject					varchar(250)	= 'N/A'
-		,@pPackage					varchar(250)	= 'N/A'
-		,@pDataFactoryName			varchar(250)	= 'N/A'
-		,@pDataFactoryPipeline		varchar(250)	= 'N/A'
-		,@pTo						varchar(250)	= 'N/A'
+		 @pProject					varchar(255)	= 'N/A'
+		,@pPackage					varchar(255)	= 'N/A'
+		,@pDataFactoryName			varchar(255)	= 'N/A'
+		,@pDataFactoryPipeline		varchar(255)	= 'N/A'
+		,@pTo						varchar(1000)	= 'N/A'
 		,@pSeverity					int				= -1
-		,@pPostingGroupProcessingId	int				= -1
+		,@pIssueId					int				= -1
+		,@pPostingGroupProcessingId	bigint			= -1
 		,@pETLExecutionId			int				= -1
 		,@pPathId					int				= -1
 		,@pVerbose					bit				= 0)
@@ -33,7 +34,8 @@ Date:		20180101
 *******************************************************************************
 Date		Author			Description
 --------	-------------	---------------------------------------------------
-20180101	ffortunato  Initial Iteration
+20180101	ffortunato		Initial Iteration
+20210329	ffortunato		clearing warnings
 
 ******************************************************************************/
 
@@ -41,7 +43,7 @@ Date		Author			Description
 --  Declarations
 -------------------------------------------------------------------------------
 
-DECLARE	 @Rows					varchar(10)		= 0
+DECLARE	 @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(2048)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -67,7 +69,7 @@ DECLARE	 @Rows					varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
 		,@Body					varchar(2000)	= 'N/A'
 		,@Subject				varchar(200)	= 'N/A'
-		,@From				varchar(200)	= 'N/A'
+		,@From					varchar(200)	= 'N/A'
 
 exec [audit].usp_InsertStepLog
 		 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -80,7 +82,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_SendMail' + @CRLF +
+			'exec bpi_dw_stage.ctl.usp_SendMail' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')
@@ -106,7 +108,13 @@ begin try
 
 
 	--Send Email
-	set @Subject =  (@ServerName + ' || ' + COALESCE(@pProject,@pDataFactoryName) + ' Posting Group Failure')
+	if (@pProject = 'N/A')
+		set @Subject =  (@ServerName + ' || Data Factory: ' + @pDataFactoryName + ' Failure')
+	else if (@pDataFactoryName = 'N/A')
+		set @Subject =  (@ServerName + ' || Integration Service: ' + @pProject + ' Failure')
+	else 
+		set @Subject =  (isnull(@ServerName, 'NULL') + ' || Shrug: ' + isnull(@pProject, 'NULL') + ' ' + isnull(@pDataFactoryName, 'NULL') + ' Failure')
+
 
 	set @From = CASE WHEN @ServerName IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN 'DM-DEV-ETL@zovio.com'
 					 WHEN @ServerName IN ('QME1EDLSQL01','QME3EDLSQL01') THEN 'DM-QA-ETL@zovio.com'
@@ -114,18 +122,19 @@ begin try
 				END
 
 	set @pTo = CASE WHEN @pSeverity = 1 THEN @pTo 
-						   ELSE 'DM-Development@bpiedu.com'
+						   ELSE 'DM-Development@zovio.com'
 					  END
 
 	set @Body = @CRLF
-				+ 'SSISProject'+ @Tab				+ ': ' + @pProject+ @CRLF
-				+ 'SSISPackage'+ @Tab				+ ': ' + CONVERT(varchar(10),@pPackage)+ @CRLF
-				+ 'DataFactoryName'+ @Tab			+ ': ' + CONVERT(varchar(10),@pDataFactoryName)+ @CRLF
-				+ 'DataFactoryPipeline'+ @Tab		+ ': ' + CONVERT(varchar(10),@pDataFactoryPipeline)+ @CRLF
-				+ 'PostingGroupProcessinsId'+ @Tab	+ ': ' + CONVERT(varchar(10),@pPostingGroupProcessingId)+ @CRLF
-				+ 'Date'+ @Tab						+ ': ' + CONVERT(varchar(20),@CurrentDtm, 120)+ @CRLF
+				+ 'SSISProject'+ @Tab				+ ': ' + CONVERT(varchar(50),COALESCE(@pProject,'N/A'))+ @CRLF
+				+ 'SSISPackage'+ @Tab				+ ': ' + CONVERT(varchar(50),COALESCE(@pPackage,'N/A'))+ @CRLF
+				+ 'DataFactoryName'+ @Tab			+ ': ' + CONVERT(varchar(50),COALESCE(@pDataFactoryName,'N/A'))+ @CRLF
+				+ 'DataFactoryPipeline'+ @Tab		+ ': ' + CONVERT(varchar(50),COALESCE(@pDataFactoryPipeline,'N/A'))+ @CRLF
+				+ 'IssueId'+ @Tab					+ ': ' + CONVERT(varchar(50),COALESCE(@pIssueId,-1))+ @CRLF
+				+ 'PostingGroupProcessingId'+ @Tab	+ ': ' + CONVERT(varchar(50),COALESCE(@pPostingGroupProcessingId,-1))+ @CRLF
+				+ 'Date'+ @Tab						+ ': ' + CONVERT(varchar(50),@CurrentDtm, 120)+ @CRLF
 				+ 'User'+ @Tab						+ ': ' + SYSTEM_USER + @CRLF
-				+ 'Contact'+ @Tab					+ ': BI-Development@zovio.com' + @CRLF + @CRLF
+				+ 'Contact'+ @Tab					+ ': DM-Development@zovio.com' + @CRLF + @CRLF
 				+ 'Error Messages'+ @CRLF
 				+ '--------------------------------------------------------------------------------------------------'+ @CRLF + @CRLF + @CRLF
 

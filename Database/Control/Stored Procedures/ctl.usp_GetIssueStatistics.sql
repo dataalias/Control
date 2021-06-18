@@ -60,7 +60,7 @@ Date:
 *******************************************************************************
 Date		Author			Description
 --------	-------------	---------------------------------------------------
-
+20210329	ffortunato		clearing out warnings.
 
 ******************************************************************************/
 
@@ -96,8 +96,8 @@ SELECT	 @ErrNum					= -1
 		,@pIssueStaged				= -1
 		,@pIssueComplete			= -1
 		,@pIssueFailed				= -1
-		,@pIsComplete				= -1
-		,@ParametersPassedChar	= + @CRLF +
+		,@pIsComplete				= 0
+		,@ParametersPassedChar	= @CRLF +
 			'***** Parameters Passed to usp_GetIssueStatistics' + @CRLF +
 			'	 @pPublisherCode = ''' + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
 			'	,@pStatusCode = ''' + isnull(@pStatusCode ,'NULL') + '''' + @CRLF + 
@@ -143,7 +143,7 @@ begin try
 			,IssueFailed			= sum(case when rs.StatusCode = 'IF'
 		                                      then 1 else 0 
 											  end)
-			,IsComplete				= -1 			
+			,IsComplete				= 0 			
 	from	ctl.Issue				  iss
 	join	ctl.RefStatus			  rs
 	on		iss.StatusId			= rs.StatusId

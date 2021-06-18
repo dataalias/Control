@@ -42,7 +42,7 @@ Date		Author			Description
 -------------------------------------------------------------------------------
 --  Declarations
 -------------------------------------------------------------------------------
-DECLARE	 @Rows					varchar(10)		= 0
+DECLARE	 @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -52,12 +52,12 @@ DECLARE	 @Rows					varchar(10)		= 0
 		,@PrevStepLog			int				= -1
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(50)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(max)	= 'Procedure started' 
+		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
@@ -73,7 +73,7 @@ exec [audit].usp_InsertStepLog
 --  Initializations
 -------------------------------------------------------------------------------
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_GetIssueDetails' + @CRLF +
+			'exec BPI_DW_Stage.ctl.usp_GetIssueDetails' + @CRLF +
 			'     @pIssueId = ' + isnull(cast(@pIssueId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 

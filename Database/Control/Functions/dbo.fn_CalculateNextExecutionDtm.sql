@@ -77,6 +77,7 @@ BEGIN
 							THEN DATEADD(yyyy, @IntervalLength * (1 + (DATEDIFF(yyyy, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
 						ELSE @CurrentNextExecutionDtm
 						END
+			-- ELSE CASE works for 'IMM' as well.
 			ELSE @CurrentNextExecutionDtm
 			END
 

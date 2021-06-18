@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [ctl].[usp_CheckSubscriberNotification]
 (
 	@pSubscriptionCode		varchar(100)	='N/A'			
-	,@pAsOfDate				datetime		='01/01/3000 00:00:00.000'
+	,@pAsOfDate				datetime		= NULL -- '01/01/3000 00:00:00.000'
 	,@pETLExecutionId		int				= -1
 	,@pPathId				int				= -1
 	,@pVerbose				bit				= 0
@@ -32,7 +32,7 @@ Date		Author			Description
 -------------------------------------------------------------------------------
 --  Declarations
 -------------------------------------------------------------------------------
-declare	 @Rows					varchar(10)		= 0
+declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -43,12 +43,12 @@ declare	 @Rows					varchar(10)		= 0
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(50)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(max)	= 'Procedure started' 
+		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
@@ -64,7 +64,7 @@ exec [audit].usp_InsertStepLog
 --  Initializations
 -------------------------------------------------------------------------------
 select	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_GetLastIssue' + @CRLF +
+			'exec BPI_DW_STAGE.ctl.usp_GetLastIssue' + @CRLF +
 			'     @pSubscriptionCode = ' + isnull(cast(@pSubscriptionCode as varchar(100)),'NULL') + @CRLF +
 			'     @pAsOfDate = ' + isnull(cast(@pAsOfDate as varchar(100)),'NULL') + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
@@ -75,6 +75,9 @@ if @pVerbose					= 1
 	begin 
 		print @ParametersPassedChar
 	end
+
+if @pAsOfDate is null
+	select @pAsOfDate	= cast('01/01/3000 00:00:00.000' as datetime)
 
 -------------------------------------------------------------------------------
 --  Main

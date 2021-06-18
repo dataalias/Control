@@ -1,6 +1,6 @@
 ﻿CREATE procedure [pg].[usp_GetPostingGroupParent] (
 		 @pPostingGroupCode			varchar(100)	= NULL
-		,@pPostingGroupStatusCode	varchar(2)		= NULL
+		,@pPostingGroupStatusCode	varchar(20)		= NULL
 		,@pETLExecutionId			int				= -1
 		,@pPathId					int				= -1
 		,@pVerbose					bit				= 0)
@@ -35,6 +35,7 @@ Date		Author			Description
 20200309	ochowkwale		Adding PostingGroupProcessingId field in the 
 							returned list
 20201118	ffortunato		removing warnings.	
+20210415	ffortunato		cleaning up warnings. explicit select of columns.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -61,6 +62,7 @@ declare	 @Rows					int				= 0
 		,@StepNumber			varchar(10)		= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
+		,@PostingGroupRetry		varchar(2)		= 'PR'
 
 exec [audit].usp_InsertStepLog
 		 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -95,24 +97,40 @@ begin try
 										@Tab + @Tab + '"@pPostingGroupStatusCode": "' + cast(@pPostingGroupStatusCode as varchar(200)) + '"' + @CRLF +
 										@Tab + '}'+ @CRLF 
 	-- Select Records
-	SELECT x.*
+	SELECT 
+			 p.ParentPostingGroupProcessingId
+			,p.ParentPostingGroupId
+			,p.ParentPostingGroupBatchId
+			,p.ParentPostingGroupBatchSeq
+			,p.ParentPostingGroupPipeline
+			,p.ParentPostingGroupRank
 	FROM (
-		SELECT pgpP.PostingGroupProcessingId ParentPostingGroupProcessingId
-			,pgpP.PostingGroupId ParentPostingGroupId
-			,pgpP.PostingGroupBatchId ParentPostingGroupBatchId
-			,pgpP.PGPBatchSeq ParentPostingGroupBatchSeq
-			,pgP.SSISPackage ParentPostingGroupPipeline
+		SELECT 
+			 pgpP.PostingGroupProcessingId	 ParentPostingGroupProcessingId
+			,pgpP.PostingGroupId			 ParentPostingGroupId
+			,pgpP.PostingGroupBatchId		 ParentPostingGroupBatchId
+			,pgpP.PGPBatchSeq				 ParentPostingGroupBatchSeq
+
+			-- you either need them all or none.
+			, pgP.SSISPackage				 ParentPostingGroupPipeline
+			/*
+			, pgP.MethodCode				PartentPostingGroupMethodCode
+			, pgP.ModeCode					PartentPostingGroupModeCode
+			*/
 			,RANK() OVER (
-				PARTITION BY pgpP.PostingGroupId ORDER BY PostingGroupBatchId ASC
-					,pgpP.PGPBatchSeq ASC
+				PARTITION BY pgpP.PostingGroupId 
+				ORDER BY PostingGroupBatchId	ASC
+						,pgpP.PGPBatchSeq		ASC
 				) ParentPostingGroupRank
-		FROM pg.PostingGroupProcessing pgpP
-		INNER JOIN pg.PostingGroup pgP ON pgpP.PostingGroupId = pgP.PostingGroupId
-		INNER JOIN pg.RefStatus pgr ON pgr.StatusId = pgpP.PostingGroupStatusId
-		WHERE pgr.StatusCode = @pPostingGroupStatusCode 
-		AND pgP.PostingGroupCode = @pPostingGroupCode
-		) x
-	WHERE x.ParentPostingGroupRank = 1
+		FROM	pg.PostingGroupProcessing pgpP
+		JOIN	pg.PostingGroup			  pgP 
+		ON		pgpP.PostingGroupId		= pgP.PostingGroupId
+		JOIN	pg.RefStatus			  pgr 
+		ON		pgr.StatusId			= pgpP.PostingGroupStatusId
+		WHERE	pgr.StatusCode			  IN (@pPostingGroupStatusCode,@PostingGroupRetry)
+		AND		pgP.PostingGroupCode	= @pPostingGroupCode
+		) p
+	WHERE p.ParentPostingGroupRank = 1
 
 	-- Insert Log Record
 	select	 @PreviousDtm		= @CurrentDtm, @Rows = @@ROWCOUNT 

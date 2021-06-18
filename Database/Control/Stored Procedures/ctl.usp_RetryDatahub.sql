@@ -11,25 +11,18 @@ Example:	exec ctl.usp_RetryDatahub -1, -1, 0
 Parameters: 
 Called by:	
 Calls:      
+			pg.usp_ExecuteProcess	- To execute the process
+			audit.usp_InsertStepLog - To log activity
 Errors:		
 Author:		Omkar Chowkwale
 Date:		2019-06-04
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
-Date		Author			Description
-----------	-------------	---------------------------------------------------
-2020-10-22	Omkar Chowkwale	Initial Iteration
-20201118	ffortunato		removing warnings
-20201119	ffortunato		changing from temp table to table variable and
-							and chinging looping strategy.
-
 ******************************************************************************/
+
 
 -------------------------------------------------------------------------------
 --  Declarations
 -------------------------------------------------------------------------------
-DECLARE	 @Rows					varchar(10)		= 0
+DECLARE	 @Rows					int		= 0
         ,@ErrNum				int				= -1
 		,@ErrMsg				nvarchar(max)	= 'N/A'
 		,@ParametersPassedChar	varchar(1000)   = 'N/A'
@@ -40,33 +33,29 @@ DECLARE	 @Rows					varchar(10)		= 0
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
-		,@CurrentUser			varchar(256)	= CURRENT_USER
-		,@ServerName			varchar(256)	= @@SERVERNAME
+		,@DbName				varchar(50)		= DB_NAME()
+		,@CurrentUser			varchar(50)		= CURRENT_USER
+		,@ServerName			varchar(255)	= @@SERVERNAME
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(50)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(max)	= 'Procedure started' 
+		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
+		,@SubStepNumber			varchar(23)		= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
-		,@IssueId				int
-		,@RetryFlag				int
-		,@FailureFlag			int
-		,@destTblName			varchar(100)
-		/*
-		,@folder				varchar(100)
-		,@project				varchar(50)
-		,@package				varchar(50)
-		,@ref_id				int				= -1
-		,@execution_id			int				= -1	
-		*/
+		,@IssueId				int				= -1
+		,@RetryFlag				int				= -1
+		,@IsFailure				int				= -1
+		,@DestTblName			varchar(255)
 		,@Running				int				= 2
+		,@ProcessingMethodCode	varchar(20)		= 'UNK'
 		,@IsDataHub				int				= -1
-		,@DataFactoryName		varchar(50)		= 'N/A'
-		,@DataFactoryPipeline	varchar(50)		= 'N/A'
+		,@DataFactoryName		varchar(255)	= 'N/A'
+		,@DataFactoryPipeline	varchar(255)	= 'N/A'
+		,@DataFactoryStatus		varchar(255)	= 'N/A'
 		,@IssuePrepared			varchar(10)		= 'IP'
 		,@IssueStaged			varchar(10)		= 'IS'
 		,@IssueRetry			varchar(10)		= 'IR'
@@ -80,24 +69,29 @@ DECLARE	 @Rows					varchar(10)		= 0
 		,@ObjectType			int				= 30 -- package parameter
 		,@LoopCount				int				= -1
 		,@MaxCount				int				= -1
+		,@IsProcessed			bit				= 0
+		,@ExecuteProcessStatus	varchar(255)	= 'IRF'
+		,@AllowMultipleInstances bit			= 0 -- Do not allow multiple instances to run.
 
 declare @Issue table (
 		 Id						int identity(1,1)
-		,IssueId				int
-		,DestTableName			varchar(100)
-		,SSISFolder				varchar(100)
-		,SSISProject			varchar(100)
-		,SSISPackage			varchar(100)
-		,DataFactoryName		varchar(100)
-		,DataFactoryPipeline	varchar(100)
-		,RetryFlag				int
-		,FailureFlag			int
-		,IsDataHub				int )
+		,IssueId				int					NOT NULL
+		,DestTableName			varchar(255)		NOT NULL
+		,SSISFolder				varchar(255)		NOT NULL
+		,SSISProject			varchar(255)		NOT NULL
+		,SSISPackage			varchar(255)		NOT NULL
+		,DataFactoryName		varchar(255)		NOT NULL
+		,DataFactoryPipeline	varchar(255)		NOT NULL
+		,RetryFlag				int					NOT NULL
+		,FailureFlag			int					NOT NULL
+		,ProcessingMethodCode	varchar(20)			NOT NULL
+		,IsDataHub				int					NOT NULL
+		,IsProcessed			bit					NOT NULL)
 -------------------------------------------------------------------------------
 --  Display Verbose
 -------------------------------------------------------------------------------
 SELECT	 @ParametersPassedChar	= 
-			'exec Control.ctl.usp_RetryDatahub' + @CRLF +
+			'exec BPI_DW_STAGE.ctl.usp_RetryDatahub' + @CRLF +
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')
@@ -120,66 +114,62 @@ exec	[audit].[usp_InsertStepLog]
 --  Main Code Block
 -------------------------------------------------------------------------------
 begin try
-	-------------------------------------------------------------------------------
-	--  Update Issue records in status of 'IP' or 'IS' to 'IR'
-	-------------------------------------------------------------------------------
-	select	 @StepName			= 'Update IssueIds to status IR'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'Update'
-			,@StepDesc			= 'Update Issue records to status of Retry'
-	-------------------------------------------------------------------------------	
-	UPDATE	 i
-	SET		 i.StatusId		= rs.StatusId
-			,i.ModifiedBy	= @CurrentUser
-			,i.ModifiedDtm	= @CurrentDtm
-	FROM	 ctl.Issue		  i
-	INNER JOIN (
-		SELECT max(IssueId) AS IssueId
-			,PublicationId
-		FROM ctl.Issue
-		GROUP BY PublicationId
-		) AS m 
-	ON			m.IssueId		= i.IssueId
-	LEFT JOIN	ctl.RefStatus	  r 
-	ON			i.StatusId		= r.StatusId
-	LEFT JOIN	ctl.RefStatus	  rs 
-	ON			rs.StatusCode	= @IssueRetry
-	LEFT JOIN	ctl.Publication   p 
-	ON			m.PublicationId = p.PublicationId
-	WHERE		r.StatusCode	IN (@IssuePrepared, @IssueStaged)
-	AND			p.IsActive		= 1
-	AND			p.IsDataHub		IN (1,2)
-	AND			p.RetryMax		<> 0
-	AND			DATEDIFF(mi, i.ModifiedDtm, @CurrentDtm) > ctl.fn_GetIntervalInMinutes(p.RetryIntervalLength, p.RetryIntervalCode, - 1, - 1, 0)
+	---------------------------------------------------------------------------------
+	----  Update Issue records in status of 'IP' or 'IS' to 'IR'
+	---------------------------------------------------------------------------------
+	--select	 @StepName			= 'Update IssueIds to status IR'
+	--		,@StepNumber		= @StepNumber + 1
+	--		,@StepOperation		= 'Update'
+	--		,@StepDesc			= 'Update Issue records to status of Retry'
+	---------------------------------------------------------------------------------	
+	--UPDATE	 i
+	--SET		 i.StatusId		= rs.StatusId
+	--		,i.ModifiedBy	= @CurrentUser
+	--		,i.ModifiedDtm	= @CurrentDtm
+	--FROM ctl.Issue i
+	--INNER JOIN (
+	--	SELECT max(IssueId) AS IssueId
+	--		,PublicationId
+	--	FROM ctl.Issue
+	--	GROUP BY PublicationId
+	--	) AS m ON m.IssueId = i.IssueId
+	--LEFT JOIN ctl.RefStatus r ON i.StatusId = r.StatusId
+	--LEFT JOIN ctl.RefStatus rs ON rs.StatusCode = @IssueRetry
+	--LEFT JOIN ctl.Publication p ON m.PublicationId = p.PublicationId
+	--LEFT JOIN [$(SSISDB)].[catalog].executions AS e ON e.project_name = p.SSISProject
+	--	AND e.package_name = p.SSISPackage
+	--	AND e.folder_name = p.SSISFolder
+	--	AND e.[status] = @Running
+	--WHERE r.StatusCode IN (	@IssuePrepared,@IssueStaged)
+	--	AND p.IsActive = 1
+	--	AND p.IsDataHub IN (1,2)
+	--	AND p.RetryMax <> 0
+	--	AND e.execution_id IS NULL
+	--	AND DATEDIFF(mi, i.ModifiedDtm, GETDATE()) > ctl.fn_GetIntervalInMinutes(p.RetryIntervalLength, p.RetryIntervalCode, - 1, - 1, 0)
 
-	-------------------------------------------------------------------------------
-	--  Update Issue records in status of 'IP' or 'IS' to 'IR' - End
-	-------------------------------------------------------------------------------
-	select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
-	select	 @CurrentDtm		= getdate()
+	---------------------------------------------------------------------------------
+	----  Update Issue records in status of 'IP' or 'IS' to 'IR' - End
+	---------------------------------------------------------------------------------
+	--select	 @PreviousDtm		= @CurrentDtm
+	--		,@Rows				= @@ROWCOUNT 
+	--select	 @CurrentDtm		= getdate()
 
-	exec	[audit].usp_InsertStepLog
-			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-			,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
-	-------------------------------------------------------------------------------
+	--exec	[audit].usp_InsertStepLog
+	--		 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+	--		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+	--		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+	--		,@pVerbose
+	---------------------------------------------------------------------------------
 
 	-------------------------------------------------------------------------------
 	--  Select Issue Records in status of 'IR' and fire off staging for each
 	-------------------------------------------------------------------------------
-	select	 @StepName			= 'Select IRs, checks for execution, Execute'
+	select	 @StepName			= 'Insert IRs, checks for execution, Execute'
 			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'Select'
-			,@StepDesc			= 'Select IRs, checks for execution, Execute'
+			,@StepOperation		= 'insert'
+			,@StepDesc			= 'Insert IRs, checks for execution, Execute'
 	-------------------------------------------------------------------------------
 	--Find whether Issue needs to be retried and whether it needs to be failed
---	DECLARE @CurrentDtm datetime = getdate()
-	
---	DROP TABLE IF EXISTS #IssueId
-
-
 	insert into @Issue(
 		IssueId
 		,DestTableName	
@@ -189,8 +179,11 @@ begin try
 		,DataFactoryName	
 		,DataFactoryPipeline
 		,RetryFlag			
-		,FailureFlag		
-		,IsDataHub			)
+		,FailureFlag	
+		,ProcessingMethodCode
+		,IsDataHub
+		,IsProcessed			)
+
 	SELECT i.IssueId
 		,p.DestTableName
 		,p.SSISFolder
@@ -198,26 +191,36 @@ begin try
 		,p.SSISPackage
 		,p.DataFactoryName
 		,p.DataFactoryPipeline
-		,/*RetryFlag =*/ CASE 
+		,RetryFlag = CASE 
 			WHEN DATEDIFF(mi, i.ModifiedDtm, @CurrentDtm) > ctl.fn_GetIntervalInMinutes(p.RetryIntervalLength, p.RetryIntervalCode, - 1, - 1, 0)
 				THEN 1
 			ELSE 0
 			END
-		,/*FailureFlag =*/ CASE 
-			WHEN (i.RetryCount >= p.RetryMax)
-				--CurrentDtm < SLAEndTime
-				OR (STUFF(CONVERT(VARCHAR(50), @CurrentDtm, 20), LEN(CONVERT(VARCHAR(50), @CurrentDtm, 20)) - LEN(RTRIM(LTRIM(SLAEndTime))) + 1, LEN(RTRIM(LTRIM(SLAEndTime))), RTRIM(LTRIM(SLAEndTime))) < @CurrentDtm)
+		,FailureFlag = CASE 
+			WHEN (i.RetryCount >= p.RetryMax) OR (DATEADD(mi,SLAEndTimeInMinutes,i.CreatedDtm) < @CurrentDtm)
 				THEN 1
 			ELSE 0
 			END
+		,p.ProcessingMethodCode
 		,p.IsDataHub
---	INTO #IssueId
+		,@IsProcessed
 	FROM	 ctl.Issue			   i
 	JOIN	 ctl.RefStatus		   rs 
 	ON		 rs.StatusId		 = i.StatusId
 	JOIN	 ctl.Publication	   p 
 	ON		 p.PublicationId	 = i.PublicationId
 	WHERE	 rs.StatusCode		 = @IssueRetry
+
+	select	 @PreviousDtm		= @CurrentDtm
+			,@Rows				= @@ROWCOUNT 
+	select	 @CurrentDtm		= getdate()
+			,@JSONSnippet		= ''	
+
+	exec audit.usp_InsertStepLog
+			 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+			,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+			,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+			,@pVerbose
 
 	select	 @LoopCount			 = 1
 	select	 @MaxCount			 = count(*) FROM @Issue
@@ -226,108 +229,74 @@ begin try
 	while	 @LoopCount <= @MaxCount
 	BEGIN
 		SELECT	 @IssueId			 = IssueId
-				,@destTblName		 = DestTableName
+				,@DestTblName		 = DestTableName
 				,@SSISFolder		 = SSISFolder
 				,@SSISProject		 = SSISProject
 				,@SSISPackage		 = SSISPackage
 				,@DataFactoryName	 = DataFactoryName
 				,@DataFactoryPipeline = DataFactoryPipeline
 				,@RetryFlag			 = RetryFlag
-				,@FailureFlag		 = FailureFlag
+				,@IsFailure			 = FailureFlag
+				,@ProcessingMethodCode = ProcessingMethodCode
 				,@IsDataHub			 = IsDataHub
+				,@IsProcessed		 = IsProcessed
 		FROM	 @Issue --#IssueId
 		WHERE	 Id = @LoopCount
 
-		IF(@RetryFlag = 1 AND @FailureFlag = 0)
+		IF(@RetryFlag = 1 AND @IsFailure = 0)
 		BEGIN
-			
-			IF(@IsDataHub = 1)
+			select	 @StepName			= 'Executing Process.'
+					,@StepNumber		= @StepNumber + 0
+					,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.1'
+					,@StepOperation		= 'execute'
+					,@StepDesc			= 'Execute the process associated with the IssueId: ' + isnull(cast(@IssueId as varchar(10)),'NULL')+ '.'
+
+			exec	[pg].[usp_ExecuteProcess]
+					 @pPostingGroupProcessingId				= -1 -- No posting group processing record needed.
+					,@pIssueId								= @IssueId
+					,@pAllowMultipleInstances				= @AllowMultipleInstances
+					,@pExecuteProcessStatus					= @ExecuteProcessStatus output
+
+			select	 @PreviousDtm		= @CurrentDtm
+					,@Rows				= @@ROWCOUNT 
+			select	 @CurrentDtm		= getdate()
+					,@JSONSnippet		= '{"@pPostingGroupProcessingId":"'+ cast(-1 as varchar(20))  + '",'
+										+  '"@pIssueId":"'+ cast(@IssueId as varchar(20))  + '"}' 	
+
+			exec audit.usp_InsertStepLog
+					 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+					,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+					,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+					,@pVerbose
+
+			select	 @JSONSnippet		= ''
+
+			IF(@ExecuteProcessStatus <> 'ISS') -- If the run did not succeed log a retry. Instance Start Success
 			BEGIN
-				IF NOT EXISTS(select 1 from [$(SSISDB)].catalog.executions where server_name = @ServerName AND folder_name = @SSISFolder AND project_name = @SSISProject AND package_name = @SSISPackage AND status = @Running)
-				BEGIN
-
-					insert into	@SSISParameters values (@ObjectType,'pkg_IssueId',	@IssueId)
-
-					exec pg.usp_ExecuteSSISPackage 
-							 @pSSISProject		= @SSISProject
-							,@pServerName		= @ServerName
-							,@pSSISFolder		= @SSISFolder
-							,@pSSISPackage		= @SSISPackage
-							,@pSSISParameters	= @SSISParameters
-							,@pETLExecutionId	= @pETLExecutionId
-							,@pPathId			= @pPathId
-							,@pVerbose			= @pVerbose
-
-					select	 @PreviousDtm		= @CurrentDtm
-							,@Rows				= @@ROWCOUNT 
-					select	 @CurrentDtm		= getdate()
-							,@JSONSnippet		= '{"@SSISFolder":"'	+ @SSISFolder  + '",'
-												+  '"@SSISProject":"'	+ @SSISProject + '",'
-												+  '"@SSISPackage":"'	+ @SSISPackage + '",'
-												+  '"@IssueId":"'	+ cast(@IssueId as varchar(20)) + '"}' 
-
-/*
-					--FIRE ETL STEPS
-					--1) Get the reference id
-					SELECT TOP 1 @ref_id = reference_id
-					FROM		 [$(SSISDB)].catalog.environment_references a
-					INNER JOIN	 [$(SSISDB)].catalog.projects b
-					ON			 a.project_id		 = b.project_id
-					WHERE		 [name]				 = @project
-					AND			 environment_name	 = @ServerName
-					AND			 environment_folder_name = @folder
-
-					--2)Create the SSIS execution
-					EXEC [$(SSISDB)].catalog.create_execution @folder, @project, @package, @ref_id, 0, NULL, 1, @execution_id OUTPUT
-				
-					--3) Set Execution parameter value
-					EXEC [$(SSISDB)].catalog.set_execution_parameter_value @execution_id, 30, "pkg_IssueId", @IssueId
-
-					--4) Start execution
-					EXEC [$(SSISDB)].catalog.start_execution @execution_id
-*/
-				END
-			END
-
-			IF(@IsDataHub = 2)
-			BEGIN
-				EXEC ctl.usp_TriggerDataFactory @pDataFactoryName = @DataFactoryName, @pDataFactoryPipeline = @DataFactoryPipeline
-			END
-
-			--Update the retry count for all IssueIds that needs to be retried
-			UPDATE	 i
-			SET		 RetryCount		= RetryCount + 1
-					,ModifiedBy		= @CurrentUser
-					,ModifiedDtm	= @CurrentDtm
-			FROM	 ctl.Issue		  i
-			WHERE	 IssueId		= @IssueId			
-		END
+				--Update the retry count for all IssueIds that needs to be retried
+				UPDATE	 i
+				SET		 RetryCount		= RetryCount + 1
+						,ModifiedBy		= @CurrentUser
+						,ModifiedDtm	= @CurrentDtm
+				FROM	 ctl.Issue		  i
+				WHERE	 IssueId		= @IssueId		
+			END -- IF(@ExecuteProcessStatus <> 'ISS') 
+		END--(@RetryFlag = 1 AND @IsFailure = 0)
 
 
-		IF(@FailureFlag = 1)
+		IF(@IsFailure = 1)
 		BEGIN
 			--Update to IF
 			EXEC ctl.usp_UpdateIssue @IssueId,@IssueFailed
 		END
 
-		select	 @LoopCount			= @LoopCount + 1
-		--DELETE FROM @Issue WHERE IssueId = @Issue
-	END
+		UPDATE	 @Issue
+		SET		 IsProcessed	= 1
+		WHERE	 IssueId		= @IssueId
 
-	-------------------------------------------------------------------------------
-	--  Select Issue Records in status of 'IR' and fire off staging for each - End
-	-------------------------------------------------------------------------------
-	select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
-	select	 @CurrentDtm		= getdate()
-
-	exec	[audit].usp_InsertStepLog
-			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-			,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
-	-------------------------------------------------------------------------------
-		
+		select	 @LoopCount		= @LoopCount + 1
+	END 	-- while
+	
 end try
 
 -------------------------------------------------------------------------------
@@ -376,3 +345,19 @@ exec	[audit].usp_InsertStepLog
 		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
 -------------------------------------------------------------------------------
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20201022	Omkar Chowkwale	Initial Iteration
+20201118	ffortunato		removing warnings
+20201119	ffortunato		changing from temp table to table variable and
+							and chinging looping strategy.
+20210413	ffortunato		Replacing IsDataHub with ProcessingMethod.
+20210416	ffortunato		Moved Is Process Running checks to 
+							usp_ExecuteProces --> Usp_ExecuteSSIS 
+							and usp_ExecuteDataFacotry
+******************************************************************************/
+

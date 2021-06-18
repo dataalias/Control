@@ -25,7 +25,7 @@ CREATE TABLE [ctl].[Subscription](
 	[SubscriptionArchivePath] [varchar](255) NULL,
 	[SrcFilePath] [varchar](256) NULL,
 	[DestTableName] [varchar](255) NULL,
-	[FeedFormat] [varchar](100) NULL,
+	[DestFileFormatCode] [varchar](20) NULL,
 	[CreatedBy] [varchar](50) NOT NULL,
 	[CreatedDtm] [datetime] NOT NULL,
 	[ModifiedBy] [varchar](50) NULL,
@@ -44,20 +44,17 @@ GO
 ALTER TABLE [ctl].[Subscription] ADD  CONSTRAINT [DF__Subscription__IsActive__1]  DEFAULT ((1)) FOR [IsActive]
 GO
 
-ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_Interface__InterfaceCode] FOREIGN KEY([InterfaceCode])
+ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_Interface_Subscription__InterfaceCode] FOREIGN KEY([InterfaceCode])
 REFERENCES [ctl].[RefInterface] ([InterfaceCode])
 GO
 
---ALTER TABLE [ctl].[Subscription] CHECK CONSTRAINT [FK_Interface__InterfaceCode]
---GO
-
-ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_Subscription__SubscriberId] FOREIGN KEY([SubscriberId])
-REFERENCES [ctl].[Subscriber] ([SubscriberId])
+ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_FileFormat_Subscription__FileFormatCode] FOREIGN KEY([DestFileFormatCode])
+REFERENCES [ctl].[RefFileFormat] ([FileFormatCode])
 GO
 
---ALTER TABLE [ctl].[Subscription] CHECK CONSTRAINT [FK_Subscription__SubscriberId]
---GO
-
+ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_Subscriber_Subscription__SubscriberId] FOREIGN KEY([SubscriberId])
+REFERENCES [ctl].[Subscriber] ([SubscriberId])
+GO
 
 /******************************************************************************
        change history
@@ -66,5 +63,6 @@ date		author			description
 --------	-------------	---------------------------------------------------
 20181011	ffortunato		initial iteration
 20201118	ffortunato		fixing some warnings etc....
+20210325	ffortunato		Changing FeedFormat --> DestFileFormatCode
 
 ******************************************************************************/

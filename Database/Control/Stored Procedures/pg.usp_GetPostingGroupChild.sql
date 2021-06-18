@@ -37,6 +37,7 @@ Date:		20190624
 Date		Author			Description
 --------	-------------	---------------------------------------------------
 20201118	ffortunato		cleaning up warnings.
+20210415	ffortunato		formatting.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -115,21 +116,25 @@ begin try
 				,isnull(pgpC.IssueId,-1)		ChildIssueId
 				,isnull(pgpC.DistributionId,-1)	ChildDistributionId
 				,pgC.PostingGroupCode			ChildPostingGroupCode
+				/*
+				, pgC.MethodCode				ChildPostingGroupMethodCode
+				, pgC.ModeCode					ChildPostingGroupModeCode
+				*/
 				,ctlI.IssueId					IssueId
 				,ctlI.IssueName					IssueName
 				,ctlP.PublicationName			PublicationName
 				,ctlP.SrcPublicationName		SrcPublicationName
-		from	 pg.PostingGroupProcessing		pgpP
-		join	 pg.PostingGroupDependency		pgd
+		from	 pg.PostingGroupProcessing		  pgpP
+		join	 pg.PostingGroupDependency		  pgd
 		on		 pgpP.PostingGroupId			= pgd.ParentId
-		join	 pg.PostingGroupProcessing		pgpC
+		join	 pg.PostingGroupProcessing		  pgpC
 		on		 pgpC.PostingGroupId			= pgd.ChildId
-		join	 pg.PostingGroup				pgC
+		join	 pg.PostingGroup				  pgC
 		on		 pgC.PostingGroupId				= pgd.ChildId
-		join	ctl.Issue						ctlI
-		on		pgpC.IssueId					=ctlI.IssueId
-		join	ctl.Publication					ctlP
-		on		ctlI.PublicationId				=ctlP.PublicationId
+		join	 ctl.Issue						  ctlI
+		on		 pgpC.IssueId					= ctlI.IssueId
+		join	 ctl.Publication				  ctlP
+		on		 ctlI.PublicationId				= ctlP.PublicationId
 		where	 pgpP.PostingGroupBatchId		= @pPostingGroupBatchId
 		and		 pgpP.PostingGroupId			= @pPostingGroupId
 		and		 pgpP.PGPBatchSeq				= @pPostingGroupBatchSeq

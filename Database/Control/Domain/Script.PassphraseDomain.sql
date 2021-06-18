@@ -10,14 +10,14 @@ Post-Deployment Script Template
 --------------------------------------------------------------------------------------
 */
 
-use Control
+use BPI_DW_STAGE
 go
 
 
 
 
 if not exists (select top 1 1 from ctl.Passphrase
-	where	DatabaseName='Control'
+	where	DatabaseName='BPI_DW_Stage'
 	and		[SchemaName]='ctl'
 	and		TableName='Publisher'
 	and		[Passphrase]='Publisher')
@@ -28,11 +28,11 @@ insert into ctl.Passphrase (
 	,TableName
 	,[Passphrase])
 values( 
-'Control',	'ctl',	'Publisher',	'Publisher')
+'BPI_DW_Stage',	'ctl',	'Publisher',	'Publisher')
 
 
 if not exists (select top 1 1 from ctl.Passphrase
-	where	DatabaseName='Control'
+	where	DatabaseName='BPI_DW_Stage'
 	and		[SchemaName]='ctl'
 	and		TableName='Subscriber'
 	and		[Passphrase]='Subscriber')
@@ -43,7 +43,7 @@ insert into ctl.Passphrase (
 	,TableName
 	,[Passphrase])
 values( 
-'Control',	'ctl',	'Subscriber',	'Subscriber')
+'BPI_DW_Stage',	'ctl',	'Subscriber',	'Subscriber')
 
 
 

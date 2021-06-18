@@ -1,7 +1,7 @@
 ﻿CREATE Procedure [pg].[UpdatePostingGroupProcessingStatus](
 		 @pPostingGroupBatchId		int				= -1
 		,@pPostingGroupId			int				= -1
-		,@pPostingGroupBatchSeq		int				= -1
+		,@pPostingGroupBatchSeq		bigint			= -1
 		,@pPostingGroupStatusCode	varchar(20)		='PF'
 -- Think about adding 
 -- @pStartDate				datetime		= NULL
@@ -39,14 +39,14 @@ date:           20161018
 *******************************************************************************
       change history
 *******************************************************************************
-date      author         description
---------  -------------  ---------------------------------------------------
-
-20170927  ffortunato     new error handling and template.
-20180802  ffortunato     messing with status codes/
-20180920  ffortunato     quick logging change.
-20180921  ffortunato     Need patch sequence too!
-20201022  ochowkwale	 Adding the retry logic
+date		author			description
+--------	-------------	---------------------------------------------------
+20170927	ffortunato		new error handling and template.
+20180802	ffortunato		messing with status codes/
+20180920	ffortunato		quick logging change.
+20180921	ffortunato		Need patch sequence too!
+20201022	ochowkwale		Adding the retry logic
+20210415	ffortunato		warnings clean up
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -75,17 +75,17 @@ declare	 @Rows					int				= 0
 		,@JSONSnippet			nvarchar(max)	= NULL 
 		,@PostingGoupFailure	varchar(5)		= 'PF'
 		,@PostingGroupRetry		varchar(5)		= 'PR'
-		,@EmailFlag				bit				= 0
-		,@Project				varchar(50)		= 'N/A'
-		,@Package				varchar(50)		= 'N/A'
-		,@DataFactoryName		varchar(50)		= 'N/A'
-		,@DataFactoryPipeline	varchar(50)		= 'N/A'
+		,@Severity				int				= 0
+		,@Project				varchar(255)	= 'N/A'
+		,@Package				varchar(255)	= 'N/A'
+		,@DataFactoryName		varchar(255)	= 'N/A'
+		,@DataFactoryPipeline	varchar(255)	= 'N/A'
 		,@Subject				varchar(255)	= 'N/A'
 		,@From					varchar(255)	= 'N/A'
-		,@Recipients			varchar(255)	= 'N/A'
+		,@Recipients			varchar(1000)	= 'N/A'
 		,@Body					varchar(255)	= 'N/A'
 		,@Servername			varchar(100)	= @@SERVERNAME
-		,@PostingGroupProcessingId int			= 0
+		,@PostingGroupProcessingId	bigint		= 0
 -- Procedure Specific Parameters     
 		,@ModifiedDtm			datetime		= getdate()
 		,@ModifiedBy			varchar(30)		= cast(system_user as varchar(30))
@@ -106,17 +106,14 @@ select	 @ParametersPassedChar   	  = @CRLF + '    Parameters Passed: ' + @CRLF +
 
 begin try
 
-select  @StatusId				= StatusId
-from    pg.RefStatus			  rs
-where   rs.StatusCode			= @pPostingGroupStatusCode
-
 --debug
 --print @pStatusCode
 IF (@pPostingGroupStatusCode = @PostingGoupFailure)
 BEGIN
 	SELECT @PostingGroupProcessingId = pr.PostingGroupProcessingId
-		,@pPostingGroupStatusCode = CASE WHEN p.RetryMax > pr.RetryCount THEN @PostingGroupRetry	ELSE @PostingGoupFailure END
-		,@EmailFlag = CASE WHEN (p.RetryMax <= pr.RetryCount) AND r.StatusCode <> @PostingGoupFailure THEN 1 ELSE 0 END
+		,@pPostingGroupStatusCode = CASE WHEN (pr.RetryCount >= p.RetryMax) OR (DATEADD(mi,SLAEndTimeInMinutes,pr.CreatedDtm) < @CurrentDtm) 
+								THEN @PostingGoupFailure ELSE @PostingGroupRetry END	
+		,@Severity = CASE WHEN (p.RetryMax <= pr.RetryCount) AND r.StatusCode <> @PostingGoupFailure THEN 1 ELSE 0 END
 		,@Project = p.SSISProject
 		,@Package = p.SSISPackage
 		,@DataFactoryName = p.DataFactoryName
@@ -129,43 +126,28 @@ BEGIN
 		AND pr.PGPBatchSeq = @pPostingGroupBatchSeq
 		AND p.IsActive = 1
 	
-	SELECT STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
+	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
 	FROM pg.PostingGroupProcessing AS pgp
-	INNER JOIN pg.MapContactToPostingGroup AS mctp ON mctp.PostingGroupId = pgp.PostingGroupId
-	INNER JOIN ctl.Contact AS ct ON ct.ContactId = mctp.ContactId
+	LEFT JOIN pg.MapContactToPostingGroup AS mctp ON mctp.PostingGroupId = pgp.PostingGroupId
+	LEFT JOIN ctl.Contact AS ct ON ct.ContactId = mctp.ContactId
 	WHERE pgp.PostingGroupBatchId = @pPostingGroupBatchId
 		AND pgp.PostingGroupId = @pPostingGroupId
 		AND pgp.PGPBatchSeq = @pPostingGroupBatchSeq
+	
+	EXEC ctl.usp_SendMail 		 
+		 @pProject					= @Project
+		,@pPackage					= @Package
+		,@pDataFactoryName			= @DataFactoryName
+		,@pDataFactoryPipeline		= @DataFactoryPipeline
+		,@pTo						= @Recipients
+		,@pSeverity					= @Severity
+		,@pPostingGroupProcessingId = @PostingGroupProcessingId
 
-	--Send Email
-	set @Subject =  (@Servername + ' || ' + COALESCE(@Project,@DataFactoryName) + ' Posting Group Failure')
-
-	set @From = CASE WHEN @Servername IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN 'DM-DEV-ETL@zovio.com'
-					 WHEN @Servername IN ('QME1EDLSQL01','QME3EDLSQL01') THEN 'DM-QA-ETL@zovio.com'
-					 WHEN @Servername IN ('PRODEDLSQL01') THEN 'DM-PROD-ETL@zovio.com'
-				END
-
-	set @Recipients = CASE WHEN @EmailFlag = 1 THEN @Recipients 
-						   ELSE 'DM-Development@bpiedu.com'
-					  END
-
-	set @Body = CHAR(13) + 'SSISProject: ' + @Project + CHAR(13)
-			   +'SSISPackage'+Char(9)+': '+ CONVERT(varchar(10),@Package)+CHAR(13)	
-			   +'DataFactoryName'+Char(9)+': '+ CONVERT(varchar(10),@DataFactoryName)+CHAR(13)
-			   +'DataFactoryPipeline'+Char(9)+': '+ CONVERT(varchar(10),@DataFactoryPipeline)+CHAR(13)
-			   +'PostingGroupProcessinsId'+Char(9)+': '+ CONVERT(varchar(10),@PostingGroupProcessingId)+CHAR(13)
-			   +'Date'+Char(9)+': '+ CONVERT(varchar(20),@modifiedDtm, 120)+CHAR(13)
-			   +'User'+Char(9)+': '+ SYSTEM_USER+CHAR(13)
-			   +'Contact'+Char(9)+': BI-Development@zovio.com' +CHAR(13) +CHAR(13)
-			   +'Error Messages'+CHAR(13)
-			   +'--------------------------------------------------------------------------------------------------'+CHAR(13) +CHAR(13) +CHAR(13)
-
-	exec msdb.dbo.sp_send_dbmail @from_address = @from
-		,@recipients = @Recipients
-		,@importance = 'High'
-		,@subject = @Subject
-		,@body = @Body
 END
+
+select  @StatusId				= StatusId
+from    pg.RefStatus			  rs
+where   rs.StatusCode			= @pPostingGroupStatusCode
 
 update  PGP
 set     PostingGroupStatusId	= @StatusId

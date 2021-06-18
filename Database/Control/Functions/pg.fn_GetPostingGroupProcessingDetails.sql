@@ -51,14 +51,14 @@ RETURNS @ReturnTable TABLE
 	,ParentPostingGroupBatchId		int
 	,ParentPostingGroupId			int
 	,ParentPostingGroupStatusId		int
-	,ParentPGPBatchSeq				int
-	,ChildPostingGroupProcessingId	int
+	,ParentPGPBatchSeq				bigint
+	,ChildPostingGroupProcessingId	bigint
 	,ChildPostingGroupBatchId		int
 	,ChildPostingGroupId			int
 	,ChildPostingGroupStatusId		int
-	,ChildPGPBatchSeq				int
+	,ChildPGPBatchSeq				bigint
 		--,ChildRetryCount				int
-	,ChildIssueId					int
+	,ChildIssueId					bigint
 	,ChildDistributionId			bigint
 	,ChildPostingGroupCode			varchar(100)
 )
