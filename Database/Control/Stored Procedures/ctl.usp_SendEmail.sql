@@ -1,15 +1,15 @@
 ﻿CREATE PROCEDURE ctl.usp_SendMail (
-		 @pProject					varchar(255)	= 'N/A'
-		,@pPackage					varchar(255)	= 'N/A'
+		 @pProject				varchar(255)	= 'N/A'
+		,@pPackage				varchar(255)	= 'N/A'
 		,@pDataFactoryName			varchar(255)	= 'N/A'
-		,@pDataFactoryPipeline		varchar(255)	= 'N/A'
-		,@pTo						varchar(1000)	= 'N/A'
-		,@pSeverity					int				= -1
-		,@pIssueId					int				= -1
-		,@pPostingGroupProcessingId	bigint			= -1
-		,@pETLExecutionId			int				= -1
-		,@pPathId					int				= -1
-		,@pVerbose					bit				= 0)
+		,@pDataFactoryPipeline			varchar(255)	= 'N/A'
+		,@pTo					varchar(1000)	= 'N/A'
+		,@pSeverity				int		= -1
+		,@pIssueId				int		= -1
+		,@pPostingGroupProcessingId		bigint		= -1
+		,@pETLExecutionId			int		= -1
+		,@pPathId				int		= -1
+		,@pVerbose				bit		= 0)
 AS
 /*****************************************************************************
 File:		usp_SendMail.sql
@@ -116,10 +116,10 @@ begin try
 		set @Subject =  (isnull(@ServerName, 'NULL') + ' || Shrug: ' + isnull(@pProject, 'NULL') + ' ' + isnull(@pDataFactoryName, 'NULL') + ' Failure')
 
 
-	set @From = CASE WHEN @ServerName IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN 'DM-DEV-ETL@zovio.com'
-					 WHEN @ServerName IN ('QME1EDLSQL01','QME3EDLSQL01') THEN 'DM-QA-ETL@zovio.com'
-					 WHEN @ServerName IN ('PRODEDLSQL01') THEN 'DM-PROD-ETL@zovio.com'
-				END
+	set @From = CASE WHEN @ServerName LIKE ('DME%')  THEN 'DM-DEV-ETL@zovio.com'
+			 WHEN @ServerName LIKE ('QME%')  THEN 'DM-QA-ETL@zovio.com'
+			 WHEN @ServerName LIKE ('PROD%') THEN 'DM-PROD-ETL@zovio.com'
+			END
 
 	set @pTo = CASE WHEN @pSeverity = 1 THEN @pTo 
 						   ELSE 'DM-Development@zovio.com'
