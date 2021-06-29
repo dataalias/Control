@@ -13,3 +13,5 @@ tst_PostingGroupProcessing.sql
 # Contribute
 Send me an email if you would like to contribute to this system.
 dataalias@outlook.com
+
+MinorChange
