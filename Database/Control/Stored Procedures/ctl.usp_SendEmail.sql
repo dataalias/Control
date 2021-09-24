@@ -107,15 +107,13 @@ begin try
 	else 
 		set @Subject =  (isnull(@ServerName, 'NULL') + ' || Shrug: ' + isnull(@pProject, 'NULL') + ' ' + isnull(@pDataFactoryName, 'NULL') + ' Failure')
 
-
-
-	set @From = CASE WHEN @ServerName LIKE ('DME%')  THEN 'DM-DEV-ETL@zovio.com'
-			 WHEN @ServerName LIKE ('QME%')  THEN 'DM-QA-ETL@myaddress.com'
-			 WHEN @ServerName LIKE ('PROD%') THEN 'DM-PROD-ETL@myaddress.com'
-			END
+	set @From = CASE WHEN @ServerName LIKE 'DME%'  THEN 'DM-DEV-ETL@myaddress.com'
+					 WHEN @ServerName LIKE 'QME%'  THEN 'DM-QA-ETL@myaddress.com'
+					 WHEN @ServerName LIKE 'PROD%' THEN 'DM-PROD-ETL@myaddress.com'
+				END
 
 	set @pTo = CASE WHEN @pSeverity = 1 THEN @pTo 
-						   ELSE 'DM-Development@zovio.com'
+						   ELSE 'DM-Development@myaddress.com'
 					  END
 
 	set @Body = @CRLF
@@ -127,7 +125,7 @@ begin try
 				+ 'PostingGroupProcessingId'+ @Tab	+ ': ' + CONVERT(varchar(50),COALESCE(@pPostingGroupProcessingId,-1))+ @CRLF
 				+ 'Date'+ @Tab						+ ': ' + CONVERT(varchar(50),@CurrentDtm, 120)+ @CRLF
 				+ 'User'+ @Tab						+ ': ' + SYSTEM_USER + @CRLF
-				+ 'Contact'+ @Tab					+ ': DM-Development@zovio.com' + @CRLF + @CRLF
+				+ 'Contact'+ @Tab					+ ': DM-Development@myaddress.com' + @CRLF + @CRLF
 				+ 'Error Messages'+ @CRLF
 				+ '--------------------------------------------------------------------------------------------------'+ @CRLF + @CRLF + @CRLF
 
