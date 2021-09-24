@@ -29,14 +29,6 @@ Errors:
 Author:		ffortunato
 Date:		20180101
 
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
-Date		Author			Description
---------	-------------	---------------------------------------------------
-20180101	ffortunato		Initial Iteration
-20210329	ffortunato		clearing warnings
-
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -68,7 +60,7 @@ DECLARE	 @Rows					int				= 0
 		,@Duration				varchar(10)		= 0
 		,@JSONSnippet			nvarchar(max)	= NULL
 		,@Body					varchar(2000)	= 'N/A'
-		,@Subject				varchar(200)	= 'N/A'
+		,@Subject				varchar(600)	= 'N/A'
 		,@From					varchar(200)	= 'N/A'
 
 exec [audit].usp_InsertStepLog
@@ -116,9 +108,9 @@ begin try
 		set @Subject =  (isnull(@ServerName, 'NULL') + ' || Shrug: ' + isnull(@pProject, 'NULL') + ' ' + isnull(@pDataFactoryName, 'NULL') + ' Failure')
 
 
-	set @From = CASE WHEN @ServerName IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN 'DM-DEV-ETL@zovio.com'
-					 WHEN @ServerName IN ('QME1EDLSQL01','QME3EDLSQL01') THEN 'DM-QA-ETL@zovio.com'
-					 WHEN @ServerName IN ('PRODEDLSQL01') THEN 'DM-PROD-ETL@zovio.com'
+	set @From = CASE WHEN @ServerName LIKE 'DME%'  THEN 'DM-DEV-ETL@zovio.com'
+					 WHEN @ServerName LIKE 'QME%'  THEN 'DM-QA-ETL@zovio.com'
+					 WHEN @ServerName LIKE 'PROD%' THEN 'DM-PROD-ETL@zovio.com'
 				END
 
 	set @pTo = CASE WHEN @pSeverity = 1 THEN @pTo 
@@ -211,3 +203,14 @@ exec [audit].usp_InsertStepLog
 		,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 		,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20180101	ffortunato		Initial Iteration
+20210329	ffortunato		clearing warnings
+20210329	ffortunato		history
+
+******************************************************************************/

@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>6CAFC0C6-A428-4d30-A9F9-700E829FEA51</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyApplication</RootNamespace>
+    <AssemblyName>MyApplication</AssemblyName>
+    <Name>dmutils</Name>
+    <ProjectHome />
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="ctl\" />
+    <Folder Include="FileShare\" />
+    <Folder Include="Connectors\" />
+    <Folder Include="Datetime\" />
+    <Folder Include="assemblies\" />
+    <Folder Include="Canvas\" />
+    <Folder Include="Table\" />
+    <Folder Include="RestAPI\" />
+    <Folder Include="WinSCP\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Canvas\Invoke-CanvasFileCheck.ps1" />
+    <Compile Include="Canvas\Invoke-CanvasGet.ps1" />
+    <Compile Include="ctl\Add-ControlFile.ps1" />
+    <Compile Include="ctl\Get-IssueNamesToRetrieve.ps1" />
+    <Compile Include="ctl\Invoke-ctlFileToIssue.ps1" />
+    <Compile Include="ctl\Invoke-SQLServerJob.ps1" />
+    <Compile Include="ctl\Invoke-StagingPackage.ps1" />
+    <Compile Include="ctl\New-Issue.ps1" />
+    <Compile Include="ctl\Edit-Issue.ps1" />
+    <Compile Include="Datetime\Invoke-IntervalCheck.ps1" />
+    <Compile Include="Datetime\Invoke-SLACheck.ps1" />
+    <Compile Include="dmutils.psd1" />
+    <Compile Include="dmutils.psm1" />
+    <Compile Include="dmutils.tests.ps1" />
+    <Compile Include="FileShare\Invoke-FileSharePut.ps1" />
+    <Compile Include="FileShare\FileShareListCheckGet.ps1" />
+    <Compile Include="Hash.ps1" />
+    <Compile Include="Invoke-ErrorHandler.ps1" />
+    <Compile Include="RestAPI\Get-QualtricsExport.ps1" />
+    <Compile Include="Invoke-Unzip.ps1" />
+    <Compile Include="Send-eMail.ps1" />
+    <Compile Include="Table\dbIntervalCheckGet.ps1" />
+    <Compile Include="WinSCP\ftpPut.ps1" />
+    <Compile Include="WinSCP\ftpListCheckGet.ps1" />
+    <Compile Include="WinSCP\WinSCP.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SqlServer.Smo, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91">
+      <Name>Microsoft.SqlServer.Smo</Name>
+      <AssemblyName>Microsoft.SqlServer.Smo.dll</AssemblyName>
+      <HintPath>..\..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.SqlServer.Smo\14.0.0.0__89845dcd8080cc91\Microsoft.SqlServer.Smo.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WinSCPnet, Version=1.3.7.7601, Culture=neutral, PublicKeyToken=2271ec4a3c56d0bf">
+      <Name>WinSCPnet</Name>
+      <AssemblyName>WinSCPnet.dll</AssemblyName>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\WinSCP\WinSCPnet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assemblies\WinSCPnet.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="Build" />
+  <Import Project="$(MSBuildExtensionsPath)\PowerShell Tools for Visual Studio\PowerShellTools.targets" Condition="Exists('$(MSBuildExtensionsPath)\PowerShell Tools for Visual Studio\PowerShellTools.targets')" />
+</Project>

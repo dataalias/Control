@@ -32,6 +32,8 @@ Date		Author			Description
 20190305	ochowkwale		Initial creation	
 20191017	xli				Adding NextExecutionDtm as a return Parameter
 20210415	ffortunato		feedformat --> SrcFileFormat TAXES!!!
+20210415	ffortunato		Need some new parameters:
+								
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -107,6 +109,47 @@ begin try
 			,SrcFilePath
 			,SrcFileFormatCode		As FeedFormat  -- This is being renamed for backward compatibility.
 			,NextExecutionDtm
+			,PublicationCode
+			,PublicationName
+			,SrcPublicationCode
+			--,SrcPublicationName
+			,PublicationEntity
+			,PublicationFilePath
+			,PublicationArchivePath
+			--  ,SrcFilePath
+			,SrcFileRegEx
+			,SrcDeltaAttributes
+			,DestTableName
+			--   ,SrcFileFormatCode
+			,StandardFileRegEx
+			,StandardFileFormatCode
+			,ProcessingMethodCode
+			,MethodCode
+			,TransferMethodCode
+			,StorageMethodCode
+			,StageJobName
+			,SSISFolder
+			,SSISProject
+			,SSISPackage
+			,DataFactoryName
+			,DataFactoryPipeline
+			,IntervalCode
+			,IntervalLength
+			,SLATime
+			,SLAEndTimeInMinutes
+			--   ,NextExecutionDtm
+			,IsActive
+			,IsDataHub
+			,Bound
+			,RetryMax
+			,RetryIntervalCode
+			,RetryIntervalLength
+			,PublicationGroupSequence
+			,PublicationGroupDesc
+			,CreatedBy
+			,CreatedDtm
+			,ModifiedBy
+			,ModifiedDtm
 		FROM ctl.Publication
 		WHERE PublicationCode = @pPublicationCode
 			AND Bound = 'Out'

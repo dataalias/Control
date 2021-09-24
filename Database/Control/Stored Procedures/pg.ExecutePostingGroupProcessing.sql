@@ -13,7 +13,7 @@ File:		ExecutePostingGroupProcessing.sql
 Name:		ExecutePostingGroupProcessing
 
 Purpose:	Each time a posting groups status is updated to a complete 
-			state the system must determine if a subssequent posting group 
+			state the system must determine if a subssequent posting group
 			can be fired off.
 
 Parameters:	The parameters for this procedure are those from the posting 
@@ -229,7 +229,7 @@ begin try
 	on       RS.StatusId					= PGP.PostingGroupStatusId
 	join     pg.PostingGroupDependency		  PGD
 	on       PGP.PostingGroupId				= PGD.ChildId
-	join	 pg.PostingGroup As pg
+	join	 pg.PostingGroup				  pg
 	on		 pg.PostingGroupId				= PGD.ParentId
 	where    RS.StatusCode					= @PGStatusComplete -- Child's PG Status
 	and      PGP.PostingGroupId				= @pPGId  -- Child's posting group.
@@ -401,8 +401,8 @@ so other instances of this stored procedure do not run the same processes.
 				,@ParentProcessingMethodCode	= PG.ProcessingMethodCode
 				,@ParentProcessingModeCode		= PG.ProcessingModeCode
 		from     @PostingGroupReady				  PGCR
-		join     PG.PostingGroup				  PG
-		on       PG.PostingGroupId				= PGCR.PostingGroupId
+		join     pg.PostingGroup				  PG
+		on       pg.PostingGroupId				= PGCR.PostingGroupId
 		where    PostingGroupReadyId			= @LoopCount
 		and      TotalCount						= ReadyCount
 
@@ -547,7 +547,7 @@ so other instances of this stored procedure do not run the same processes.
 
 				select	 @JSONSnippet		= NULL
 				
-				CONTINUE
+				CONTINUE -- This breaks us out of the while loop. But there is no way this will try again when the correct time passes.
 			END
 			
 			--Calculate NextExecutionDtm
@@ -704,6 +704,12 @@ so other instances of this stored procedure do not run the same processes.
 						',@pIssueId								= -1' + @CRLF +
 						',@pProcessStatus						= ' + @ProcessStatus +' output' +  @CRLF 
 
+					select	 @StepName			= 'Execute Process'
+							,@StepNumber		= @StepNumber + 0
+							,@SubStepNumber     = @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
+							,@StepOperation		= 'execute'
+							,@StepDesc			= 'Execute Posting Group Processing Id:'  + cast(@PostingGroupProcessingIdToExecute as varchar(12))
+
 					exec [pg].[usp_ExecuteProcess]
 						 @pPostingGroupProcessingId				= @PostingGroupProcessingIdToExecute
 						,@pIssueId								= -1 -- No issue date neeeds to be sent.
@@ -719,6 +725,13 @@ so other instances of this stored procedure do not run the same processes.
 						*/
 						,@pAllowMultipleInstances				= @AllowMultipleInstances
 						,@pExecuteProcessStatus					= @ExecuteProcessStatus	output
+
+
+					exec audit.usp_InsertStepLog
+								@MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+							,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
+							,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
+							,@pVerbose
 
 				end
 		end try

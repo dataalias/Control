@@ -1,16 +1,6 @@
 ﻿CREATE PROCEDURE [pg].[usp_ExecuteProcess] (
 	 @pPostingGroupProcessingId			bigint			= -1
 	,@pIssueId							int				= -1
-/*
-	,@pProcessingMethodCode				varchar(20)		= 'N/A'
-	,@pSSISFolder						varchar(255)	= 'N/A'
-	,@pSSISProject						varchar(255)	= 'N/A'
-	,@pSSISPackage						varchar(255)	= 'N/A'
-	,@pSSISParameters					udt_SSISPackageParameters readonly
-	,@pDataFactoryName					varchar(255)	= 'N/A'
-	,@pDataFactoryPipeline				varchar(255)	= 'N/A'
-	,@pSQLJobName						varchar(255)	= 'N/A'
-*/
 	,@pAllowMultipleInstances			bit				= 0
 	,@pExecuteProcessStatus				varchar(20)		output
 	,@pETLExecutionId					int				= -1
@@ -117,7 +107,7 @@ select	 @ParametersPassedChar	=
 -- REMOVE ME LATER
 --print @ParametersPassedChar
 
-select	  @pExecuteProcessStatus = 'ISF' -- Instnace start failed.
+select	  @pExecuteProcessStatus = 'ISF' -- Instance start failed.
 
 
 if @pVerbose					= 1
@@ -142,7 +132,7 @@ begin
 			,@DataFactoryName					= pg.DataFactoryName
 			,@DataFactoryPipeline				= pg.DataFactoryPipeline
 			,@SQLJobName						= pg.JobName
-			--,@SQLStoredProcedure				= pg.SQLStoredProcedure
+			,@SQLStoredProcedure				= pg.SQLStoredProcedure
 	from	 pg.PostingGroupProcessing			  pgp
 	join	 pg.PostingGroup					  pg
 	on		 pgp.PostingGroupId					= pg.PostingGroupId
@@ -202,6 +192,7 @@ print 'SSISPackage			: ' +  isnull(@SSISPackage			,'NULL')
 print 'DataFactoryName		: ' +  isnull(@DataFactoryName		,'NULL')
 print 'DataFactoryPipeline	: ' +  isnull(@DataFactoryPipeline	,'NULL')
 print 'SQLJobName			: ' +  isnull(@SQLJobName			,'NULL')
+print 'SQLStoredProcedure	: ' +  isnull(@SQLStoredProcedure	,'NULL')
 */
 
 begin try
@@ -222,7 +213,7 @@ begin try
 						+ ' @SSISPackage='	+ @SSISPackage	+ @CRLF
 						+  '@pPostingGroupProcesingId":"'	+ isnull(cast(@pPostingGroupProcessingId as varchar(10)),'NULL') + @CRLF
 						+  '@pIssueId":"'					+ isnull(cast(@pIssueId					 as varchar(10)),'NULL') + @CRLF
-
+/*
 		exec pg.usp_ExecuteSSISPackage 
 				 @pSSISProject				= @SSISProject	-- @pSSISProject
 				,@pServerName				= @ServerName	-- @pServerName
@@ -234,7 +225,7 @@ begin try
 				,@pAllowMultipleInstances	= @pAllowMultipleInstances
 				,@pPathId			= @pPathId
 				,@pVerbose			= @pVerbose
-
+*/
 		select	 @PreviousDtm		= @CurrentDtm
 				,@Rows				= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
@@ -267,7 +258,7 @@ begin try
 						+ ' @pStatus				= @DataFactoryStatus  output'			+ @CRLF
 						+  '@pPostingGroupProcesingId":"'	+ isnull(cast(@pPostingGroupProcessingId as varchar(10)),'NULL') + @CRLF
 						+  '@pIssueId":"'					+ isnull(cast(@pIssueId					 as varchar(10)),'NULL') + @CRLF
-
+/*
 		-- We are assuming that we can get the posting group processing id from within the job.
 		-- Do we need to send a PorstingGroup processing id?
 		EXEC	 [pg].[usp_ExecuteDataFactory] 
@@ -278,7 +269,7 @@ begin try
 				,@pETLExecutionId			= @pETLExecutionId
 				,@pPathId					= @pPathId
 				,@pVerbose					= @pVerbose
-
+*/
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
 				,@Rows				= @@ROWCOUNT 
@@ -343,9 +334,13 @@ begin try
 					+  '@pPostingGroupProcesingId":"'	+ isnull(cast(@pPostingGroupProcessingId as varchar(10)),'NULL') + @CRLF
 					+  '@pIssueId":"'					+ isnull(cast(@pIssueId					 as varchar(10)),'NULL') + @CRLF
 
-		EXEC	 @SQLStoredProcedure
+		select	 @SQLStoredProcedure = @SQLStoredProcedure + ' @pPostingGroupProcessingId = ' + isnull(cast(@pPostingGroupProcessingId as varchar(10)),'NULL')
 
-		select	 @pExecuteProcessStatus = 'ISS' -- Instance start succeded.
+		select	 @JSONSnippet = '"@SQLStoredProcedure":"'+@SQLStoredProcedure+'"'
+
+		exec	 (@SQLStoredProcedure)
+
+		select	 @pExecuteProcessStatus = 'ISS' -- Instance start succeeded.
 
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
@@ -357,6 +352,8 @@ begin try
 				,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 				,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 				,@pVerbose
+
+		select	 @JSONSnippet	 = NULL
 
 	end -- Execute a SQL Procedure
 	else -- Unable to find anything to run.
@@ -438,5 +435,6 @@ Date		Author			Description
 
 20210413	ffortunato		Initital Iteration
 20210415	ffortunato		Why can i not make it to the pull?
+20210923	ffortunato		Minor tweak.
 
 ******************************************************************************/
