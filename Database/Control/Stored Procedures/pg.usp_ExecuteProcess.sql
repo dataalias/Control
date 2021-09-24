@@ -1,11 +1,11 @@
-﻿CREATE PROCEDURE [pg].[usp_ExecuteProcess] (
+CREATE PROCEDURE [pg].[usp_ExecuteProcess] (
 	 @pPostingGroupProcessingId			bigint			= -1
 	,@pIssueId							int				= -1
 	,@pAllowMultipleInstances			bit				= 0
 	,@pExecuteProcessStatus				varchar(20)		output
-	,@pETLExecutionId					int				= -1
-	,@pPathId							int				= -1
-	,@pVerbose							bit				= 0)
+	,@pETLExecutionId				int			= -1
+	,@pPathId					int			= -1
+	,@pVerbose					bit			= 0)
 AS
 /*****************************************************************************
 File:		usp_ExecuteProcess.sql
@@ -41,53 +41,53 @@ Date:		20210413
 --  Declarations
 -------------------------------------------------------------------------------
 
-DECLARE	 @Rows					int				= 0
-        ,@ErrNum				int				= -1
-		,@ErrMsg				nvarchar(2048)	= 'N/A'
-		,@ParametersPassedChar	varchar(1000)   = 'N/A'
-		,@CRLF					varchar(10)		= char(13) + char(10)
-		,@ProcName				varchar(256)	= OBJECT_NAME(@@PROCID) 
-		,@ParentStepLogId       int				= -1
-		,@PrevStepLog			int				= -1
+DECLARE	 @Rows					int			= 0
+        ,@ErrNum				int			= -1
+		,@ErrMsg			nvarchar(2048)		= 'N/A'
+		,@ParametersPassedChar	varchar(1000)   		= 'N/A'
+		,@CRLF				varchar(10)		= char(13) + char(10)
+		,@ProcName			varchar(256)		= OBJECT_NAME(@@PROCID) 
+		,@ParentStepLogId       	int			= -1
+		,@PrevStepLog			int			= -1
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(50)		= DB_NAME()
+		,@DbName			varchar(50)		= DB_NAME()
 		,@ServerName			varchar(50)		= @@SERVERNAME
-		,@CurrentUser			varchar(256)	= CURRENT_USER
+		,@CurrentUser			varchar(256)		= CURRENT_USER
 		,@ProcessType			varchar(10)		= 'Proc'
-		,@StepName				varchar(256)	= 'Start'
+		,@StepName			varchar(256)		= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
 		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
+		,@StepDesc			nvarchar(2048)		= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@SubStepNumber			varchar(23)		= 0
-		,@Duration				varchar(10)		= 0
-		,@JSONSnippet			nvarchar(max)	= NULL
+		,@Duration			varchar(10)		= 0
+		,@JSONSnippet			nvarchar(max)		= NULL
 
 		-- Program Specific Parameters
 
 		,@SSISParameters		udt_SSISPackageParameters
-		,@ObjectType			int				= 30 -- package parameter
-		,@JobReturnCode			int				= 1 -- 0 (success) or 1 (failure)
-		,@ProcessingMethodCode	varchar(20)		= 'N/A'
-		,@SSISFolder			varchar(255)	= 'N/A'
-		,@SSISProject			varchar(255)	= 'N/A'
-		,@SSISPackage			varchar(255)	= 'N/A'	
-		,@DataFactoryName		varchar(255)	= 'N/A'
-		,@DataFactoryPipeline	varchar(255)	= 'N/A'
-		,@SQLJobName			varchar(255)	= 'N/A'
-		,@SQLStoredProcedure	varchar(255)	= 'N/A'
+		,@ObjectType			int			= 30 -- package parameter
+		,@JobReturnCode			int			= 1 -- 0 (success) or 1 (failure)
+		,@ProcessingMethodCode		varchar(20)		= 'N/A'
+		,@SSISFolder			varchar(255)		= 'N/A'
+		,@SSISProject			varchar(255)		= 'N/A'
+		,@SSISPackage			varchar(255)		= 'N/A'	
+		,@DataFactoryName		varchar(255)		= 'N/A'
+		,@DataFactoryPipeline		varchar(255)		= 'N/A'
+		,@SQLJobName			varchar(255)		= 'N/A'
+		,@SQLStoredProcedure		varchar(255)		= 'N/A'
 
-		,@PostingGroupBatchId	int				= -1
-		,@PostingGroupSequence	bigint			= -1
-		,@PostingGroupId		int				= -1
+		,@PostingGroupBatchId		int			= -1
+		,@PostingGroupSequence		bigint			= -1
+		,@PostingGroupId		int			= -1
 
 exec [audit].usp_InsertStepLog
 		 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@ParentStepLogId output	
+		,@ParametersPassedChar	,@ErrMsg output	,@ParentStepLogId	,@ProcName	,@ProcessType		,@StepName
+		,@StepDesc output	,@StepStatus	,@DbName		,@Rows		,@pETLExecutionId	,@pPathId		,@ParentStepLogId output	
 		,@pVerbose
 
 -------------------------------------------------------------------------------
@@ -123,20 +123,20 @@ If ((@pPostingGroupProcessingId > 0) and (@pIssueId <= 0))
 begin
 	select 
 			 @ProcessingMethodCode				= pg.ProcessingMethodCode
-			,@SSISFolder						= pg.SSISFolder
-			,@SSISProject						= pg.SSISProject
-			,@SSISPackage						= pg.SSISPackage
+			,@SSISFolder					= pg.SSISFolder
+			,@SSISProject					= pg.SSISProject
+			,@SSISPackage					= pg.SSISPackage
 			,@PostingGroupBatchId				= pgp.PostingGroupBatchId
 			,@PostingGroupSequence				= pgp.PGPBatchSeq
-			,@PostingGroupId					= pgp.PostingGroupId
-			,@DataFactoryName					= pg.DataFactoryName
+			,@PostingGroupId				= pgp.PostingGroupId
+			,@DataFactoryName				= pg.DataFactoryName
 			,@DataFactoryPipeline				= pg.DataFactoryPipeline
-			,@SQLJobName						= pg.JobName
+			,@SQLJobName					= pg.JobName
 			,@SQLStoredProcedure				= pg.SQLStoredProcedure
-	from	 pg.PostingGroupProcessing			  pgp
+	from	 pg.PostingGroupProcessing				  pgp
 	join	 pg.PostingGroup					  pg
-	on		 pgp.PostingGroupId					= pg.PostingGroupId
-	where	 pgp.PostingGroupProcessingId		= @pPostingGroupProcessingId
+	on		 pgp.PostingGroupId				= pg.PostingGroupId
+	where	 pgp.PostingGroupProcessingId				= @pPostingGroupProcessingId
 
 	if @ProcessingMethodCode = 'SSIS'
 	begin
@@ -151,15 +151,15 @@ else If ((@pPostingGroupProcessingId <= 0) and (@pIssueId > 0))
 begin
 	select 
 			 @ProcessingMethodCode				= pbn.ProcessingMethodCode
-			,@SSISFolder						= pbn.SSISFolder
-			,@SSISProject						= pbn.SSISProject
-			,@SSISPackage						= pbn.SSISPackage
-			,@DataFactoryName					= pbn.DataFactoryName
+			,@SSISFolder					= pbn.SSISFolder
+			,@SSISProject					= pbn.SSISProject
+			,@SSISPackage					= pbn.SSISPackage
+			,@DataFactoryName				= pbn.DataFactoryName
 			,@DataFactoryPipeline				= pbn.DataFactoryPipeline
-			,@SQLJobName						= pbn.StageJobName
-	from	 ctl.Issue							  iss
+			,@SQLJobName					= pbn.StageJobName
+	from	 ctl.Issue						  iss
 	join	 ctl.Publication					  pbn
-	on		 iss.PublicationId					= pbn.PublicationId
+	on		 iss.PublicationId				= pbn.PublicationId
 	where	 iss.IssueId						= @pIssueId
 
 	if @ProcessingMethodCode = 'SSIS'
@@ -171,13 +171,13 @@ else -- Error State
 begin
 
 	select 	 @PreviousDtm		= @CurrentDtm
-			,@ErrNum			= 50010
-			,@ErrMsg			= 'Cannot determine if Issue or Posting group should be run.'
-			,@Rows				= 0
-			,@MessageType		= 'ErrSQL'
+			,@ErrNum	= 50010
+			,@ErrMsg	= 'Cannot determine if Issue or Posting group should be run.'
+			,@Rows		= 0
+			,@MessageType	= 'ErrSQL'
 
 	select	 @StepStatus		= 'Failure'
-			,@CurrentDtm		= getdate()
+		,@CurrentDtm		= getdate()
 
 	select	 @ErrMsg = @ErrMsg + @CRLF + 'ErrNum: ' +  cast(@ErrNum as varchar(20)) + @CRLF + ERROR_MESSAGE() + @CRLF + @ParametersPassedChar
 			
@@ -199,10 +199,10 @@ begin try
 	IF (@ProcessingMethodCode = 'SSIS')
 	BEGIN
 		-- Note when calling the next package Batch and Posting Group must be sent as well.
-		select	 @StepName			= 'Execute Posting Group SSIS'
-				,@StepNumber		= @StepNumber + 0
-				,@StepOperation		= 'execute'
-				,@StepDesc			= 'Execute SSIS Package: ' + @SSISPackage
+		select	 @StepName		= 'Execute Posting Group SSIS'
+			,@StepNumber		= @StepNumber + 0
+			,@StepOperation		= 'execute'
+			,@StepDesc		= 'Execute SSIS Package: ' + @SSISPackage
 
 	-- pretend execution   COMMENT THIS print OUT WHEN YOU WANT TO KICK THINGS OFF.
 				

@@ -1,20 +1,17 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+Data Hub and Posting Group provide a frame work for managing the ingress and egress of data from a system and orchestrating processes that are dependent the load of data. Please check the wiki for additional information. https://github.com/dataalias/Control/wiki
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+Data Hub and Posting Group database projects are intended to be installed on SQL Server (2008+). Stored proceudrees can be used to insert metadata to allow for the load of data sets into a target database.
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+This code can be built with Visual Studio (2017+). The repository also contains two test scripts to demonstrate the database components have been installed correctly.
+https://github.com/dataalias/Control/tree/main/Database/Control/Test
+tst_DataHub.sql
+tst_PostingGroupProcessing.sql
 
 # Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+Send me an email if you would like to contribute to this system.
+dataalias@outlook.com
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+MinorChange
