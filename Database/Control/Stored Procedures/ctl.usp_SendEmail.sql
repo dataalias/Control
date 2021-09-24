@@ -1,15 +1,15 @@
 ﻿CREATE PROCEDURE ctl.usp_SendMail (
-		 @pProject					varchar(255)	= 'N/A'
-		,@pPackage					varchar(255)	= 'N/A'
+		 @pProject				varchar(255)	= 'N/A'
+		,@pPackage				varchar(255)	= 'N/A'
 		,@pDataFactoryName			varchar(255)	= 'N/A'
-		,@pDataFactoryPipeline		varchar(255)	= 'N/A'
-		,@pTo						varchar(1000)	= 'N/A'
-		,@pSeverity					int				= -1
-		,@pIssueId					int				= -1
-		,@pPostingGroupProcessingId	bigint			= -1
-		,@pETLExecutionId			int				= -1
-		,@pPathId					int				= -1
-		,@pVerbose					bit				= 0)
+		,@pDataFactoryPipeline			varchar(255)	= 'N/A'
+		,@pTo					varchar(1000)	= 'N/A'
+		,@pSeverity				int		= -1
+		,@pIssueId				int		= -1
+		,@pPostingGroupProcessingId		bigint		= -1
+		,@pETLExecutionId			int		= -1
+		,@pPathId				int		= -1
+		,@pVerbose				bit		= 0)
 AS
 /*****************************************************************************
 File:		usp_SendMail.sql
@@ -107,7 +107,6 @@ begin try
 	else 
 		set @Subject =  (isnull(@ServerName, 'NULL') + ' || Shrug: ' + isnull(@pProject, 'NULL') + ' ' + isnull(@pDataFactoryName, 'NULL') + ' Failure')
 
-
 	set @From = CASE WHEN @ServerName LIKE 'DME%'  THEN 'DM-DEV-ETL@myaddress.com'
 					 WHEN @ServerName LIKE 'QME%'  THEN 'DM-QA-ETL@myaddress.com'
 					 WHEN @ServerName LIKE 'PROD%' THEN 'DM-PROD-ETL@myaddress.com'
@@ -204,6 +203,7 @@ exec [audit].usp_InsertStepLog
 		,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
 
+
 /******************************************************************************
        CHANGE HISTORY
 *******************************************************************************
@@ -214,3 +214,4 @@ Date		Author			Description
 20210329	ffortunato		history
 
 ******************************************************************************/
+
