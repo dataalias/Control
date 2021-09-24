@@ -1,0 +1,53 @@
+{
+  "__Header": {
+    "Comment": "This is the config file for Data Hub",
+    "Env": {
+      "EnvironmentAbbreviation": "@@@EnvironmentAbbreviation@@@",
+      "EnvironmentName": "@@@EnvironmentName@@@"
+    },
+    "GetDataFeedHash": "2D23FE79D211420EFA8FB6D35CB7D27A",
+    "InvokeFileShareArchiveHash": "F65F78BC86BA57CCE41B2072BCCC1E0E",
+    "Version": "1.1.0.0"
+  },
+  "AWS": {
+    "CanvasURL": "@@@CanvasURL@@@",
+    "CanvasAccessKey": "@@@CanvasAccessKey@@@",
+    "CanvasSecretKey": "@@@CanvasSecretKey@@@",
+    "CanvasRegion": "@@@CanvasRegion@@@"
+  },
+  "BPIServer": {
+    "ApplicationServer": "@@@ApplicationServer@@@",
+    "DatabaseServer": "@@@DatabaseServer@@@",
+    "EmailServer": "@@@EmailServer@@@",
+    "FileServer": "@@@FileServer@@@"
+  },
+  "eMail": {
+    "CanvasTo": "@@@eMailCanvasTo@@@",
+    "From": "@@@eMailFrom@@@",
+    "Subject": "@@@eMailSubject@@@",
+    "To": "@@@eMailTo@@@"
+  },
+  "Limiters": {
+    "BreakLimit": 100,
+    "eMailIntervalSeconds": 3600,
+    "LogExpirationDays": -15,
+    "LogInterval": 10,
+    "DownloadTimeOutSeconds": 2700
+  },
+  "Paths": {
+    "Config": "@@@Config@@@",
+    "Log": "@@@Log@@@",
+    "Module": "@@@Module@@@",
+    "PrivateKeys": "@@@PrivateKeys@@@",
+    "Script": "@@@Script@@@",
+    "ThrottleFile": "@@@ThrottleFile@@@",
+    "CanvasLogLocation": "@@@CanvasLogLocation@@@",
+    "CanvasLogArchiveLocation": "@@@CanvasLogArchiveLocation@@@",
+    "CanvasDataFolder": "@@@CanvasDataFolder@@@",
+    "CanvasUnpackLocation": "@@@CanvasUnpackLocation@@@",
+    "CanvasFileShare": "@@@CanvasFileShare@@@",
+    "CanvasArchive": "@@@CanvasArchive@@@",
+    "CanvasSyncConfigLocation": "@@@CanvasSyncConfigLocation@@@",
+    "CanvasCLITool": "@@@CanvasCLITool@@@"
+  }
+}

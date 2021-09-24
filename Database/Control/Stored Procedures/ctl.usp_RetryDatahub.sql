@@ -70,7 +70,7 @@ DECLARE	 @Rows					int		= 0
 		,@LoopCount				int				= -1
 		,@MaxCount				int				= -1
 		,@IsProcessed			bit				= 0
-		,@ExecuteProcessStatus	varchar(255)	= 'IRF'
+		,@ExecuteProcessStatus	varchar(20)		= 'IRF'
 		,@AllowMultipleInstances bit			= 0 -- Do not allow multiple instances to run.
 
 declare @Issue table (
