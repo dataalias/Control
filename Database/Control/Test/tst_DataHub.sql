@@ -94,7 +94,7 @@ if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test01'
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'PUB_Contact_Test01'
 		,@pTier						= '1'
-		,@pEmail					= 'PUB_Contact_Test01@zovio.com'
+		,@pEmail					= 'PUB_Contact_Test01@myaddress.com'
 		,@pPhone					= '877.300.6069'
 		,@pAddress01				= '10180 Telesis Ct'
 		,@pAddress02				= '#400'
@@ -106,19 +106,19 @@ if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test02'
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'PUB_Contact_Test02'
 		,@pTier						= '1'
-		,@pEmail					= 'PUB_Contact_Test02@zovio.com'
+		,@pEmail					= 'PUB_Contact_Test02@myaddress.com'
 
 if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test01')
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'SUB_Contact_Test01'
 		,@pTier						= '1'
-		,@pEmail					= 'SUB_Contact_Test01@zovio.com'
+		,@pEmail					= 'SUB_Contact_Test01@myaddress.com'
 
 if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test02')
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'SUB_Contact_Test02'
 		,@pTier						= '1'
-		,@pEmail					= 'SUB_Contact_Test02@zovio.com'
+		,@pEmail					= 'SUB_Contact_Test02@myaddress.com'
 
 --	select * from ctl.refstatus
 
