@@ -172,7 +172,7 @@ begin try
 									'"@pSSISFolder":"'	+ isnull(@pSSISFolder ,'NULL') +'",' +
 									'"@pSSISProject":"'	+ isnull(@pSSISProject ,'NULL') +'",' +
 									'"@pSSISPackage":"'	+ isnull(@pSSISPackage ,'NULL') + '"' + @ReplaceJSONToken
-/*
+
 	If exists (	select top 1 1 
 				FROM	 [$(SSISDB)].catalog.executions		  E
 				JOIN	 [$(SSISDB)].catalog.folders		  F
@@ -190,7 +190,7 @@ begin try
 
 		select	 @pExecuteProcessStatus = 'IAR' -- 'Instance Already Running'
 
-	else*/
+	else
 		select	 @pExecuteProcessStatus = 'INR' -- 'Instance not running'
 
 
@@ -219,7 +219,7 @@ begin try
 										'"@pSSISFolder":"'	+ isnull(@pSSISFolder ,'NULL') +'",' +
 										'"@pSSISProject":"'	+ isnull(@pSSISProject ,'NULL') +'",' +
 										'"@pSSISPackage":"'	+ isnull(@pSSISPackage ,'NULL') + '"' + @ReplaceJSONToken
-/*
+
 		select	 @ReferenceId				= isnull(er.reference_id,-1)
 		from	 [$(SSISDB)].catalog.environment_references er 
 		join	 [$(SSISDB)].catalog.projects prj
@@ -227,18 +227,18 @@ begin try
 		where	 er.environment_name		= @ServerName
 		and		 er.environment_folder_name = @pSSISFolder
 		and		 prj.[name]					= @pSSISProject
-*/
+
 		select	 @JSONAdd	= ',"@ReferenceId":"' + cast(isnull(@ReferenceId,-1) as nvarchar(10)) + '"' + @ReplaceJSONToken
 		select	 @JSONSnippet = replace(@JSONSnippet,@ReplaceJSONToken,@JSONAdd); 
 		select	 @JSONAdd	= NULL
-/*
+
 		exec	 [$(SSISDB)].catalog.create_execution
 				 @folder_name				= @pSSISFolder
 				,@project_name				= @pSSISProject
 				,@package_name				= @pSSISPackage
 				,@reference_id				= @ReferenceId
 				,@execution_id				= @ExecutionId  output
-*/
+
 		select	 @JSONAdd					= ',"@ExecutionId":"' + cast(isnull(@ExecutionId,-1) as nvarchar(10)) + '"' + @ReplaceJSONToken
 		select	 @JSONSnippet				= replace(@JSONSnippet,@ReplaceJSONToken,@JSONAdd); 
 		select	 @JSONAdd					= NULL
@@ -273,13 +273,13 @@ begin try
 
 				select	 @JSONSnippet = replace(@JSONSnippet,@ReplaceJSONToken,@JSONAdd); 
 				select	 @JSONAdd	= NULL
-/*
+
 				exec	 [$(SSISDB)].catalog.[set_execution_parameter_value]
 						 @execution_id				= @ExecutionId
 						,@object_type				= @ObjectType
 						,@parameter_name			= @ParameterName
 						,@parameter_value			= @ParameterValue
-   */ 
+
 				select	 @LoopCount					= @LoopCount + 1
 						,@ObjectType				= -1
 						,@ParameterName				= 'N/A'
@@ -290,10 +290,10 @@ begin try
 		end  -- Load parameters
 
 		select	 @JSONSnippet		= replace(@JSONSnippet,@ReplaceJSONToken,'}'); 
- /*  
+
 		exec	 [$(SSISDB)].catalog.[start_execution]
 				 @execution_id		=  @ExecutionId
-*/
+
 		select	 @PreviousDtm		= @CurrentDtm
 				,@Rows				= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
