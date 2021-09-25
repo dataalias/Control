@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31112.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{A0786B88-2ADB-4C21-ABE8-AA2D79766269}") = "Data Hub Portal", "Data Hub Portal.phpproj", "{938FBCD7-1D37-4C6F-BF7B-06A4ADA87712}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{938FBCD7-1D37-4C6F-BF7B-06A4ADA87712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{938FBCD7-1D37-4C6F-BF7B-06A4ADA87712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5559C515-52C1-48D1-BAEB-A84E3152D1E1}
+	EndGlobalSection
+EndGlobal
