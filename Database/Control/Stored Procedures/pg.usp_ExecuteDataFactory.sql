@@ -30,16 +30,17 @@ Calls:
 Errors:		
 Author:		Omkar Chowkwale
 Date:		20200221
+
 *******************************************************************************
 							CHANGE HISTORY
 *******************************************************************************
 Date		Author			Description
---------	-------------	--------------------------------
+--------	-------------	---------------------------------------------------
 20200221	Omkar Chowkwale	Initial Iteration
 20201118	ffortunato		cleaning up warnings.
 20210212	ffortunato		moving to pg
 20210212	ffortunato		PARAMETER LIST ... come on omkar!
-
+20211007	ffortunato		anonomizing data
 
 ******************************************************************************/
 
@@ -86,10 +87,10 @@ DECLARE	 @Rows					int				= 0
 		,@DevHTTPURL			varchar(8000)	= 'https://execdatafactorypipeline-dev.azurewebsites.net/api/ExecutePipeline?'
 		,@QAHTTPURL				varchar(8000)	= 'https://execdatafactorypipeline-qa.azurewebsites.net/api/ExecutePipeline?'
 		,@PRODHTTPURL			varchar(8000)	= 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline?'
-		,@AzureSubscriptionId	varchar(200)	= '3641d697-5ff2-4b72-9be2-c9ecbebd47c5'
-		,@DevResourceGroup		varchar(100)	= 'zvo-sbx-01-ds-dev-rg'
-		,@QAResourceGroup		varchar(100)	= 'zvo-sbx-01-ds-qa-rg'
-		,@PRODResourceGroup		varchar(100)	= 'zvo-sbx-01-ds-rg'
+		,@AzureSubscriptionId	varchar(200)	= '********'
+		,@DevResourceGroup		varchar(100)	= '********'
+		,@QAResourceGroup		varchar(100)	= '********'
+		,@PRODResourceGroup		varchar(100)	= '********'
 		,@ResourceGroup			varchar(100)	= 'N/A'
 		,@APIResponse			varchar(20)		= 'Unknown'
 -------------------------------------------------------------------------------
@@ -135,14 +136,14 @@ BEGIN TRY
 	-------------------------------------------------------------------------------
 
 
-	select @ResourceGroup = CASE WHEN @ServerName IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN @DevResourceGroup
-								 WHEN @ServerName IN ('QME1EDLSQL01','QME3EDLSQL01') THEN @QAResourceGroup
-								 WHEN @ServerName IN ('PRODEDLSQL01') THEN @PRODResourceGroup
+	select @ResourceGroup =	CASE WHEN @ServerName Like ('DME%')  THEN @DevResourceGroup
+								 WHEN @ServerName Like ('QME%')  THEN @QAResourceGroup
+								 WHEN @ServerName Like ('PROD%') THEN @PRODResourceGroup
 							END
 
-	select @HTTPURL = CASE WHEN @ServerName IN ('DME1EDLSQL01','DEDTEDLSQL01') THEN @DevHTTPURL
-								 WHEN @ServerName IN ('QME1EDLSQL01','QME3EDLSQL01') THEN @QAHTTPURL
-								 WHEN @ServerName IN ('PRODEDLSQL01') THEN @PRODHTTPURL
+	select @HTTPURL =		CASE WHEN @ServerName Like ('DME%')  THEN @DevHTTPURL
+								 WHEN @ServerName Like ('QME%')  THEN @QAHTTPURL
+								 WHEN @ServerName Like ('PROD%') THEN @PRODHTTPURL
 							END
 
 	select @HTTPBody = '{

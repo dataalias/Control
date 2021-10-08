@@ -78,8 +78,9 @@
     <None Include="Domain\README.md" />
     <None Include="README.md" />
     <None Include="Script.Rollback.sql" />
-    <Build Include="Views\ctl.DistributionStatus.sql" />
     <None Include="Test\TestScript.sql" />
+    <None Include="Control.publish.xml" />
+    <None Include="DataHub.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
@@ -159,14 +160,13 @@
     <Build Include="Functions\ctl.fn_CalculateNextExecutionDtm.sql" />
     <Build Include="Functions\ctl.fn_GetIntervalInMinutes.sql" />
     <Build Include="Stored Procedures\ctl.usp_RetryDatahub.sql" />
-    <Build Include="Stored Procedures\ctl.usp_TriggerDataFactory.sql" />
     <Build Include="Stored Procedures\pg.usp_RetryPostingGroup.sql" />
     <Build Include="Tables\ctl.MapContactToPublication.sql" />
     <Build Include="Tables\ctl.MapContactToSubscription.sql" />
     <Build Include="Tables\pg.MapContactToPostingGroup.sql" />
     <Build Include="Stored Procedures\pg.InsertMapContactToPostingGroup.sql" />
-    <Build Include="Stored Procedures\ctl.InsertMapContactToPublication.sql" />
-    <Build Include="Stored Procedures\ctl.InsertMapContactToSubscription.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertMapContactToPublication.sql" />
+    <Build Include="Stored Procedures\ctl.usp_InsertMapContactToSubscription.sql" />
     <None Include="Test\tst_DataHub.sql" />
     <None Include="Test\tst_DataHubWithSSIS.sql" />
     <None Include="Test\tst_GettingParentstoExecute.sql" />
@@ -187,30 +187,29 @@
     <Build Include="Stored Procedures\pg.usp_ExecuteSSISPackage.sql" />
     <Build Include="Tables\pg.RefProcessingMethod.sql" />
     <Build Include="Tables\pg.RefProcessingMode.sql" />
+    <None Include="Test\tst_RemoveAllDataHubObjects.sql" />
+    <None Include="Domain\LivePersonDomainData.sql" />
+    <Build Include="Views\ctl.vw_PublicationContacts.sql" />
+    <Build Include="Views\vw_PublisherContact.sql" />
   </ItemGroup>
   <ItemGroup>
-    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac">
-      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\msdb.dacpac</HintPath>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
+    </ArtifactReference>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac</HintPath>
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
       <DatabaseVariableLiteralValue>msdb</DatabaseVariableLiteralValue>
     </ArtifactReference>
-    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac">
-      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\140\SqlSchemas\master.dacpac</HintPath>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac</HintPath>
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
       <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
     </ArtifactReference>
-    <ArtifactReference Include="..\SSISDB\dacpac\SSISDB.dacpac">
-      <HintPath>..\SSISDB\dacpac\SSISDB.dacpac</HintPath>
-      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
-      <DatabaseSqlCmdVariable>SSISDB</DatabaseSqlCmdVariable>
-    </ArtifactReference>
-    <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
-      <HintPath>$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac</HintPath>
-      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
-      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
-    </ArtifactReference>
-    <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac">
-      <HintPath>$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac</HintPath>
+    <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac">
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac</HintPath>
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
       <DatabaseVariableLiteralValue>msdb</DatabaseVariableLiteralValue>
     </ArtifactReference>

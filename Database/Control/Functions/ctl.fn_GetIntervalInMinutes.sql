@@ -39,13 +39,13 @@ BEGIN
 				THEN @pIntervalLength
 			WHEN 'HR'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(hh, @pIntervalLength, @CurrentDtm))
-			WHEN 'DLY'
+			WHEN 'DY'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(dd, @pIntervalLength, @CurrentDtm))
-			WHEN 'WKLY'
+			WHEN 'WK'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(wk, @pIntervalLength, @CurrentDtm))
-			WHEN 'MTHLY'
+			WHEN 'MT'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(mm, @pIntervalLength, @CurrentDtm))
-			WHEN 'YRLY'
+			WHEN 'YR'
 				THEN DATEDIFF(mi, @CurrentDtm, DATEADD(yyyy, @pIntervalLength, @CurrentDtm))
 			WHEN 'IMM'
 				THEN 0

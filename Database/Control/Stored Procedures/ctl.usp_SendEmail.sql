@@ -1,13 +1,13 @@
 ﻿CREATE PROCEDURE ctl.usp_SendMail (
 		 @pProject				varchar(255)	= 'N/A'
 		,@pPackage				varchar(255)	= 'N/A'
-		,@pDataFactoryName			varchar(255)	= 'N/A'
-		,@pDataFactoryPipeline			varchar(255)	= 'N/A'
+		,@pDataFactoryName		varchar(255)	= 'N/A'
+		,@pDataFactoryPipeline	varchar(255)	= 'N/A'
 		,@pTo					varchar(1000)	= 'N/A'
 		,@pSeverity				int		= -1
 		,@pIssueId				int		= -1
 		,@pPostingGroupProcessingId		bigint		= -1
-		,@pETLExecutionId			int		= -1
+		,@pETLExecutionId		int		= -1
 		,@pPathId				int		= -1
 		,@pVerbose				bit		= 0)
 AS

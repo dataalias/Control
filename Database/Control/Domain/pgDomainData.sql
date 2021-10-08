@@ -22,8 +22,10 @@ Date      Author         Description
 
 ******************************************************************************/
 
-use bpi_dw_stage
-GO
+print 'Start PostingGroup Reference data inserts'
+
+use [$(DatabaseName)]
+go
 
 DECLARE @CurDt DATETIME = GETDATE()
 DECLARE @CurDtInt INT = CAST(CONVERT(VARCHAR(20),@CurDt,112) AS VARCHAR(20))
@@ -181,7 +183,19 @@ begin
 	insert into pg.RefProcessingMethod (	[ProcessingMethodCode],    [ProcessingMethodName],    [ProcessingMethodDesc],    [CreatedBy],    [CreatedDtm])
 	values ('SQLJ','SQL Server Job','Posting group will call a SQL Server Agent Job to execute the queued posting group.','ffortunato',getdate())
 end
+if not exists (select top 1 1 from pg.RefProcessingMethod where [ProcessingMethodCode] in ('SQLP'))
 begin
 	insert into pg.RefProcessingMethod (	[ProcessingMethodCode],    [ProcessingMethodName],    [ProcessingMethodDesc],    [CreatedBy],    [CreatedDtm])
 	values ('SQLP','SQL Server Stored Procedure','Posting group will call a SQL Server Stored Procedure Job to execute the queued posting group.','ffortunato',getdate())
 end
+if not exists (select top 1 1 from pg.RefProcessingMethod where [ProcessingMethodCode] in ('GLUE'))
+begin
+	insert into pg.RefProcessingMethod (	[ProcessingMethodCode],    [ProcessingMethodName],    [ProcessingMethodDesc],    [CreatedBy],    [CreatedDtm])
+	values ('GLUE','AWS Glue','Posting group will call a AWS Glue Pipeline to execute the queued posting group.','ffortunato',getdate())
+end
+if not exists (select top 1 1 from pg.RefProcessingMethod where [ProcessingMethodCode] in ('AWSP'))
+begin
+	insert into pg.RefProcessingMethod (	[ProcessingMethodCode],    [ProcessingMethodName],    [ProcessingMethodDesc],    [CreatedBy],    [CreatedDtm])
+	values ('AWSP','AWS Pipeline','Posting group will call a AWS Pipeline to execute the queued posting group.','ffortunato',getdate())
+end
+print 'End PostingGroup Reference data inserts'

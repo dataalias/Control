@@ -1,4 +1,6 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetLatestIssueRecordForPublication]
+﻿-- Depricate. This looks to be a canvas only sproc.
+
+CREATE PROCEDURE [ctl].[usp_GetLatestIssueRecordForPublication]
 		 @pPublicationCode		varchar(50) 
 		,@pVerbose				int = 0
 AS
@@ -18,7 +20,7 @@ AS
  Called by:      Application
  Calls:          
 
- Author:         dbay
+ Author:         ffortunato
  Date:           20161114
 
 *******************************************************************************
@@ -26,9 +28,7 @@ AS
 *******************************************************************************
 Date      Author			Description
 --------  ---------------	---------------------------------------------------
-20161114  Barry Day			Original draft
-20161116  Barry Day			Support for institution code filtering
-20161205  Barry Day			Existence check
+20161114  ffortunato		Original draft
 20170110  ffortunato		Adding parameters to allow for getting publication
 							list from based on a specific publisher code.
 							Adding try catch block and throwing custom
@@ -80,19 +80,18 @@ FROM
 		, rs.StatusCode
 		, iss.IssueConsumedDate
 		, ROW_NUMBER() OVER (PARTITION BY iss.PublicationId ORDER BY SrcDFCreatedDate DESC)	AS rn  
-	FROM 
-		[ctl].[Issue]					AS iss
-		INNER JOIN [ctl].[RefStatus]	AS rs	ON iss.StatusId      = rs.StatusId
-		INNER JOIN [ctl].[Publication]	AS pn	ON iss.PublicationId = pn.PublicationId
-		INNER JOIN [ctl].[Publisher]	AS pr	ON pr.PublisherId    = pn.PublisherId
-	WHERE
-		pr.InterfaceCode	= 'CANVAS'
-		AND pn.PublicationCode  = @pPublicationCode
-)	AS TopIssue
-WHERE
-	rn = 1
-	AND TopIssue.StatusCode = 'IP'
-	AND TopIssue.IssueConsumedDate IS NULL
+	FROM	[ctl].[Issue]					AS iss
+	JOIN	[ctl].[RefStatus]	AS rs
+	ON		iss.StatusId					= rs.StatusId
+	JOIN	[ctl].[Publication]		AS pn
+	ON		iss.PublicationId			= pn.PublicationId
+	JOIN	[ctl].[Publisher]			AS pr
+	ON		pr.PublisherId				= pn.PublisherId
+	WHERE	pr.InterfaceCode	= 'CANVAS'
+	AND		pn.PublicationCode  = @pPublicationCode)	AS TopIssue
+WHERE	rn = 1
+AND		TopIssue.StatusCode = 'IP'
+AND		TopIssue.IssueConsumedDate IS NULL
 )
 BEGIN
 SELECT
