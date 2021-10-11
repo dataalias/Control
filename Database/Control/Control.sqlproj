@@ -190,7 +190,7 @@
     <None Include="Test\tst_RemoveAllDataHubObjects.sql" />
     <None Include="Domain\LivePersonDomainData.sql" />
     <Build Include="Views\ctl.vw_PublicationContacts.sql" />
-    <Build Include="Views\vw_PublisherContact.sql" />
+    <Build Include="Views\ctl.vw_PublisherContact.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
