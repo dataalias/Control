@@ -1,7 +1,8 @@
 ﻿CREATE PROCEDURE [ctl].[usp_InsertNewSubscriber] (    
-     @pSubscriberCode			varchar(10)
-    ,@pContactName				varchar(30)
-    ,@pSubscriberName			varchar(50)
+     @pSubscriberCode			varchar(20)
+    ,@pContactName				varchar(100)
+    ,@pSubscriberName			varchar(250)
+	,@pSubscriberDesc			varchar(1000)
     ,@pInterfaceCode			varchar(20)
 	,@pSiteURL					VARCHAR(256)	= NULL  
 	,@pSiteUser					VARCHAR(256)	= NULL 
@@ -69,6 +70,10 @@ Date		Author			Description
 20180828	ffortunato		SubscriberType --> InterfaceCode
 20190305	ochowkwale		Export to subscriber configurations
 20201123	ffortunato		PassPhrase
+20211007	ffortunato		Clearning up parms 
+							+ Desc
+							o Contact
+							o Name varchar(250)
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -145,7 +150,7 @@ begin try
 
 	select	@ContactId				= ContactId
 	from	ctl.Contact
-	where	[Name]					= @pContactName
+	where	[ContactName]					= @pContactName
 
 
 	SELECT	@Passphrase =
@@ -208,6 +213,7 @@ begin try
 			 ContactId
 			,SubscriberCode
 			,SubscriberName
+			,SubscriberDesc
 			,InterfaceCode
 			,SiteURL
 			,SiteUser
@@ -224,10 +230,13 @@ begin try
 			,NotificationProcedure
 			,CreatedDtm
 			,CreatedBy
+			,ModifiedDtm
+			,ModifiedBy
 	) values (
 			 @ContactId
 			,@pSubscriberCode       
 			,@pSubscriberName       
+			,@pSubscriberDesc
 			,@pInterfaceCode
 			,@pSiteURL
 			,@pSiteUser
@@ -243,7 +252,9 @@ begin try
 			,@pNotificationSchema				
 			,@pNotificationProcedure
 			,@CreatedDate
-			,@pCreatedBy         
+			,@pCreatedBy    
+			,@CreatedDate
+			,@pCreatedBy    
 	)
 
 	-- Upon completion of the step, log it!

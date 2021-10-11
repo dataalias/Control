@@ -112,7 +112,7 @@ SELECT	 @Rows					= -1
 		,@StatusType			= 'Issue'
 		,@IssueRetry			= 'IR'
 		,@IssueFail				= 'IF'
-		,@Recipients			= 'Bi-Notify@zovio.com'
+		,@Recipients			= 'Bi-Notify@myaddress.com'
 
 select	 @ParametersPassedChar	=
       '***** Parameters Passed to exec ctl.usp_UpdateIssue' + @CRLF +

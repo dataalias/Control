@@ -1,0 +1,491 @@
+<style type="text/css">
+
+body {
+  background: #FFFFFF;
+  margin: 0;
+}
+
+/* ---- LINKS ---- */
+a:link{  
+	text-decoration: none;
+	font-weight: bold;
+} 
+
+a:hover, a:active{ 
+	text-decoration: underline;
+	font-weight: bold;
+}
+form{
+ 	margin:0px; padding:0px; display:inline;
+}
+#rt-grey {
+    border: 1px solid #b5b5b5;
+}
+/*
+a:link{  
+font-family: Arial, Times New Roman;
+text-decoration: none;  
+font-weight: bold;
+font-size: 14px;
+color: #000000; 
+} 
+
+a:visited {  
+font-family: Arial, Times New Roman;
+text-decoration: none;  
+font-weight: bold;
+font-size: 14px;
+color: #000000; 
+} 
+
+a:hover, a:active{ 
+font-family: Arial, Times New Roman;
+text-decoration: underline;
+font-weight: bold;
+font-size: 14px;
+color: #f3f615; 
+}
+*/
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 250px;
+  background-color: #2980b9;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -125px;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 47%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #2980b9 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+/* ---- DARK BLUE ---- */
+.darkblue-20px {
+	font-family: Arial, Times New Roman;
+	font-size: 20px;
+	color: #275587;
+}
+.darkblue-19px {
+	font-family: Arial, Times New Roman;
+	font-size: 19px;
+	color: #275587;
+}
+.darkblue-18px {
+	font-family: Arial, Times New Roman;
+	font-size: 18px;
+	color: #275587;
+}
+.darkblue-17px {
+	font-family: Arial, Times New Roman;
+	font-size: 17px;
+	color: #275587;
+}
+.darkblue-16px {
+	font-family: Arial, Times New Roman;
+	font-size: 16px;
+	color: #275587;
+}
+.darkblue-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: #275587;
+}
+.darkblue-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #275587;
+}
+.darkblue-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #275587;
+}
+.darkblue-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #275587;
+}
+.darkblue-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #275587;
+}
+.darkblue-10px {
+	font-family: Arial, Times New Roman;
+	font-size: 10px;
+	color: #275587;
+}
+.darkblue-9px {
+	font-family: Arial, Times New Roman;
+	font-size: 9px;
+	color: #275587;
+}
+.darkblue-8px {
+	font-family: Arial, Times New Roman;
+	font-size: 8px;
+	color: #275587;
+}
+
+
+/* ---- BLACK ---- */
+.black-22px {
+	font-family: Arial, Times New Roman;
+	font-size: 22px;
+	color: #000000;
+}
+.black-21px {
+	font-family: Arial, Times New Roman;
+	font-size: 21px;
+	color: #000000;
+}
+.black-20px {
+	font-family: Arial, Times New Roman;
+	font-size: 20px;
+	color: #000000;
+}
+.black-19px {
+	font-family: Arial, Times New Roman;
+	font-size: 19px;
+	color: #000000;
+}
+.black-18px {
+	font-family: Arial, Times New Roman;
+	font-size: 18px;
+	color: #000000;
+}
+.black-17px {
+	font-family: Arial, Times New Roman;
+	font-size: 17px;
+	color: #000000;
+}
+.black-16px {
+	font-family: Arial, Times New Roman;
+	font-size: 16px;
+	color: #000000;
+}
+.black-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: #000000;
+}
+.black-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #000000;
+}
+.black-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #000000;
+}
+.black-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #000000;
+}
+.black-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #000000;
+}
+.black-10px {
+	font-family: Arial, Times New Roman;
+	font-size: 10px;
+	color: #000000;
+}
+.black-9px {
+	font-family: Arial, Times New Roman;
+	font-size: 9px;
+	color: #000000;
+}
+.black-8px {
+	font-family: Arial, Times New Roman;
+	font-size: 8px;
+	color: #000000;
+}
+.black-6px {
+	font-family: Arial, Times New Roman;
+	font-size: 6px;
+	color: #000000;
+}
+
+.black2-12px {
+	font-family: Verdana, Arial, Times New Roman;
+	font-size: 12px;
+	color: #000000;
+}
+
+
+/* ---- DARK GREY ---- */
+.darkgrey-22px {
+	font-family: Arial, Times New Roman;
+	font-size: 22px;
+	color: #4d504d;
+}
+.darkgrey-21px {
+	font-family: Arial, Times New Roman;
+	font-size: 21px;
+	color: #4d504d;
+}
+.darkgrey-20px {
+	font-family: Arial, Times New Roman;
+	font-size: 20px;
+	color: #4d504d;
+}
+.darkgrey-19px {
+	font-family: Arial, Times New Roman;
+	font-size: 19px;
+	color: #4d504d;
+}
+.darkgrey-18px {
+	font-family: Arial, Times New Roman;
+	font-size: 18px;
+	color: #4d504d;
+}
+.darkgrey-17px {
+	font-family: Arial, Times New Roman;
+	font-size: 17px;
+	color: #4d504d;
+}
+.darkgrey-16px {
+	font-family: Arial, Times New Roman;
+	font-size: 16px;
+	color: #4d504d;
+}
+.darkgrey-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: #4d504d;
+}
+.darkgrey-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #4d504d;
+}
+.darkgrey-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #4d504d;
+}
+.darkgrey-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #4d504d;
+}
+.darkgrey-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #4d504d;
+}
+.darkgrey-10px {
+	font-family: Arial, Times New Roman;
+	font-size: 10px;
+	color: #4d504d;
+}
+.darkgrey-9px {
+	font-family: Arial, Times New Roman;
+	font-size: 9px;
+	color: #4d504d;
+}
+/* ---- GREY ---- */
+.grey-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: rgb(156, 156, 156);
+}
+.grey-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: rgb(156, 156, 156);
+}
+.grey-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: rgb(156, 156, 156);
+}
+.grey-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: rgb(156, 156, 156);
+}
+.grey-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: rgb(156, 156, 156);
+}
+/* ---- LIGHT GREY ---- */
+.lightgrey-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #EEEEEE;
+}
+.lightgrey-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #EEEEEE;
+}
+.lightgrey-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #EEEEEE;
+}
+.lightgrey-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #EEEEEE;
+}
+.lightgrey-10px {
+	font-family: Arial, Times New Roman;
+	font-size: 10px;
+	color: #EEEEEE;
+}
+.lightgrey-9px {
+	font-family: Arial, Times New Roman;
+	font-size: 9px;
+	color: #EEEEEE;
+}
+
+/* ---- WHITE ---- */
+.white-17px {
+	font-family: Arial, Times New Roman;
+	font-size: 17px;
+	color: #FFFFFF;
+}
+.white-16px {
+	font-family: Arial, Times New Roman;
+	font-size: 16px;
+	color: #FFFFFF;
+}
+.white-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: #FFFFFF;
+}
+.white-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #FFFFFF;
+}
+.white-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #FFFFFF;
+}
+.white-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #FFFFFF;
+}
+.white-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #FFFFFF;
+}
+.white-10px {
+	font-family: Arial, Times New Roman;
+	font-size: 10px;
+	color: #FFFFFF;
+}
+.white-9px {
+	font-family: Arial, Times New Roman;
+	font-size: 9px;
+	color: #FFFFFF;
+}
+
+/* ---- RED ---- */
+.red-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	/* color: #78575e; */
+	color: #7b3947;
+}.red-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	/* color: #78575e; */
+	color: #7b3947;
+}
+.red-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	/* color: #78575e; */
+	color: #7b3947;
+}
+.red-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	/* color: #78575e; */
+	color: #7b3947;
+}
+.red-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	/* color: #78575e; */
+	color: #7b3947;
+}
+
+/* ---- YELLOW ---- */
+.yellow-13px {
+	font-family: Arial, Times New Roman;
+	font-size: 13px;
+	color: #fdfad2;
+}
+.yellow-12px {
+	font-family: Arial, Times New Roman;
+	font-size: 12px;
+	color: #fdfad2;
+}
+.yellow-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	color: #fdfad2;
+}
+
+/* ---- GREEN ---- */
+.green-11px {
+	font-family: Arial, Times New Roman;
+	font-size: 11px;
+	/* color: #78575e; */
+	color: #397b51;
+}
+
+/* ---- DARK GREEN ---- */
+.darkgreen-16px {
+	font-family: Arial, Times New Roman;
+	font-size: 16px;
+	color: #2a5c1b;
+}
+.darkgreen-15px {
+	font-family: Arial, Times New Roman;
+	font-size: 15px;
+	color: #2a5c1b;
+}
+.darkgreen-14px {
+	font-family: Arial, Times New Roman;
+	font-size: 14px;
+	color: #2a5c1b;
+}
+
+</style>

@@ -1,4 +1,6 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetStagedIssueList]
+﻿-- Depricate. This looks like canvas specific stuff.
+
+CREATE PROCEDURE [ctl].[usp_GetStagedIssueList]
 	 @pPublicationCode			varchar(50) 
 	,@pStatusCode				varchar(10)			= 'IS'
 	,@pVerbose					int = 0

@@ -222,7 +222,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'DLY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
-	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
+	,@pRetryIntervalCode		= 'HRLY'	--	varchar(20)
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
@@ -259,7 +259,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'DLY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
-	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
+	,@pRetryIntervalCode		= 'HRLY'	--	varchar(20)
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
@@ -295,7 +295,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'DLY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
-	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
+	,@pRetryIntervalCode		= 'HRLY'	--	varchar(20)
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN01-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 

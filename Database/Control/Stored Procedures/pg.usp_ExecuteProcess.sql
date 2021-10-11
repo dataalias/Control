@@ -1,7 +1,7 @@
 CREATE PROCEDURE [pg].[usp_ExecuteProcess] (
 	 @pPostingGroupProcessingId			bigint			= -1
-	,@pIssueId					int			= -1
-	,@pAllowMultipleInstances			bit			= 0
+	,@pIssueId							int				= -1
+	,@pAllowMultipleInstances			bit				= 0
 	,@pExecuteProcessStatus				varchar(20)		output
 	,@pETLExecutionId				int			= -1
 	,@pPathId					int			= -1
@@ -215,16 +215,16 @@ begin try
 						+  '@pIssueId":"'					+ isnull(cast(@pIssueId					 as varchar(10)),'NULL') + @CRLF
 /*
 		exec pg.usp_ExecuteSSISPackage 
-			 @pSSISProject			= @SSISProject	-- @pSSISProject
-			,@pServerName			= @ServerName	-- @pServerName
-			,@pSSISFolder			= @SSISFolder	-- @pSSISFolder
-			,@pSSISPackage			= @SSISPackage	-- @pSSISPackage
-			,@pSSISParameters		= @SSISParameters -- @pSSISParameters
-			,@pETLExecutionId		= @pETLExecutionId
-			,@pExecuteProcessStatus		= @pExecuteProcessStatus output
-			,@pAllowMultipleInstances	= @pAllowMultipleInstances
-			,@pPathId			= @pPathId
-			,@pVerbose			= @pVerbose
+				 @pSSISProject				= @SSISProject	-- @pSSISProject
+				,@pServerName				= @ServerName	-- @pServerName
+				,@pSSISFolder				= @SSISFolder	-- @pSSISFolder
+				,@pSSISPackage				= @SSISPackage	-- @pSSISPackage
+				,@pSSISParameters			= @SSISParameters -- @pSSISParameters
+				,@pETLExecutionId			= @pETLExecutionId
+				,@pExecuteProcessStatus		= @pExecuteProcessStatus output
+				,@pAllowMultipleInstances	= @pAllowMultipleInstances
+				,@pPathId			= @pPathId
+				,@pVerbose			= @pVerbose
 */
 		select	 @PreviousDtm		= @CurrentDtm
 				,@Rows				= @@ROWCOUNT 
@@ -435,5 +435,6 @@ Date		Author			Description
 
 20210413	ffortunato		Initital Iteration
 20210415	ffortunato		Why can i not make it to the pull?
+20210923	ffortunato		Minor tweak.
 
 ******************************************************************************/

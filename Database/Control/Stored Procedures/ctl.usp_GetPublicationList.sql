@@ -1,7 +1,5 @@
 ﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
 	 @pPublisherCode			varchar(50)		= 'UNK'	
---	,@pProcessingMethodCode		varchar(20)		= 'ADFP'
---	,@pStandardFileFormatCode	varchar(20)		= 'UNK'
 	,@pNextExecutionDateTime	datetime		= NULL --'3001-Jan-01'
 	,@pPublicationGroupSequence int				= 1
 	,@pETLExecutionId			int				= -1
@@ -26,28 +24,13 @@ AS
  Called by:		Application
  Calls:          
 
- Author:		dbay
+ Author:		ffortunato
  Date:			20161114
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
- Date		Author			Description
- --------	-------------	-----------------------------------------------------
- 20161114	Barry Day		Original draft
- 20161116	Barry Day		Support for institution code filtering
- 20161205	Barry Day		Existence check
- 20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
- 20170110	ffortunato		Error handling
- 20170120a	ffortunato		publication code should be varchar(50)
- 20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
-20210312	ffortunato		modifying to be generic again.
-20210524	ffortunato		adding @pPublicationGroupSequence. so different pipelines can be called for a single publisher's publication..
 ******************************************************************************/
 
+-------------------------------------------------------------------------------
+--  Declarations and Initializations.
+-------------------------------------------------------------------------------
 
 declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
@@ -82,9 +65,6 @@ declare @RetryPublications table (
 		 PublicationId			int
 		,StatusCode				VARCHAR(20)
 		,IssueId				int)
--------------------------------------------------------------------------------
---  Initializations
--------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
       '***** Parameters Passed to exec ctl.usp_GetPublicationList' + @CRLF +
@@ -256,3 +236,24 @@ begin catch
 	;throw	 @ErrNum, @ErrMsg, 1
 	
 end catch
+
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20161114	ffortunato		Initial Iteration
+20170109	ffortunato		Adding parameters to allow for getting publication 
+							list from based on a specific publisher code.
+20170110	ffortunato		Error handling
+20170120a	ffortunato		publication code should be varchar(50)
+20170120b	ffortunato		returning 2 additional attributes
+							PublicationFilePath
+							PublicationArchivePath
+20170126	ffortunato		adding IsActive indicator to result set.
+20210312	ffortunato		modifying to be generic again.
+20210524	ffortunato		adding @pPublicationGroupSequence. so different 
+							pipelines can be called for a single publisher's 
+							publication..
+******************************************************************************/

@@ -41,7 +41,7 @@ BEGIN
 -- 3) Calculate the total "Interval Length" between Previous NextExecutionDtm and the next expected execution runtime : Interval Length * (1 + "Number of intervals")
 -- 4) Add the "Interval Length" to Previous expected execution runtime
 	SELECT @NextExecutionDtm = CASE @IntervalCode
-			WHEN 'MIN'
+			WHEN 'MN'
 				THEN CASE 
 						WHEN DATEDIFF(mi, @CurrentDtm, DATEADD(mi, @IntervalLength * (1 + (DATEDIFF(mi, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)) <= @IntervalLength
 							THEN DATEADD(mi, @IntervalLength * (1 + (DATEDIFF(mi, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
@@ -53,25 +53,25 @@ BEGIN
 							THEN DATEADD(hh, @IntervalLength * (1 + (DATEDIFF(hh, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
 						ELSE @CurrentNextExecutionDtm
 						END
-			WHEN 'DLY'
+			WHEN 'DY'
 				THEN CASE 
 						WHEN DATEDIFF(dd, @CurrentDtm, DATEADD(dd, @IntervalLength * (1 + (DATEDIFF(dd, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)) <= @IntervalLength
 							THEN DATEADD(dd, @IntervalLength * (1 + (DATEDIFF(dd, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
 						ELSE @CurrentNextExecutionDtm
 						END
-			WHEN 'WKLY'
+			WHEN 'WK'
 				THEN CASE 
 						WHEN DATEDIFF(wk, @CurrentDtm, DATEADD(wk, @IntervalLength * (1 + (DATEDIFF(wk, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)) <= @IntervalLength
 							THEN DATEADD(wk, @IntervalLength * (1 + (DATEDIFF(wk, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
 						ELSE @CurrentNextExecutionDtm
 						END
-			WHEN 'MTHLY'
+			WHEN 'MT'
 				THEN CASE 
 						WHEN DATEDIFF(mm, @CurrentDtm, DATEADD(mm, @IntervalLength * (1 + (DATEDIFF(mm, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)) <= @IntervalLength
 							THEN DATEADD(mm, @IntervalLength * (1 + (DATEDIFF(mm, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)
 						ELSE @CurrentNextExecutionDtm
 						END
-			WHEN 'YRLY'
+			WHEN 'YR'
 				THEN CASE 
 						WHEN DATEDIFF(yyyy, @CurrentDtm, DATEADD(yyyy, @IntervalLength * (1 + (DATEDIFF(yyyy, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)) <= @IntervalLength
 							THEN DATEADD(yyyy, @IntervalLength * (1 + (DATEDIFF(yyyy, @CurrentNextExecutionDtm, @CurrentDtm) / @IntervalLength)), @CurrentNextExecutionDtm)

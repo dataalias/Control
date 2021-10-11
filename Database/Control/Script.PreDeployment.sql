@@ -1,6 +1,10 @@
-﻿USE Control
+﻿USE [$(DatabaseName)]
 GO
 
+
+print 'Start Predeployment Script'
+
+/*
 IF (SELECT 1 FROM ctl.RefStatus where StatusCode = 'IR') IS NULL
 BEGIN
 	INSERT INTO ctl.RefStatus (StatusCode,StatusName,StatusDesc,StatusType,CreatedBy,CreatedDtm)
@@ -12,3 +16,7 @@ BEGIN
 	INSERT INTO pg.RefStatus (StatusCode,StatusName,StatusDesc,StatusType,CreatedBy,CreatedDtm)
 	VALUES ('PR','PostingGroupProcessing Retry','Posting Group Processing record needs to be retried','PostingGroupProcessing','ochowkwale',GETDATE())
 END
+*/
+
+
+print 'Complete Predeployment Script'

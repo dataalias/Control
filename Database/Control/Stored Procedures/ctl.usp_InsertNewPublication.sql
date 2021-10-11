@@ -2,6 +2,7 @@
 	 @pPublisherCode			varchar(20)
 	,@pPublicationCode			varchar(50)
 	,@pPublicationName			varchar(50)
+	,@pPublicationDesc			varchar(1000)	= 'UNK'
 	,@pSrcPublicationName		varchar(255)	= 'UNK'
 	,@pPublicationFilePath		varchar(255)	= 'N/A'
 	,@pPublicationArchivePath	varchar(255)	= 'N/A'
@@ -18,12 +19,13 @@
 	,@pStandardFileRegEx		varchar(255)	= 'UNK'
 	,@pStandardFileFormatCode	varchar(20)		= 'UNK'
 --	,@pInterfaceCode			varchar(20)
-	,@pMethodCode				varchar(20)		= 'UNK'
+--	,@pMethodCode				varchar(20)		= 'UNK'
+	,@pProcessingMethodCode		varchar(20)		= 'UNK'
 	,@pTransferMethodCode		varchar(20)		= 'UNK'
 	,@pStorageMethodCode		varchar(20)		= 'UNK'
 	,@pIntervalCode				varchar(20)		= 'UNK'
 	,@pIntervalLength			int				= 0
-	,@pRetryIntervalCode		varchar(20)		= 'MIN'
+	,@pRetryIntervalCode		varchar(20)		= 'UNK'
 	,@pRetryIntervalLength		int				= 1
 	,@pRetryMax					int				= 0
 	,@pPublicationEntity		varchar(255)	= 'UNK'
@@ -32,7 +34,7 @@
 	,@pSLAEndTimeInMinutes		int				= -1
 	,@pNextExecutionDtm			datetime		= NULL -- '1900-01-01 00:00:00.000'
 	,@pIsActive					BIT				= 1  -- Why insert it if it isn't active...
-	,@pIsDataHub				INT				= 0  -- Maybe it isn't data hub, shouldn't be...
+	,@pIsDataHub				bit				= 0  -- Maybe it isn't data hub, shouldn't be...
 	,@pBound					varchar(5)		= 'In'	 --Inbound or Outbound
 	,@pCreatedBy				varchar(50)
 	,@pETLExecutionId			int				= -1
@@ -59,7 +61,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'DLY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
-	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
+	,@pRetryIntervalCode		= 'HRLY'	--	varchar(20)
 	,@pRetryIntervalLength	= 1	--	int
 	,@pRetryMax				= 3				--	int
 	,@pPublicationEntity		= 'WD_ROSTER_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
@@ -159,7 +161,8 @@ SELECT	 @ParametersPassedChar	=
 		'***** Parameters Passed to exec ctl.usp_insertnewpublication' + @CRLF +
 		'     @pPublisherCode = '''		 + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
 		'    ,@pPublicationCode = '''	 + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
-		'    ,@pPublicationName = '''	 + isnull(@pPublicationName ,'NULL') + '''' + @CRLF + 
+		'    ,@pPublicationName = '''	 + isnull(@pPublicationName ,'NULL') + '''' + @CRLF + 	
+		'    ,@@pPublicationDesc = '''	 + isnull(@pPublicationDesc ,'NULL') + '''' + @CRLF + 
 		'    ,@pSrcPublicationName = ''' + isnull(@pSrcPublicationName ,'NULL') + '''' + @CRLF + 
 		'    ,@pPublicationFilePath = ''' + isnull(@pPublicationFilePath ,'NULL') + '''' + @CRLF + 
 		'    ,@pPublicationArchivePath = ''' + isnull(@pPublicationArchivePath ,'NULL') + '''' + @CRLF + 
@@ -174,7 +177,8 @@ SELECT	 @ParametersPassedChar	=
 		'    ,@pSrcFileRegEx = '''		 + isnull(@pSrcFileRegEx ,'NULL') + '''' + @CRLF + 
 		'    ,@pStandardFileRegEx = '''	 + isnull(@pStandardFileRegEx ,'NULL') + '''' + @CRLF + 
 		'    ,@pStandardFileFormatCode = ''' + isnull(@pStandardFileFormatCode ,'NULL') + '''' + @CRLF + 
-		'    ,@pMethodCode = '''		 + isnull(@pMethodCode ,'NULL') + '''' + @CRLF + 
+		'    ,@pProcessingMethodCode = ''' + isnull(@pProcessingMethodCode ,'NULL') + '''' + @CRLF + 
+--		'    ,@pMethodCode = '''		 + isnull(@pMethodCode ,'NULL') + '''' + @CRLF + 
 		'    ,@pTransferMethodCode = ''' + isnull(@pTransferMethodCode ,'NULL') + '''' + @CRLF + 
 		'    ,@pStageMethodCode = '''	 + isnull(@pStorageMethodCode ,'NULL') + '''' + @CRLF + 
 		'    ,@pIntervalCode = '''		 + isnull(@pIntervalCode ,'NULL') + '''' + @CRLF + 
@@ -319,9 +323,11 @@ begin try
 			 [PublisherId]
 			,[PublicationCode]
 			,[PublicationName]
+			,PublicationDesc	
 			,[SrcPublicationName]
 --			,[InterfaceCode]
-			,[MethodCode]
+--			,[MethodCode]
+			,ProcessingMethodCode
 			,TransferMethodCode
 			,StorageMethodCode
 			,[IntervalCode]
@@ -359,9 +365,11 @@ begin try
 			 @PublisherId
 			,@pPublicationCode
 			,@pPublicationName
+			,@pPublicationDesc	
 			,@pSrcPublicationName
 --			,@pInterfaceCode
-			,@pMethodCode
+--			,@pMethodCode
+			,@pProcessingMethodCode
 			,@pTransferMethodCode
 			,@pStorageMethodCode
 			,@pIntervalCode
@@ -393,8 +401,8 @@ begin try
 			,@pSrcDeltaAttributes
 			,@pCreatedBy
 			,@CreatedDate
-			,@pCreatedBy
-			,@CreatedDate)
+			,@pCreatedBy -- Ya ya its modified
+			,@CreatedDate) -- Ya ya its modified
 
 	select	 @PreviousDtm		= @CurrentDtm
 			,@Rows				= @@ROWCOUNT 

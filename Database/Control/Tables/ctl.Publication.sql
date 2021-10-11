@@ -19,6 +19,7 @@ CREATE TABLE [ctl].[Publication](
 	[PublisherId] [int] NOT NULL,
 	[PublicationCode] [varchar](50) NOT NULL,
 	[PublicationName] [varchar](255) NOT NULL,
+	[PublicationDesc] [varchar](1000) NOT NULL,
 	[SrcPublicationCode] [varchar](20) NOT NULL,
 	[SrcPublicationName] [varchar](255) NULL,
 	[PublicationEntity] [varchar](255) NOT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE [ctl].[Publication](
 	[StandardFileRegEx] varchar(255) NOT NULL,
 	[StandardFileFormatCode] varchar(20) NOT NULL,
 	[ProcessingMethodCode] [varchar](20) NOT NULL, -- Talks about the system that will run the code :Data Factory, Integration Services ... FK to pg.RefProcessingMethod
-	[MethodCode]	[varchar](20),  -- This field is deprecated in its place will be Transfer and Storage Method Code.
+--	[MethodCode]	[varchar](20),  -- This field is deprecated in its place will be Transfer and Storage Method Code.
 	[TransferMethodCode] [varchar](20) NOT NULL,
 	[StorageMethodCode] [varchar](20) NOT NULL,
 	[StageJobName] [varchar](255) NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE [ctl].[Publication](
 	[SLAEndTimeInMinutes] [int] NULL,
 	[NextExecutionDtm] [datetime] NOT NULL,
 	[IsActive] [bit] NOT NULL,
-	[IsDataHub] [int] NOT NULL, -- this needs to be changed to a bit. I'm mad at you omkar.
+	[IsDataHub] BIT NOT NULL, -- this needs to be changed to a bit. I'm mad at you omkar.
 	[Bound] [varchar](10) NOT NULL,
 	[RetryMax] [int] NOT NULL,
 	[RetryIntervalCode] [varchar](20) NOT NULL,
@@ -93,7 +94,7 @@ GO
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__IsActive__1]  DEFAULT 1 FOR [IsActive]
 GO
 
-ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__IsDataHub__0]  DEFAULT 0 FOR [IsDataHub]
+ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__IsDataHub__1]  DEFAULT 1 FOR [IsDataHub]
 GO
 
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__Bound__In]  DEFAULT 'In' FOR [Bound]
@@ -171,12 +172,12 @@ ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_Method_Publication__Transfer
 REFERENCES [ctl].[RefTransferMethod] ([TransferMethodCode])
 GO
 
-ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_Method_Publication__MethodCode] FOREIGN KEY([MethodCode])
-REFERENCES [ctl].[RefMethod] ([MethodCode])
-GO
+--ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_Method_Publication__MethodCode] FOREIGN KEY([MethodCode])
+--REFERENCES [ctl].[RefMethod] ([MethodCode])
+--GO
 
-ALTER TABLE [ctl].[Publication] CHECK CONSTRAINT [FK_Method_Publication__MethodCode]
-GO
+--ALTER TABLE [ctl].[Publication] CHECK CONSTRAINT [FK_Method_Publication__MethodCode]
+--GO
 
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_PubnPublisherId] FOREIGN KEY([PublisherId])
 REFERENCES [ctl].[Publisher] ([PublisherId])

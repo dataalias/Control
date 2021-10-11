@@ -1,4 +1,6 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
+﻿-- Depricate. This seems to be Canvas only.
+
+CREATE PROCEDURE [ctl].[usp_GetPublicationList]
 	 @pPublisherCode			varchar(50) 
 	,@pVerbose					int = 0
 AS
@@ -20,16 +22,13 @@ AS
  Called by:		Application
  Calls:          
 
- Author:		dbay
+ Author:		
  Date:			20161114
 *******************************************************************************
        CHANGE HISTORY
 *******************************************************************************
  Date		Author			Description
  --------	-------------	-----------------------------------------------------
- 20161114	Barry Day		Original draft
- 20161116	Barry Day		Support for institution code filtering
- 20161205	Barry Day		Existence check
  20170109	ffortunato		Adding parameters to allow for getting publication 
 							list from based on a specific publisher code.
  20170110	ffortunato		Error handling

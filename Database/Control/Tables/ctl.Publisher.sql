@@ -15,7 +15,7 @@ date:           20181011
 CREATE TABLE [ctl].[Publisher](
 	[PublisherId] [int] IDENTITY(1,1) NOT NULL,
 	[ContactId] [int] NOT NULL,
-	[PublisherCode] [varchar](10) NOT NULL,
+	[PublisherCode] [varchar](20) NOT NULL,
 	[PublisherName] [varchar](50) NOT NULL,
 	[PublisherDesc] [varchar](1000) NULL,
 	[InterfaceCode] [varchar](20) NOT NULL,
@@ -73,5 +73,8 @@ date		author			description
 --------	-------------	---------------------------------------------------
 20181011	ffortunato		initial iteration
 20201118	ffortunato		fixing some warnings etc.... 
-
+20211007	ffortunato		o PublisherCode 10 --> 20
+							+ PublicationDesc
+							o DataHube int --> bit
+							- MethodCode
 ******************************************************************************/

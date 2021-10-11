@@ -1,7 +1,7 @@
 ﻿CREATE procedure [pg].[InsertPostingGroup] (	
-		 @pCode					varchar(100)	= 'UNK'
-		,@pName					varchar(250)	= 'Unknown'
-		,@pDesc					varchar(1000)	= 'Description for this posting group is unknown.'
+		 @pPostingGroupCode		varchar(100)	= 'UNK'
+		,@pPostingGroupName		varchar(250)	= 'Unknown'
+		,@pPostingGroupDesc		varchar(1000)	= 'Description for this posting group is unknown.'
 		,@pCategoryCode			varchar(20)		= 'UNK'
 		,@pCategoryName			varchar(250)	= 'Unknown'
 		,@pCategoryDesc			varchar(max)	= 'Category for this posting group is unknown.'
@@ -15,13 +15,13 @@
 		,@pDataFactoryName		varchar(255)	= 'N/A'
 		,@pDataFactoryPipeline	varchar(255)	= 'N/A'
 		,@pJobName				varchar(255)	= 'N/A'
-		,@pRetryIntervalCode	varchar(20)		= 'MIN'
+		,@pRetryIntervalCode	varchar(20)		= 'UNK'
 		,@pRetryIntervalLength	int				= 1
 		,@pRetryMax				int				= 0
-		,@pTriggerProcess		varchar(100)	= 'N/A'
+--		,@pTriggerProcess		varchar(100)	= 'N/A'
 		,@pIsActive				bit				= 0
 		,@pIsRoot				bit				= 0
-		,@pTriggerType			varchar(20)		= 'Immediate'
+--		,@pTriggerType			varchar(20)		= 'Immediate'
 		,@pNextExecutionDtm		datetime		= NULL -- '1900-01-01 00:00:00.000'
 		,@pCreatedBy			varchar(50)		= 'Unknown'
 		,@pETLExecutionId		int				= -1
@@ -93,6 +93,9 @@ date		author			description
 20200725	ochowkwale		parameters for NextExecutionDtm, TriggerType
 20210217	ffortunato		Adding Job Name to fire SQL Server Jobs
 20210327	ffortunato		Category stuff.
+20210327	ffortunato		- Trigger Type, Trigger Process.
+							o Interval code to include Immediate.
+20211008	ffortunato		o createdby
 ******************************************************************************/
 
 DECLARE	 @Rows					int				= 0
@@ -107,6 +110,7 @@ DECLARE	 @Rows					int				= 0
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
 		,@DbName				varchar(50)		= DB_NAME()
+		,@CurrentUser			varchar(256)	= CURRENT_USER
 		,@ProcessType			varchar(10)		= 'Proc'
 		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
@@ -123,9 +127,9 @@ DECLARE	 @Rows					int				= 0
 ----------------------------------------------------------------------------------
 select	 @ParametersPassedChar   =       
       '***** Parameters Passed to exec pg.InsertPostingGroup' + @CRLF +
-      '     @pCode = ''' + isnull(@pCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pName = ''' + isnull(@pName ,'NULL') + '''' + @CRLF + 
-      '    ,@pDesc = ''' + isnull(@pDesc ,'NULL') + '''' + @CRLF + 
+      '     @pCode = ''' + isnull(@pPostingGroupCode ,'NULL') + '''' + @CRLF + 
+      '    ,@pName = ''' + isnull(@pPostingGroupName ,'NULL') + '''' + @CRLF + 
+      '    ,@pDesc = ''' + isnull(@pPostingGroupDesc ,'NULL') + '''' + @CRLF + 
       '    ,@pCategoryCode = ''' + isnull(@pCategoryCode ,'NULL') + '''' + @CRLF + 
 	  '    ,@pCategoryName = ''' + isnull(@pCategoryName ,'NULL') + '''' + @CRLF + 
 	  '    ,@pCategoryDesc = ''' + isnull(@pCategoryDesc ,'NULL') + '''' + @CRLF + 
@@ -142,9 +146,9 @@ select	 @ParametersPassedChar   =
       '    ,@pRetryIntervalCode = ''' + isnull(@pRetryIntervalCode ,'NULL') + '''' + @CRLF + 
       '    ,@pRetryIntervalLength = ' + isnull(cast(@pRetryIntervalLength as varchar(100)),'NULL') + @CRLF + 
       '    ,@pRetryMax = ' + isnull(cast(@pRetryMax as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pTriggerProcess = ''' + isnull(@pTriggerProcess ,'NULL') + '''' + @CRLF + 
+ --     '    ,@pTriggerProcess = ''' + isnull(@pTriggerProcess ,'NULL') + '''' + @CRLF + 
       '    ,@pIsActive = ' + isnull(cast(@pIsActive as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pTriggerType = ''' + isnull(@pTriggerType ,'NULL') + '''' + @CRLF + 
+--      '    ,@pTriggerType = ''' + isnull(@pTriggerType ,'NULL') + '''' + @CRLF + 
       '    ,@pNextExecutionDtm = ''' + isnull(convert(varchar(100),@pNextExecutionDtm ,13) ,'NULL') + '''' + @CRLF + 
       '    ,@pCreatedBy = ''' + isnull(@pCreatedBy ,'NULL') + '''' + @CRLF + 
       '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
@@ -167,6 +171,9 @@ begin try
 		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@ParentStepLogId output	
 		,@pVerbose
 
+
+	if @pCreatedBy <> 'Unknown'
+		select @CurrentUser = @pCreatedBy
 
 -------------------------------------------------------------------------------
 --  Generate Publication List
@@ -203,10 +210,12 @@ begin try
 		,[NextExecutionDtm]
 		,[CreatedDtm]
 		,CreatedBy
+		,ModifiedDtm
+		,ModifiedBy
 	) values (
-		 @pCode
-		,@pName
-		,@pDesc
+		 @pPostingGroupCode
+		,@pPostingGroupName
+		,@pPostingGroupDesc
 		,@pProcessingMethodCode
 		,@pProcessingModeCode
 		,@pCategoryCode
@@ -229,14 +238,16 @@ begin try
 --		,@pTriggerType
 		,@pNextExecutionDtm
 		,@CurrentDtm
-		,@pCreatedBy
+		,@CurrentUser
+		,@CurrentDtm
+		,@CurrentUser
 	)
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
 			,@Rows				= @@ROWCOUNT 
 	select	 @CurrentDtm		= getdate()
-			,@JSONSnippet		= '{"PostingGroupCode":"'+@pCode+'"}'
+			,@JSONSnippet		= '{"PostingGroupCode":"'+@pPostingGroupCode+'"}'
 
 	exec [audit].usp_InsertStepLog
 			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
