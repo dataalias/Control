@@ -333,17 +333,26 @@ BEGIN
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
 			   ('SFTP','Secure File Transfer Protocol','',system_user,getdate())
 END
+/*
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('CANVAS'))
 BEGIN
 
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
 			   ('CANVAS','Canvas Sync Command Line Utility','',system_user,getdate())
 END
+*/
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('TBL'))
 BEGIN
 
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
-			   ('TBL','Table','System directly interfactions with a relational database table.',system_user,getdate())
+			   ('TBL','Table','System directly interfaces with a relational database table.',system_user,getdate())
+
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('EMAIL'))
+BEGIN
+
+	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
+			   ('EMAIL','e-Mail','System interfaces with a mailbox and retrieves or sends attachements.',system_user,getdate())
 
 END
 
