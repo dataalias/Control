@@ -13,7 +13,9 @@
 	,@pFirstRecordChecksum		varchar(2048)	= null
 	,@pLastRecordChecksum		varchar(2048)	= null
 	,@pPeriodStartTime			datetime		= null
+	,@pPeriodStartTimeUTC		datetimeoffset	= null
 	,@pPeriodEndTime			datetime		= null
+	,@pPeriodEndTimeUTC			datetimeoffset	= null
 	,@pRecordCount				integer			= null
 	,@pETLExecutionId			int				= null
 	,@pCreateBy					varchar(30)		= null
@@ -298,7 +300,9 @@ INSERT INTO ctl.Issue (
 		,FirstRecordChecksum
 		,LastRecordChecksum
 		,PeriodStartTime
+		,PeriodStartTimeUTC
 		,PeriodEndTime
+		,PeriodEndTimeUTC
 		,RecordCount
 		,ETLExecutionID
 		,CreatedDtm
@@ -324,7 +328,9 @@ INSERT INTO ctl.Issue (
 		,@pFirstRecordChecksum 
 		,@pLastRecordChecksum    
 		,@pPeriodStartTime 
+		,isnull(@pPeriodStartTimeUTC, SWITCHOFFSET (@pPeriodStartTime , DATEPART(TZOFFSET, SYSDATETIMEOFFSET())))
 		,@pPeriodEndTime
+		,isnull(@pPeriodEndTimeUTC, SWITCHOFFSET (@pPeriodEndTime , DATEPART(TZOFFSET, SYSDATETIMEOFFSET())))
 		,@pRecordCount 
 		,@pETLExecutionID
 		,@CreatedDate

@@ -15,9 +15,9 @@ AS
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationList] NULL, 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AU', 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' ,1 
+	exec ctl.[usp_GetPublicationList] @pPublisherCode = NULL
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AU'
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' 
 
  Parameters:    
 
@@ -31,6 +31,7 @@ AS
 -------------------------------------------------------------------------------
 --  Declarations and Initializations.
 -------------------------------------------------------------------------------
+SET NOCOUNT ON
 
 declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
@@ -60,11 +61,21 @@ declare	 @Rows					int				= 0
 		,@PassphraseTableName	nvarchar(256)	= 'Publisher'
 		,@IssueRetry			varchar(2)		= 'IR'
 		,@NextExecutionDateTime datetime		= cast('3002-Jan-10' as datetime)
+		,@PublisherId			int				= -1
 		
 declare @RetryPublications table (
 		 PublicationId			int
 		,StatusCode				VARCHAR(20)
 		,IssueId				int)
+
+declare	@IssueDetail			table(
+		 IssueDetailId			int identity(1,1)
+		,PublicationId			int
+		,IssueId				int
+		,PeriodStartTime		datetime
+		,PeriodEndTime			datetime
+		,PeriodStartTimeUTC		datetimeoffset
+		,PeriodEndTimeUTC		datetimeoffset)
 
 select	 @ParametersPassedChar	= 
       '***** Parameters Passed to exec ctl.usp_GetPublicationList' + @CRLF +
@@ -136,6 +147,43 @@ GROUP BY
 		,r.StatusCode
 
 -------------------------------------------------------------------------------
+--  Check if any publication issues are retrying
+-------------------------------------------------------------------------------
+
+select	 @PublisherId			= isnull(PublisherId,-1)
+from	 ctl.Publisher			  pbr
+where	 pbr.PublisherCode		= @pPublisherCode
+
+Insert into @IssueDetail (
+		 PublicationId
+		,IssueId)
+select	 pbn.PublicationId
+		,max(issueid)
+from	 ctl.Issue				  iss
+join	 ctl.Publication		  pbn
+on		 iss.PublicationId		= pbn.PublicationId
+join	 ctl.Publisher			  pbr
+on		 pbn.PublisherId		= pbr.PublisherId
+join	 ctl.RefStatus			  rs
+on		 iss.StatusId			= rs.StatusId
+where	 pbr.PublisherCode		= @pPublisherCode
+and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from failed issues.
+group by pbn.PublicationId
+
+update	 issd
+set		 PeriodStartTime		= iss.PeriodStartTime
+		,PeriodEndTime			= iss.PeriodEndTime
+		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
+		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
+from	 @IssueDetail			  issd
+join	 ctl.Issue	iss
+on		 iss.IssueId			= issd.IssueId
+
+/* testing
+select * 
+from	@IssueDetail
+*/
+-------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
 	select	 @StepName			= 'Generate Publication List'
@@ -144,7 +192,9 @@ GROUP BY
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
 --	insert	into @PublicationList
-	select	 pn.PublicationId
+	select	 pr.PublisherId
+			,pr.PublisherName
+			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
@@ -167,6 +217,7 @@ GROUP BY
 			,pn.SLATime
 			,ri.[SLAFormat]
 			,ri.[SLARegEx]
+			,pn.Bound
 			,pn.SrcFileFormatCode  -- As FeedFormat
 			,pn.StandardFileFormatCode
 			,pn.SSISFolder
@@ -177,19 +228,24 @@ GROUP BY
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
+			,id.IssueId					  LastIssueId
+			,id.PeriodStartTime			  HighWaterMarkDatetime
+			,id.PeriodStartTimeUTC		  HighWaterMarkDatetimeUTC
 	from 	ctl.Publication				  pn
-	left join @RetryPublications		  rpn
-	on		rpn.PublicationId			= pn.PublicationId
+--	left join @RetryPublications		  rpn
+--	on		rpn.PublicationId			= pn.PublicationId
+	left join @IssueDetail				  id
+	on		id.PublicationId			= pn.PublicationId
 	join	ctl.Publisher				  pr 
 	on		pr.PublisherId				= pn.PublisherId
 	join	ctl.RefInterval				  ri
 	on		pn.IntervalCode				= ri.IntervalCode
 	where	pn.IsActive					= 1 
-	and		pn.IsDataHub				= 1
+--	and		pn.IsDataHub				= 1
 	and		pn.Bound					= 'In'
-	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+--	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
 	and		pr.PublisherCode			= @pPublisherCode
-	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+--	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
 	
 
 	-- Upon completion of the step, log it!
@@ -256,4 +312,6 @@ Date		Author			Description
 20210524	ffortunato		adding @pPublicationGroupSequence. so different 
 							pipelines can be called for a single publisher's 
 							publication..
+20211102	ffortunato		Preparing some changes in order to work with python.
+20211104	ffortunato		Adding some content about the most recent issue.
 ******************************************************************************/

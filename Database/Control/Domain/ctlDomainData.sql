@@ -118,7 +118,18 @@ BEGIN
 	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
 	VALUES ('JSON','JavaScript Object Notation','Named value pair file .','json','.json',system_user,getdate())
 END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefFileFormat] WHERE [FileFormatCode] IN ('AU'))
+BEGIN
 
+	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
+	VALUES ('AU','Audacity Audio File','An AU file is an audio file created by Audacity, a free, cross-platform audio editor. It is saved in a proprietary audio format used only by Audacity.','au','.au',system_user,getdate())
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefFileFormat] WHERE [FileFormatCode] IN ('MP3'))
+BEGIN
+
+	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
+	VALUES ('MP3','MPEG Audio File','The MP3 lossy audio-data compression algorithm takes advantage of a perceptual limitation of human hearing called auditory masking.','mp3','.mp3',system_user,getdate())
+END
 go
 
 -- REf Transfer Method

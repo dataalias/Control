@@ -20,6 +20,7 @@ date		author			description
 							naming default constraints
 							renaming indixes to conform to standards
 20210316	ffortunato		adding SrcIssueName
+20210316	ffortunato		PeriodEndTime Can be NULL during initial insert.
 ******************************************************************************/
 
 CREATE TABLE [ctl].[Issue](
@@ -41,7 +42,9 @@ CREATE TABLE [ctl].[Issue](
 	[FirstRecordChecksum] [varchar](2048) NULL,
 	[LastRecordChecksum] [varchar](2048) NULL,
 	[PeriodStartTime] [datetime] NOT NULL,
-	[PeriodEndTime] [datetime] NOT NULL,
+	[PeriodStartTimeUTC] [datetimeoffset]  NULL,
+	[PeriodEndTime] [datetime] NULL,
+	[PeriodEndTimeUTC] [datetimeoffset]  NULL,
 	[IssueConsumedDate] [datetime] NULL,
 	[RecordCount] [int] NOT NULL,
 	[RetryCount] [int] NOT NULL,
