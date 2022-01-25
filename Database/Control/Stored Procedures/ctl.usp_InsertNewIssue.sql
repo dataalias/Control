@@ -40,6 +40,8 @@ exec ctl.[usp_InsertNewIssue]
 	,@pIssueName		=	NULL 
 	,@pSrcIssueName		=	'1/1/2021'
 	,@pStatusCode		=	'IS'     
+	,@pSrcPublisherId		=	'1000'  
+	,@pSrcPublicationId		=	'1000' 
 	,@pSrcDFIssueId		=	1000  
 	,@pSrcDFCreatedDate	=	'1/1/2021'
 	,@pFirstRecordSeq	=	1
@@ -47,7 +49,9 @@ exec ctl.[usp_InsertNewIssue]
 	,@pFirstRecordChecksum	=	3463466
 	,@pLastRecordChecksum	=	4567745
 	,@pPeriodStartTime	=	'1/1/2021'
+	,@pPeriodStartTimeUTC	=	'1/1/2021'
 	,@pPeriodEndTime	=	'1/2/2021'
+	,@pPeriodEndTimeUTC	=	'1/1/2021'
 	,@pRecordCount		=	1000
 	,@pETLExecutionId	=	1
 	,@pCreateBy			=	'ffortunato'
@@ -464,4 +468,5 @@ Date		Author			Description
 							Adding DataLakePath so we can find the feed in the lake.
 20210525	ffortunato		Proc should calc the issue name if it is unknown.
 20211005    ffortunato		Building out a better Data Lake Path on default.
+20211202    ffortunato		Fixing up execution in header.
 ******************************************************************************/

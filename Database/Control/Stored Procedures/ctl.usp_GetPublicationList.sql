@@ -158,7 +158,7 @@ Insert into @IssueDetail (
 		 PublicationId
 		,IssueId)
 select	 pbn.PublicationId
-		,max(issueid)
+		,max(IssueId)
 from	 ctl.Issue				  iss
 join	 ctl.Publication		  pbn
 on		 iss.PublicationId		= pbn.PublicationId
@@ -206,6 +206,7 @@ from	@IssueDetail
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
+			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
 			,pn.RetryIntervalCode
@@ -314,4 +315,5 @@ Date		Author			Description
 							publication..
 20211102	ffortunato		Preparing some changes in order to work with python.
 20211104	ffortunato		Adding some content about the most recent issue.
+20220125	ffortunato		+ SrcFileRegEx
 ******************************************************************************/
