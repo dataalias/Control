@@ -66,6 +66,7 @@
     <Folder Include="Functions" />
     <Folder Include="Domain" />
     <Folder Include="Test" />
+    <Folder Include="RefDacPac" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Indexes\README.md" />
@@ -81,6 +82,7 @@
     <None Include="Test\TestScript.sql" />
     <None Include="Control.publish.xml" />
     <None Include="DataHub.publish.xml" />
+    <None Include="RefDacPac\SSISDB.dacpac" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
@@ -204,11 +206,20 @@
       <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
       <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
     </ArtifactReference>
+    <ArtifactReference Include="RefDacPac\SSISDB.dacpac">
+      <HintPath>RefDacPac\SSISDB.dacpac</HintPath>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+      <DatabaseSqlCmdVariable>SSISDB</DatabaseSqlCmdVariable>
+    </ArtifactReference>
   </ItemGroup>
   <ItemGroup>
     <SqlCmdVariable Include="SSISDB">
       <DefaultValue>SSISDB</DefaultValue>
-      <Value>$(SqlCmdVar__1)</Value>
+      <Value>$(SqlCmdVar__3)</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="SSISDB_2019">
+      <DefaultValue>SSISDB_2019</DefaultValue>
+      <Value>$(SqlCmdVar__2)</Value>
     </SqlCmdVariable>
   </ItemGroup>
 </Project>
