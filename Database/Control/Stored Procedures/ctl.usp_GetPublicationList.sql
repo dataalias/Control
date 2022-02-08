@@ -245,6 +245,7 @@ from	@IssueDetail
 --	and		pn.IsDataHub				= 1
 	and		pn.Bound					= 'In'
 --	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+	and		pn.NextExecutionDtm			<= @NextExecutionDateTime
 	and		pr.PublisherCode			= @pPublisherCode
 --	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
 	
@@ -316,4 +317,6 @@ Date		Author			Description
 20211102	ffortunato		Preparing some changes in order to work with python.
 20211104	ffortunato		Adding some content about the most recent issue.
 20220125	ffortunato		+ SrcFileRegEx
+20220207	ffortunato		+ SrcFileRegEx
+
 ******************************************************************************/

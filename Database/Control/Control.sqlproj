@@ -83,6 +83,7 @@
     <None Include="Control.publish.xml" />
     <None Include="DataHub.publish.xml" />
     <None Include="RefDacPac\SSISDB.dacpac" />
+    <None Include="sbx.DataHub.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
@@ -216,10 +217,6 @@
     <SqlCmdVariable Include="SSISDB">
       <DefaultValue>SSISDB</DefaultValue>
       <Value>$(SqlCmdVar__3)</Value>
-    </SqlCmdVariable>
-    <SqlCmdVariable Include="SSISDB_2019">
-      <DefaultValue>SSISDB_2019</DefaultValue>
-      <Value>$(SqlCmdVar__2)</Value>
     </SqlCmdVariable>
   </ItemGroup>
 </Project>

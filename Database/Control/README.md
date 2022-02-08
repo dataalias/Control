@@ -27,3 +27,10 @@ Posting groups identifies the template needed to orchestrate the batch process w
 
 Batch Processing
 Now that a template has been established for the process that must be run each day the specific tasks for a given interval of time (normally a day) must be generated so process can report on their success or failure, run time and other statistics. The PostingGroupBatch maintains a key value for each new (holistic) batch that must be run and does so on a daily interval. The template posting group records are effectively copied into the PostingGroupProcessing entity each day and identified with a posting group batch id. As processes execute, they report their status back to the processing entity. These statuses can be monitored through the day to ensure normal processing by logging number of records impacted and process start and end times as retrys.
+
+
+Changes:
+
+	3.01 
+		- Fixes to get publication list + SrcFileRegEx
+		- Cleaned up several headers and executions for testing procedures
