@@ -443,7 +443,7 @@ BEGIN
 	,[STATUSDESC],[STATUSTYPE]
 	,CreatedDtm,CREATEDBY)
 	VALUES ('IL','Issue Loaded'
-	,'??.'   ,'Issue'
+	,'The Load of the issues to staging/ods area complete. Subscribers can now access the information based on distribution.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
 

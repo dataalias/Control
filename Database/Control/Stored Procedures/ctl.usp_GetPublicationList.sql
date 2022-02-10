@@ -192,6 +192,11 @@ from	@IssueDetail
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
 --	insert	into @PublicationList
+
+
+
+
+
 	select	 pr.PublisherId
 			,pr.PublisherName
 			,pn.PublicationId
@@ -230,8 +235,8 @@ from	@IssueDetail
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
 			,id.IssueId					  LastIssueId
-			,id.PeriodStartTime			  HighWaterMarkDatetime
-			,id.PeriodStartTimeUTC		  HighWaterMarkDatetimeUTC
+			,id.PeriodEndTime			  HighWaterMarkDatetime
+			,id.PeriodEndTimeUTC		  HighWaterMarkDatetimeUTC
 	from 	ctl.Publication				  pn
 --	left join @RetryPublications		  rpn
 --	on		rpn.PublicationId			= pn.PublicationId
@@ -318,5 +323,7 @@ Date		Author			Description
 20211104	ffortunato		Adding some content about the most recent issue.
 20220125	ffortunato		+ SrcFileRegEx
 20220207	ffortunato		+ SrcFileRegEx
+20220210	ffortunato		o StartTime --> EndTime  
+							highwater mark is the last end time not start time.
 
 ******************************************************************************/
