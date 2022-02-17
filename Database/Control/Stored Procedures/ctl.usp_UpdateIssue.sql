@@ -177,8 +177,8 @@ BEGIN
 	AND		 c.IsActive				= 1
 	AND		 c.IsDataHub			= 1 -- IN (1,2)
 	--AND		 c.ProcessingMethodCode in ('ADFP','SSIS')
-
-	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
+/*
+	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, '<<MyEmail@Somewhere.com>>')), ';')
 	FROM ctl.Issue AS i
 	LEFT JOIN ctl.MapContactToPublication AS mctp 
 	ON mctp.PublicationId = i.PublicationId
@@ -195,7 +195,7 @@ BEGIN
 		,@pTo					= @Recipients
 		,@pSeverity				= @Severity
 		,@pIssueId				= @pIssueId
-
+*/
 END
 
 begin try
@@ -355,5 +355,6 @@ Date		Author		Description
 20210316	ffortunato		Add SrcIssueName
 20210412	ffortunato		@pDataLakePath	
 20211202	ffortunato		UTC Parameters. Fixed up execution in header.
+202120210	ffortunato		Removing email steps.
 
 ******************************************************************************/

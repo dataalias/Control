@@ -72,6 +72,8 @@ declare	@IssueDetail			table(
 		 IssueDetailId			int identity(1,1)
 		,PublicationId			int
 		,IssueId				int
+		,FirstRecordSeq			int
+		,LastRecordSeq			int
 		,PeriodStartTime		datetime
 		,PeriodEndTime			datetime
 		,PeriodStartTimeUTC		datetimeoffset
@@ -175,6 +177,8 @@ set		 PeriodStartTime		= iss.PeriodStartTime
 		,PeriodEndTime			= iss.PeriodEndTime
 		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
 		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
+		,FirstRecordSeq			= iss.FirstRecordChecksum
+		,LastRecordSeq			= iss.LastRecordChecksum
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
@@ -234,9 +238,10 @@ from	@IssueDetail
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
-			,id.IssueId					  LastIssueId
-			,id.PeriodEndTime			  HighWaterMarkDatetime
-			,id.PeriodEndTimeUTC		  HighWaterMarkDatetimeUTC
+			,id.IssueId						LastIssueId
+			,id.PeriodEndTime				HighWaterMarkDatetime
+			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+			,LastRecordSeq					HighWaterMarkRecordSeq
 	from 	ctl.Publication				  pn
 --	left join @RetryPublications		  rpn
 --	on		rpn.PublicationId			= pn.PublicationId
@@ -325,5 +330,6 @@ Date		Author			Description
 20220207	ffortunato		+ SrcFileRegEx
 20220210	ffortunato		o StartTime --> EndTime  
 							highwater mark is the last end time not start time.
+							+ high warter for recordSeq as well
 
 ******************************************************************************/
