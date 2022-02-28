@@ -81,7 +81,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec bpi_dw_stage.ctl.usp_GetPublicationList' + @CRLF +
+			'exec bpi_dw_stage.ctl.[GetJobList_DataHub]' + @CRLF +
 			'     @pPublicationCode = ' + isnull(@pPublicationCode,'NULL') + @CRLF + 
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 

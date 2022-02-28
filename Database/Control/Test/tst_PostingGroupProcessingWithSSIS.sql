@@ -212,7 +212,7 @@ end
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 01 Account'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
@@ -232,7 +232,7 @@ end
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 02 Assignment'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
@@ -253,7 +253,7 @@ end
 				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 02. Publication 02 Assignment'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
@@ -274,7 +274,7 @@ end
 				,@pName			= 'Test Publisher 02 Sending Data to Subscriber 01. Publication 03 Course'
 				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
@@ -294,7 +294,7 @@ end
 				,@pName			= 'Test the account and assignment dimension load'
 				,@pDesc			= 'This is the parent posting group to the Account and Assignment data hub staging load.'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
@@ -314,7 +314,7 @@ end
 				,@pName			= 'Test the account and assignment fact load'
 				,@pDesc			= 'This is the parent posting group to the Account and Assignment Dim load.'
 				,@pCategory		= 'N/A'				
-				,@pInterval		= 'HR'				
+				,@pInterval		= 'HRLY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'		

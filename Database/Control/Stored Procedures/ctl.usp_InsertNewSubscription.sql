@@ -10,7 +10,7 @@
 	,@pSrcFilePath				varchar(255)		= 'N/A'
 	,@pDestTableName			varchar(255)		= 'N/A'
 	,@pDestFileFormatCode		varchar(20)			= 'N/A'
-	,@pCreatedBy				varchar(30)
+	,@pCreatedBy				varchar(50)			= 'UNK'
 	,@pVerbose					int					= 0 
 ) as 
 /*****************************************************************************
@@ -105,6 +105,11 @@ end
 ----------------------------------------------------------------------------------
 begin try
 
+if  ((@pCreatedBy = 'UNK') or (@pCreatedBy is null))
+begin
+	select @pCreatedBy = CURRENT_USER
+end
+
 select	 @publicationid			= isnull(PublicationId ,-1)
 from	 ctl.Publication
 where	 PublicationCode		= @pPublicationCode
@@ -198,6 +203,8 @@ begin try
 		,DestFileFormatCode
 		,CreatedDtm
 		,CreatedBy
+		,ModifiedDtm
+		,ModifiedBy
 	) values (
 		 @PublicationId
 		,@SubscriberId
@@ -211,6 +218,8 @@ begin try
 		,@pSrcFilePath
 		,@pDestTableName
 		,@pDestFileFormatCode
+		,@CreatedDate
+		,@pCreatedBy
 		,@CreatedDate
 		,@pCreatedBy
 	)

@@ -124,7 +124,7 @@ begin try
 			,StandardFileRegEx
 			,StandardFileFormatCode
 			,ProcessingMethodCode
-			,MethodCode
+--			,MethodCode
 			,TransferMethodCode
 			,StorageMethodCode
 			,StageJobName

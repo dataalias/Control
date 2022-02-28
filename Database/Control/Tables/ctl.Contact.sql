@@ -1,9 +1,11 @@
 ﻿CREATE TABLE [ctl].[Contact](
 	[ContactId] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [varchar](100) NOT NULL,
+	[CompanyName] [varchar](250) NOT NULL,
+	[ContactName] [varchar](250) NOT NULL,
 	[Tier] [varchar](20) NULL,
 	[Email] [varchar](100) NULL,
 	[Phone] [varchar](20) NULL,
+	[SupportURL] [varchar](1000) NULL,
 	[Address01] [varchar](100) NULL,
 	[Address02] [varchar](100) NULL,
 	[City] [varchar](30) NULL,
@@ -20,9 +22,9 @@
 ) ON [PRIMARY]
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [UNQ_Contact__Name] ON ctl.Contact([Name])
+CREATE UNIQUE NONCLUSTERED INDEX [UNQ_Contact__Name] ON ctl.Contact([ContactName])
 	WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY]
 Go
 
-ALTER TABLE [ctl].[Contact] ADD  CONSTRAINT [DF__Contact__Name__NA]  DEFAULT ('N/A') FOR [Name]
+ALTER TABLE [ctl].[Contact] ADD  CONSTRAINT [DF__Contact__Name__NA]  DEFAULT ('N/A') FOR [ContactName]
 GO

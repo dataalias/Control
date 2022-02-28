@@ -35,6 +35,8 @@ Date		Author			Description
 							Adding test contacts to ensure mapping works.
 20201130	ffortunato		Modifications to make posting group work.
 20210325	ffortunato		FeedFormat --> FileFormatCode
+20211008	ffortunato		Cleanup based on code changes.
+20220207	ffortunato		o Publication Names & Publisher Names.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -54,7 +56,7 @@ delete ctl.Subscription				where subscriptioncode	in ('PUBR02-SUBR01-PUBN03-COUR
 delete ctl.Publication				where PublicationCode	in ('PUBN01-ACCT','PUBN02-ASSG','PUBN03-COUR')
 delete ctl.Subscriber				where subscribercode	in ('SUBR01' , 'SUBR02')
 delete ctl.Publisher				where publishercode		in ('PUBR01','PUBR02')
-delete ctl.Contact					where [Name]			in ('PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02')
+delete ctl.Contact					where [ContactName]		in ('PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02')
 
 
 
@@ -84,15 +86,10 @@ declare @Verbose       int			= 0
 */
 
 -- lets get some contacts.
-if not exists (select top 1 1 from ctl.Contact where name = 'BI-Development')
-	insert into ctl.contact (name,[CreatedBy],[CreatedDtm])
-	values ('BI-Development'
-		,'ffortunato'  -- @CurrentUser
-		,getdate())
+if not exists (select top 1 1 from ctl.Contact where ContactName = 'BI-Development')
 
-if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test01')
 EXEC [ctl].usp_InsertNewContact 
-		 @pName						= 'PUB_Contact_Test01'
+		 @pContactName				= 'BI-Development'
 		,@pTier						= '1'
 		,@pEmail					= 'PUB_Contact_Test01@myaddress.com'
 		,@pPhone					= '877.300.6069'
@@ -102,21 +99,33 @@ EXEC [ctl].usp_InsertNewContact
 		,@pState					= 'CA'
 		,@pZipCode					= '92121'
 
-if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test02')
+if not exists (select top 1 1 from ctl.Contact where Contactname = 'PUB_Contact_Test01')
 EXEC [ctl].usp_InsertNewContact 
-		 @pName						= 'PUB_Contact_Test02'
+		 @pContactName						= 'PUB_Contact_Test01'
+		,@pTier						= '1'
+		,@pEmail					= 'PUB_Contact_Test01@myaddress.com'
+		,@pPhone					= '877.300.6069'
+		,@pAddress01				= '10180 Telesis Ct'
+		,@pAddress02				= '#400'
+		,@pCity						= 'San Diego'
+		,@pState					= 'CA'
+		,@pZipCode					= '92121'
+
+if not exists (select top 1 1 from ctl.Contact where ContactName = 'PUB_Contact_Test02')
+EXEC [ctl].usp_InsertNewContact 
+		 @pContactName						= 'PUB_Contact_Test02'
 		,@pTier						= '1'
 		,@pEmail					= 'PUB_Contact_Test02@myaddress.com'
 
-if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test01')
+if not exists (select top 1 1 from ctl.Contact where ContactName = 'SUB_Contact_Test01')
 EXEC [ctl].usp_InsertNewContact 
-		 @pName						= 'SUB_Contact_Test01'
+		 @pContactName						= 'SUB_Contact_Test01'
 		,@pTier						= '1'
 		,@pEmail					= 'SUB_Contact_Test01@myaddress.com'
 
-if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test02')
+if not exists (select top 1 1 from ctl.Contact where ContactName = 'SUB_Contact_Test02')
 EXEC [ctl].usp_InsertNewContact 
-		 @pName						= 'SUB_Contact_Test02'
+		 @pContactName						= 'SUB_Contact_Test02'
 		,@pTier						= '1'
 		,@pEmail					= 'SUB_Contact_Test02@myaddress.com'
 
@@ -189,6 +198,7 @@ exec [ctl].[usp_InsertNewSubscriber]
      @pSubscriberCode				= 'SUBR01'
     ,@pContactName					= 'BI-Development'
     ,@pSubscriberName				= '01 Test Subscriber'
+	,@pSubscriberDesc				= '01 Test Subscriber'
     ,@pInterfaceCode				= 'TBL'
 	,@pSiteURL						= NULL  
 	,@pSiteUser						= NULL 
@@ -215,6 +225,7 @@ exec [ctl].[usp_InsertNewSubscriber]
      @pSubscriberCode				= 'SUBR02'
     ,@pContactName					= 'BI-Development'
     ,@pSubscriberName				= '02 Test Subscriber'
+	,@pSubscriberDesc				= '01 Test Subscriber'
     ,@pInterfaceCode				= 'TBL'
 	,@pSiteURL						= NULL  
 	,@pSiteUser						= NULL 
@@ -261,8 +272,8 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pDataFactoryName				= 'N/A'
 	,@pDataFactoryPipeline			= 'N/A'
 --	,@pInterfaceCode				= 'FILE' -- varchar(20) 
-	,@pMethodCode					= 'DLT' -- varchar(20) 
-	,@pIntervalCode					= 'DLY' -- varchar(20) 
+--	,@pMethodCode					= 'DLT' -- varchar(20) 
+	,@pIntervalCode					= 'DY' -- varchar(20) 
 	,@pIntervalLength				= 1 -- int 
 	,@pRetryIntervalCode			= 'HR'	--	varchar(20)
 	,@pRetryIntervalLength			= 1	--	int
@@ -300,8 +311,8 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
-	,@pMethodCode				= 'DLT' -- varchar(20) 
-	,@pIntervalCode				= 'DLY' -- varchar(20) 
+--	,@pMethodCode				= 'DLT' -- varchar(20) 
+	,@pIntervalCode				= 'DY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
 	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
 	,@pRetryIntervalLength		= 1	--	int
@@ -337,8 +348,8 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
-	,@pMethodCode				= 'DLT' -- varchar(20) 
-	,@pIntervalCode				= 'DLY' -- varchar(20) 
+--	,@pMethodCode				= 'DLT' -- varchar(20) 
+	,@pIntervalCode				= 'DY' -- varchar(20) 
 	,@pIntervalLength			= 1 -- int 
 	,@pRetryIntervalCode		= 'HR'	--	varchar(20)
 	,@pRetryIntervalLength		= 1	--	int
@@ -362,22 +373,24 @@ if @Verbose in (1,3)
 /******************************************************************************
 Test Case: Map Contacts to New Publication
 ******************************************************************************/
+print 'Start Mpaaing Contacts.'
 
-exec [ctl].[InsertMapContactToPublication] 	
+exec [ctl].[usp_InsertMapContactToPublication] 	
 		 @pPublicationCode			= 'PUBN01-ACCT'
 		,@pContactName				= 'PUB_Contact_Test01'
 		,@pContactToPublicationDesc = ''
 
-exec [ctl].[InsertMapContactToPublication] 	
+exec [ctl].[usp_InsertMapContactToPublication] 	
 		 @pPublicationCode			= 'PUBN02-ASSG'
 		,@pContactName				= 'PUB_Contact_Test01'
 		,@pContactToPublicationDesc = ''
 
-exec [ctl].[InsertMapContactToPublication] 	
+exec [ctl].[usp_InsertMapContactToPublication] 	
 		 @pPublicationCode			= 'PUBN03-COUR'
 		,@pContactName				= 'PUB_Contact_Test02'
 		,@pContactToPublicationDesc = ''
 
+print 'Complete Mapping Contacts.'
 /******************************************************************************
 Test Case: Create New Subscription
 ******************************************************************************/
@@ -480,22 +493,22 @@ PUBR01-SUBR02-PUBN02-ASSG
 PUBR02-SUBR01-PUBN03-COUR
 */
 
-exec [ctl].InsertMapContactToSubscription 	
+exec [ctl].usp_InsertMapContactToSubscription 	
 		 @pSubscriptionCode			= 'PUBR01-SUBR01-PUBN01-ACCT'
 		,@pContactName				= 'SUB_Contact_Test01'
 		,@pContactToSubscriptionDesc = ''
 
-exec [ctl].InsertMapContactToSubscription 	
+exec [ctl].usp_InsertMapContactToSubscription 	
 		 @pSubscriptionCode			= 'PUBR01-SUBR01-PUBN02-ASSG'
 		,@pContactName				= 'SUB_Contact_Test01'
 		,@pContactToSubscriptionDesc = ''
 
-exec [ctl].InsertMapContactToSubscription 	
+exec [ctl].usp_InsertMapContactToSubscription 	
 		 @pSubscriptionCode			= 'PUBR01-SUBR02-PUBN02-ASSG'
 		,@pContactName				= 'SUB_Contact_Test02'
 		,@pContactToSubscriptionDesc = ''
 
-exec [ctl].InsertMapContactToSubscription 	
+exec [ctl].usp_InsertMapContactToSubscription 	
 		 @pSubscriptionCode			= 'PUBR02-SUBR01-PUBN03-COUR'
 		,@pContactName				= 'SUB_Contact_Test01'
 		,@pContactToSubscriptionDesc = ''

@@ -88,10 +88,12 @@ date		author			description
 --------	-------------	---------------------------------------------------
 20180928	ffortunato		initial iteration
 20181002	ffortunato		inserted table (not updated)
+20211006	ffortunato		updating error handling section of trigger.
+							throw rather than raiseerror.
 ******************************************************************************/
 
 declare 
-     @err						int				= 0
+     @ErrNum					int				= 0
     ,@ErrMsg					varchar(255)	= 'trigger trg_DistributionStatusIssueStatusUpdate (trigger) failed.' + Char(13)
     ,@Start						datetime		= GETDATE()
     ,@PublisherId				int				= -1
@@ -199,12 +201,20 @@ begin try
 end try
 
 	begin catch
+		
+		select @ErrNum  = @@ERROR
+
+		if @ErrNum < 50000
+			select @ErrNum = @ErrNum + 100000
+
 		select @ErrMsg	= @ErrMsg + char(13)  + 	
 						' @DistributionId = ' + isnull(cast(@DistributionId as varchar(100)),'NULL') + ' ' + 
 						' @DistributionStatusId = ' + isnull(cast(@DistributionStatusId as varchar(100)),'NULL') + ' ' + 
 						' @DistributionStatusCode = ' + isnull(@DistributionStatusCode,'NULL') 
 		select @ErrMsg = @ErrMsg + char(13)  + ERROR_MESSAGE()
-		raiserror (@ErrMsg,-1,-1)
+		
+		print @ErrMsg
+		;throw	 @ErrNum, @ErrMsg, 1
 
 	end catch
 GO

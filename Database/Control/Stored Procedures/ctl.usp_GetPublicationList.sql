@@ -1,7 +1,5 @@
 ﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
 	 @pPublisherCode			varchar(50)		= 'UNK'	
---	,@pProcessingMethodCode		varchar(20)		= 'ADFP'
---	,@pStandardFileFormatCode	varchar(20)		= 'UNK'
 	,@pNextExecutionDateTime	datetime		= NULL --'3001-Jan-01'
 	,@pPublicationGroupSequence int				= 1
 	,@pETLExecutionId			int				= -1
@@ -17,37 +15,23 @@ AS
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationList] NULL, 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AU', 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' ,1 
+	exec ctl.[usp_GetPublicationList] @pPublisherCode = NULL
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AU'
+	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' 
 
  Parameters:    
 
  Called by:		Application
  Calls:          
 
- Author:		dbay
+ Author:		ffortunato
  Date:			20161114
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
- Date		Author			Description
- --------	-------------	-----------------------------------------------------
- 20161114	Barry Day		Original draft
- 20161116	Barry Day		Support for institution code filtering
- 20161205	Barry Day		Existence check
- 20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
- 20170110	ffortunato		Error handling
- 20170120a	ffortunato		publication code should be varchar(50)
- 20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
-20210312	ffortunato		modifying to be generic again.
-20210524	ffortunato		adding @pPublicationGroupSequence. so different pipelines can be called for a single publisher's publication..
 ******************************************************************************/
 
+-------------------------------------------------------------------------------
+--  Declarations and Initializations.
+-------------------------------------------------------------------------------
+SET NOCOUNT ON
 
 declare	 @Rows					int				= 0
         ,@ErrNum				int				= -1
@@ -77,14 +61,23 @@ declare	 @Rows					int				= 0
 		,@PassphraseTableName	nvarchar(256)	= 'Publisher'
 		,@IssueRetry			varchar(2)		= 'IR'
 		,@NextExecutionDateTime datetime		= cast('3002-Jan-10' as datetime)
+		,@PublisherId			int				= -1
 		
 declare @RetryPublications table (
 		 PublicationId			int
 		,StatusCode				VARCHAR(20)
 		,IssueId				int)
--------------------------------------------------------------------------------
---  Initializations
--------------------------------------------------------------------------------
+
+declare	@IssueDetail			table(
+		 IssueDetailId			int identity(1,1)
+		,PublicationId			int
+		,IssueId				int
+		,FirstRecordSeq			int
+		,LastRecordSeq			int
+		,PeriodStartTime		datetime
+		,PeriodEndTime			datetime
+		,PeriodStartTimeUTC		datetimeoffset
+		,PeriodEndTimeUTC		datetimeoffset)
 
 select	 @ParametersPassedChar	= 
       '***** Parameters Passed to exec ctl.usp_GetPublicationList' + @CRLF +
@@ -156,6 +149,45 @@ GROUP BY
 		,r.StatusCode
 
 -------------------------------------------------------------------------------
+--  Check if any publication issues are retrying
+-------------------------------------------------------------------------------
+
+select	 @PublisherId			= isnull(PublisherId,-1)
+from	 ctl.Publisher			  pbr
+where	 pbr.PublisherCode		= @pPublisherCode
+
+Insert into @IssueDetail (
+		 PublicationId
+		,IssueId)
+select	 pbn.PublicationId
+		,max(IssueId)
+from	 ctl.Issue				  iss
+join	 ctl.Publication		  pbn
+on		 iss.PublicationId		= pbn.PublicationId
+join	 ctl.Publisher			  pbr
+on		 pbn.PublisherId		= pbr.PublisherId
+join	 ctl.RefStatus			  rs
+on		 iss.StatusId			= rs.StatusId
+where	 pbr.PublisherCode		= @pPublisherCode
+and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from failed issues.
+group by pbn.PublicationId
+
+update	 issd
+set		 PeriodStartTime		= iss.PeriodStartTime
+		,PeriodEndTime			= iss.PeriodEndTime
+		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
+		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
+		,FirstRecordSeq			= iss.FirstRecordChecksum
+		,LastRecordSeq			= iss.LastRecordChecksum
+from	 @IssueDetail			  issd
+join	 ctl.Issue	iss
+on		 iss.IssueId			= issd.IssueId
+
+/* testing
+select * 
+from	@IssueDetail
+*/
+-------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
 	select	 @StepName			= 'Generate Publication List'
@@ -164,7 +196,14 @@ GROUP BY
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
 --	insert	into @PublicationList
-	select	 pn.PublicationId
+
+
+
+
+
+	select	 pr.PublisherId
+			,pr.PublisherName
+			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
@@ -176,6 +215,7 @@ GROUP BY
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
+			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
 			,pn.RetryIntervalCode
@@ -187,6 +227,7 @@ GROUP BY
 			,pn.SLATime
 			,ri.[SLAFormat]
 			,ri.[SLARegEx]
+			,pn.Bound
 			,pn.SrcFileFormatCode  -- As FeedFormat
 			,pn.StandardFileFormatCode
 			,pn.SSISFolder
@@ -197,19 +238,26 @@ GROUP BY
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
+			,id.IssueId						LastIssueId
+			,id.PeriodEndTime				HighWaterMarkDatetime
+			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+			,LastRecordSeq					HighWaterMarkRecordSeq
 	from 	ctl.Publication				  pn
-	left join @RetryPublications		  rpn
-	on		rpn.PublicationId			= pn.PublicationId
+--	left join @RetryPublications		  rpn
+--	on		rpn.PublicationId			= pn.PublicationId
+	left join @IssueDetail				  id
+	on		id.PublicationId			= pn.PublicationId
 	join	ctl.Publisher				  pr 
 	on		pr.PublisherId				= pn.PublisherId
 	join	ctl.RefInterval				  ri
 	on		pn.IntervalCode				= ri.IntervalCode
 	where	pn.IsActive					= 1 
-	and		pn.IsDataHub				= 1
+--	and		pn.IsDataHub				= 1
 	and		pn.Bound					= 'In'
-	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+--	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+	and		pn.NextExecutionDtm			<= @NextExecutionDateTime
 	and		pr.PublisherCode			= @pPublisherCode
-	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+--	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
 	
 
 	-- Upon completion of the step, log it!
@@ -256,3 +304,32 @@ begin catch
 	;throw	 @ErrNum, @ErrMsg, 1
 	
 end catch
+
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20161114	ffortunato		Initial Iteration
+20170109	ffortunato		Adding parameters to allow for getting publication 
+							list from based on a specific publisher code.
+20170110	ffortunato		Error handling
+20170120a	ffortunato		publication code should be varchar(50)
+20170120b	ffortunato		returning 2 additional attributes
+							PublicationFilePath
+							PublicationArchivePath
+20170126	ffortunato		adding IsActive indicator to result set.
+20210312	ffortunato		modifying to be generic again.
+20210524	ffortunato		adding @pPublicationGroupSequence. so different 
+							pipelines can be called for a single publisher's 
+							publication..
+20211102	ffortunato		Preparing some changes in order to work with python.
+20211104	ffortunato		Adding some content about the most recent issue.
+20220125	ffortunato		+ SrcFileRegEx
+20220207	ffortunato		+ SrcFileRegEx
+20220210	ffortunato		o StartTime --> EndTime  
+							highwater mark is the last end time not start time.
+							+ high warter for recordSeq as well
+
+******************************************************************************/

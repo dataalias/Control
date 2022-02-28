@@ -1,9 +1,11 @@
 ﻿CREATE PROCEDURE [ctl].[usp_InsertNewIssue] (	
 	 @pPublicationCode			varchar(50)
-	,@pDataLakePath				varchar(1000)	= '/Raw Data Zone/...'
+	,@pDataLakePath				varchar(1000)	= 'Unknown'
 	,@pIssueName				varchar(255)	= 'Unknown'
 	,@pSrcIssueName				nvarchar(255)	= 'Unknown'
 	,@pStatusCode				varchar(20)		= null
+	,@pSrcPublisherId			varchar(40)		= 'UNK'
+	,@pSrcPublicationId			varchar(40)		= 'UNK'
 	,@pSrcDFIssueId				varchar(100)	= 'UNK'
 	,@pSrcDFCreatedDate			datetime		= null
 	,@pFirstRecordSeq			integer			= null
@@ -11,7 +13,9 @@
 	,@pFirstRecordChecksum		varchar(2048)	= null
 	,@pLastRecordChecksum		varchar(2048)	= null
 	,@pPeriodStartTime			datetime		= null
+	,@pPeriodStartTimeUTC		datetimeoffset	= null
 	,@pPeriodEndTime			datetime		= null
+	,@pPeriodEndTimeUTC			datetimeoffset	= null
 	,@pRecordCount				integer			= null
 	,@pETLExecutionId			int				= null
 	,@pCreateBy					varchar(30)		= null
@@ -36,6 +40,8 @@ exec ctl.[usp_InsertNewIssue]
 	,@pIssueName		=	NULL 
 	,@pSrcIssueName		=	'1/1/2021'
 	,@pStatusCode		=	'IS'     
+	,@pSrcPublisherId		=	'1000'  
+	,@pSrcPublicationId		=	'1000' 
 	,@pSrcDFIssueId		=	1000  
 	,@pSrcDFCreatedDate	=	'1/1/2021'
 	,@pFirstRecordSeq	=	1
@@ -43,7 +49,9 @@ exec ctl.[usp_InsertNewIssue]
 	,@pFirstRecordChecksum	=	3463466
 	,@pLastRecordChecksum	=	4567745
 	,@pPeriodStartTime	=	'1/1/2021'
+	,@pPeriodStartTimeUTC	=	'1/1/2021'
 	,@pPeriodEndTime	=	'1/2/2021'
+	,@pPeriodEndTimeUTC	=	'1/1/2021'
 	,@pRecordCount		=	1000
 	,@pETLExecutionId	=	1
 	,@pCreateBy			=	'ffortunato'
@@ -52,7 +60,9 @@ exec ctl.[usp_InsertNewIssue]
 
 print cast(@MyIssue as varchar(200))
 
+OLEDB
 
+exec ctl.[usp_InsertNewIssue]  ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? out,?
 
 Parameters:    
 		@pPublicationCode
@@ -87,10 +97,12 @@ DECLARE	 @rows					int
 		,@ErrMsg				nvarchar(2048)
 		,@FailedProcedure		varchar(1000)
 		,@ParametersPassedChar	varchar(1000)
-		,@CRLF					varchar(10) = char(13) + char(10)
+		,@CRLF					varchar(10)		= char(13) + char(10)
 		,@CreatedDate			datetime
 		,@PublicationId			int
 		,@PublicationSeq		int
+		,@PublisherName			varchar(255)	= 'Unknown'
+		,@PublicationName		varchar(50)		= 'Unknown'
 		,@DailyPublicationSeq	int
 		,@StatusId				integer
 --		,@StatusCode			varchar(20)
@@ -100,6 +112,9 @@ DECLARE	 @rows					int
 		,@NextExecutionDtm		datetime
 		,@LastIssueId			int
 		,@LastIssueStatus		varchar(2)
+		,@PublisherCode			varchar(20)
+		,@DataLakePath			varchar(1000)
+		,@PublisherId			int
 
 -------------------------------------------------------------------------------
 --  Initializations
@@ -118,6 +133,9 @@ SELECT	 @ROWS					= @@ROWCOUNT
 --		,@StatusCode			= 'IP'   -- Normal Starting Status (todo: allow this to be passed from calling application.)
 		,@StatusType			= 'Issue'
 		,@pCreateBy				= isnull(@pCreateBy,SYSTEM_USER)
+		,@PublisherCode			= ''
+		,@DataLakePath			= ''
+		,@PublisherId			= -1
 		,@ParametersPassedChar	= @CRLF +
       '***** Parameters Passed to exec ctl.usp_InsertNewIssue' + @CRLF +
       '     @pPublicationCode = ''' + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
@@ -152,13 +170,19 @@ if @pVerbose					= 1
 begin try
 
 select	 @PublicationId			= isnull(PublicationId ,-1)
-from	 ctl.Publication		  pubr
+		,@PublisherId			= isnull(PublisherId ,-1)
+		,@PublicationName		= isnull(PublicationName ,'NULL')
+from	 ctl.Publication		  pubn
 where	 PublicationCode		= @pPublicationCode
+
+select   @PublisherCode			= isnull(PublisherCode ,'NULL')
+		,@PublisherName			= isnull(PublisherName ,'NULL')
+from	 ctl.Publisher			  pubr
+where	 pubr.PublisherId		= @PublisherId
 
 select	 @PublicationSeq		= isnull(max(iss.PublicationSeq),0) + 1
 from	 ctl.Issue				  iss
 where	 PublicationId			= @PublicationId 
-
 
 select	 @ReportDate			= isnull(@pSrcDFCreatedDate,@CreatedDate)
 
@@ -173,19 +197,29 @@ where	 StatusCode				= @pStatusCode
 and		 StatusType				= @StatusType
 
 --Find out the Next Expected Execution Runtime for Publication
-SELECT @NextExecutionDtm = (select [dbo].[fn_CalculateNextExecutionDtm](@CreatedDate, NextExecutionDtm, IntervalCode, IntervalLength))
-FROM ctl.Publication
-WHERE PublicationCode = @pPublicationCode
+SELECT	 @NextExecutionDtm = (select [dbo].[fn_CalculateNextExecutionDtm](@CreatedDate, NextExecutionDtm, IntervalCode, IntervalLength))
+FROM	 ctl.Publication
+WHERE	 PublicationCode = @pPublicationCode
 
 --Find out if the last issue is in retry status for that Publication
-SELECT @LastIssueId = COALESCE(i.IssueId, @LastIssueId)
-	,@LastIssueStatus = COALESCE(r.StatusCode, @LastIssueStatus)
-FROM ctl.Issue as i
-INNER JOIN ctl.Publication as p ON p.PublicationId = i.PublicationId
-INNER JOIN ctl.RefStatus as r ON r.StatusId = i.StatusId
-WHERE p.PublicationCode = @pPublicationCode
+SELECT	 @LastIssueId		= COALESCE(i.IssueId, @LastIssueId)
+		,@LastIssueStatus	= COALESCE(r.StatusCode, @LastIssueStatus)
+FROM	 ctl.Issue			  i
+JOIN	 ctl.Publication	  p 
+ON		 p.PublicationId	= i.PublicationId
+JOIN	 ctl.RefStatus		  r 
+ON		 r.StatusId			= i.StatusId
+WHERE	 p.PublicationCode	= @pPublicationCode
 GROUP BY i.IssueId, r.StatusCode
-HAVING i.IssueId = max(IssueId)
+HAVING	 i.IssueId			= max(IssueId)
+
+
+-- Build the defalt datalake path if one was not provided by the procedure caller.
+If @pDataLakePath	= 'Unknown'
+	Select @DataLakePath = '/RawDataZone/'+ @PublisherName +'/'+ @PublicationName + '/' + cast(datepart(yyyy,@CreatedDate) as varchar(20))+'/'+ cast(datepart(mm,@CreatedDate) as varchar(20))+'/'+ cast(datepart(dd,@CreatedDate) as varchar(20)) + '/'
+Else 
+	Select @DataLakePath = @pDataLakePath 
+
 
 
 if @pVerbose					= 1
@@ -259,6 +293,8 @@ INSERT INTO ctl.Issue (
 		,StatusId
 		,DataLakePath
 		,ReportDate
+		,SrcDFPublisherId
+		,SrcDFPublicationId
 		,SrcDFIssueId
 		,SrcDFCreatedDate
 		,IssueName
@@ -270,17 +306,23 @@ INSERT INTO ctl.Issue (
 		,FirstRecordChecksum
 		,LastRecordChecksum
 		,PeriodStartTime
+		,PeriodStartTimeUTC
 		,PeriodEndTime
+		,PeriodEndTimeUTC
 		,RecordCount
 		,ETLExecutionID
 		,CreatedDtm
 		,CreatedBy
+		,ModifiedDtm
+		,ModifiedBy
 ) VALUES (
 		 @PublicationId
 		,@StatusId 
-		,@pDataLakePath
+		,@DataLakePath
 		,isnull(@pSrcDFCreatedDate,@CreatedDate) --Truncate to day with the line below.
 		--,cast(convert(char(11), isnull(@pSrcDFCreatedDate,@CreatedDate), 113) as datetime)
+		,@pSrcPublisherId
+		,@pSrcPublicationId
 		,@pSrcDFIssueId 
 		,@pSrcDFCreatedDate
 		,coalesce(@pIssueName,'Unknown')
@@ -292,9 +334,13 @@ INSERT INTO ctl.Issue (
 		,@pFirstRecordChecksum 
 		,@pLastRecordChecksum    
 		,@pPeriodStartTime 
+		,isnull(@pPeriodStartTimeUTC, SWITCHOFFSET (@pPeriodStartTime , DATEPART(TZOFFSET, SYSDATETIMEOFFSET())))
 		,@pPeriodEndTime
+		,isnull(@pPeriodEndTimeUTC, SWITCHOFFSET (@pPeriodEndTime , DATEPART(TZOFFSET, SYSDATETIMEOFFSET())))
 		,@pRecordCount 
 		,@pETLExecutionID
+		,@CreatedDate
+		,@pCreateBy
 		,@CreatedDate
 		,@pCreateBy
 )
@@ -423,4 +469,6 @@ Date		Author			Description
 20210413	ffortunato		Adding SrcIssueName incase vendor cannot meet our naming standards.
 							Adding DataLakePath so we can find the feed in the lake.
 20210525	ffortunato		Proc should calc the issue name if it is unknown.
+20211005    ffortunato		Building out a better Data Lake Path on default.
+20211202    ffortunato		Fixing up execution in header.
 ******************************************************************************/

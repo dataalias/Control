@@ -349,12 +349,12 @@ begin try
 	update	 plp
 	set		 PeriodStartTime	= iss.PeriodEndTime -- Last Issue End Time is becoming next issue start time.
 			,NextRunTime		=  case IntervalCode
- 								when 'MIN'   then dateadd(mi,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,17) + SLATime))
+ 								when 'MN'   then dateadd(mi,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,17) + SLATime))
 								when 'HR'    then dateadd(hh,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,14) + SLATime))
-								when 'DLY'   then dateadd(dd,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,11) + SLATime))
-								when 'WKLY'  then convert(datetime,'2100-01-01')
-								when 'MTHLY' then dateadd(mm,plp.IntervalLength  ,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,8) + SLATime))
-								when 'YRLY'  then dateadd(yyyy,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,5) + SLATime))
+								when 'DY'   then dateadd(dd,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,11) + SLATime))
+								when 'WK'  then convert(datetime,'2100-01-01')
+								when 'MT' then dateadd(mm,plp.IntervalLength  ,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,8) + SLATime))
+								when 'YR'  then dateadd(yyyy,plp.IntervalLength,convert(datetime,substring(convert(varchar(112),iss.PeriodEndTime,126),1,5) + SLATime))
 								else convert(datetime,'2100-01-01') end 
 			,IssueName			= @pPublicationCode + '_'  + convert(varchar(20),@CurrentDtm, 112) + '_' + left(replace(convert(varchar(20),@CurrentDtm, 114),':',''),6)
 			,FirstRecordSeq		= iss.LastRecordSeq + 1     -- Last Issue Rec Sequence becomes the first for the next run.

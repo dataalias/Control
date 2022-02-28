@@ -47,6 +47,7 @@ Date      Author         Description
 20180921  ffortunato     final updates for second round of processes to fire.
 20201201  ffortunato     Adding cour2 file to complete.
 20210325  ffortunato     FeedFOrmat --> FileFormatCode
+20211008  ffortunato     Cleanup based on code changes.
 ******************************************************************************/
 
 
@@ -230,18 +231,18 @@ end
 	
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'PUBR01-SUBR01-PUBN01-ACCT'		
-				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 01 Account'
-				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
+				 @pPostingGroupCode			= 'PUBR01-SUBR01-PUBN01-ACCT'		
+				,@pPostingGroupName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 01 Account'
+				,@pPostingGroupDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategoryCode	= 'UNK'				
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN01-ACCT.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+			--	,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -253,18 +254,18 @@ end
 		IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'PUBR01-SUBR01-PUBN02-ASSG')
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'PUBR01-SUBR01-PUBN02-ASSG'		
-				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 02 Assignment'
-				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
+				 @pPostingGroupCode			= 'PUBR01-SUBR01-PUBN02-ASSG'		
+				,@pPostingGroupName			= 'Test Publisher 01 Sending Data to Subscriber 01. Publication 02 Assignment'
+				,@pPostingGroupDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategoryCode	= 'UNK'								
-				,@pInterval		= 'WKLY'				
+				,@pInterval		= 'WK'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN02-ASSG.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+			--	,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -277,18 +278,18 @@ end
 		IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'PUBR01-SUBR02-PUBN02-ASSG')
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'PUBR01-SUBR02-PUBN02-ASSG'		
-				,@pName			= 'Test Publisher 01 Sending Data to Subscriber 02. Publication 02 Assignment'
-				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
+				 @pPostingGroupCode			= 'PUBR01-SUBR02-PUBN02-ASSG'		
+				,@pPostingGroupName			= 'Test Publisher 01 Sending Data to Subscriber 02. Publication 02 Assignment'
+				,@pPostingGroupDesc			= 'Regression testing the hand off from DataHub to PostingGroup'
 				,@pCategoryCode	= 'UNK'							
-				,@pInterval		= 'WKLY'				
+				,@pInterval		= 'WK'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN02-ASSG.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+				--,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -301,18 +302,18 @@ end
 	
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'PUBR02-SUBR01-PUBN03-COUR'		
-				,@pName			= 'Test Publisher 02 Sending Data to Subscriber 01. Publication 03 Course'
-				,@pDesc			= 'Regression testing the hand off from DataHub to PostingGroup. This is a fact.'
+				 @pPostingGroupCode			= 'PUBR02-SUBR01-PUBN03-COUR'		
+				,@pPostingGroupName			= 'Test Publisher 02 Sending Data to Subscriber 01. Publication 03 Course'
+				,@pPostingGroupDesc			= 'Regression testing the hand off from DataHub to PostingGroup. This is a fact.'
 				,@pCategoryCode	= 'UNK'						
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'TSTPUBN01-COUR.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+				--,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -329,18 +330,18 @@ end
 		IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'TST-ACCT-ASSG-DIM-LOAD')
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'TST-ACCT-ASSG-DIM-LOAD'		
-				,@pName			= 'Test the account and assignment dimension load'
-				,@pDesc			= 'This is the parent posting group to the Account and Assignment data hub staging load.'
+				 @pPostingGroupCode			= 'TST-ACCT-ASSG-DIM-LOAD'		
+				,@pPostingGroupName			= 'Test the account and assignment dimension load'
+				,@pPostingGroupDesc			= 'This is the parent posting group to the Account and Assignment data hub staging load.'
 				,@pCategoryCode	= 'UNK'						
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'	
 				,@pSSISPackage	= 'ACCT-ASSG-DIM-LOAD.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+			--	,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -357,13 +358,13 @@ end
 		IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'TST-ACCT-ASSG-FACT-LOAD')
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'TST-ACCT-ASSG-FACT-LOAD'		
-				,@pName			= 'Test the account and assignment fact load'
-				,@pDesc			= 'This is the parent posting group to the Account and Assignment Dim load.'
+				 @pPostingGroupCode			= 'TST-ACCT-ASSG-FACT-LOAD'		
+				,@pPostingGroupName			= 'Test the account and assignment fact load'
+				,@pPostingGroupDesc			= 'This is the parent posting group to the Account and Assignment Dim load.'
 				,@pCategoryCode	= 'UNK'				
 				,@pProcessingMethodCode			= 'ADFP'
 				,@pProcessingModeCode			= 'INIT'
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'N/A'	
 				,@pSSISProject	= 'N/A'		
@@ -371,7 +372,7 @@ end
 				,@pDataFactoryName     = 'PostingGroup'		
 				,@pDataFactoryPipeline = 'PL-AccountAssgnmentFactLoad'
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+				--,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -383,18 +384,18 @@ end
 		IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'TST-COUR-FACT-LOAD')
 			
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'TST-COUR-FACT-LOAD'		
-				,@pName			= 'Test the course fact load'
-				,@pDesc			= 'This is the parent posting group to the Course staging process.'
+				 @pPostingGroupCode			= 'TST-COUR-FACT-LOAD'		
+				,@pPostingGroupName			= 'Test the course fact load'
+				,@pPostingGroupDesc			= 'This is the parent posting group to the Course staging process.'
 			,@pCategoryCode	= 'UNK'						
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pProcessingMethodCode		= 'SSIS'
 				,@pSSISFolder	= 'RegressionTesting'	
 				,@pSSISProject	= 'PostingGroup'		
 				,@pSSISPackage	= 'COUR-FACT-LOAD.dtsx'	
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+				--,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -409,20 +410,20 @@ end
 	IF NOT EXISTS (SELECT TOP 1 1 FROM pg.PostingGroup WHERE PostingGroupCode = 'TST-SQL-JOB-EXEC')
 	begin		
 			EXEC pg.InsertPostingGroup 	
-				 @pCode			= 'TST-SQL-JOB-EXEC'		
-				,@pName			= 'Test Posting Group SQL Job Execution'
-				,@pDesc			= 'See if we can get a sql server job to run.'
+				 @pPostingGroupCode			= 'TST-SQL-JOB-EXEC'		
+				,@pPostingGroupName			= 'Test Posting Group SQL Job Execution'
+				,@pPostingGroupDesc			= 'See if we can get a sql server job to run.'
 			,@pCategoryCode	= 'UNK'				
 				,@pProcessingMethodCode			= 'SQLJ'
 				,@pProcessingModeCode			= 'NORM'
-				,@pInterval		= 'DLY'				
+				,@pInterval		= 'DY'				
 				,@pLength		= 1
 				,@pSSISFolder	= 'N/A'
 				,@pSSISProject	= 'N/A'
 				,@pSSISPackage	= 'N/A'
 				,@pJobName		= 'Test Posting Group SQL Job Execution'
 				,@pIsActive		= 1
-				,@pTriggerType			= 'Immediate'
+				--,@pTriggerType			= 'Immediate'
 				,@pNextExecutionDtm		= '01-Jan-1900'
 				,@pCreatedBy	= 'ffortunato'
 				,@pETLExecutionId	= -1
@@ -588,7 +589,6 @@ print '----------------------------------------------------------'
 print '----------------------------------------------------------'
 print 'Posting Group Dependencies Created.'
 print '----------------------------------------------------------'
-
 
 if @Verbose in (1,3) begin
 	 select 'Initial State PostingGroup' AS TestingStep, * from pg.PostingGroup

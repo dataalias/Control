@@ -1,13 +1,15 @@
 ﻿CREATE PROCEDURE ctl.usp_InsertNewContact (
-		 @pName						[varchar](100)	= 'Unknown'
-		,@pTier						[varchar](20)	= NULL
-		,@pEmail					[varchar](100)	= NULL
-		,@pPhone					[varchar](20)	= NULL
-		,@pAddress01				[varchar](100)	= NULL
-		,@pAddress02				[varchar](100)	= NULL
-		,@pCity						[varchar](30)	= NULL
-		,@pState					[varchar](10)	= NULL
-		,@pZipCode					[varchar](10)	= NULL
+		 @pCompanyName				[varchar](250)	= 'Unknown'
+		,@pContactName				[varchar](250)	= 'Unknown'
+		,@pTier						[varchar](20)	= 1
+		,@pEmail					[varchar](100)	= 'Unknown'
+		,@pPhone					[varchar](20)	= 'Unknown'
+		,@pSupportURL				[varchar](250)	= 'Unknown'
+		,@pAddress01				[varchar](100)	= 'Unknown'
+		,@pAddress02				[varchar](100)	= 'Unknown'
+		,@pCity						[varchar](30)	= 'Unknown'
+		,@pState					[varchar](10)	= 'Unknown'
+		,@pZipCode					[varchar](10)	= 'Unknown'
 		,@pETLExecutionId			INT				= -1
 		,@pPathId					INT				= -1
 		,@pVerbose					BIT				= 0)
@@ -92,10 +94,12 @@ exec [audit].usp_InsertStepLog
 
 SELECT	 @ParametersPassedChar	= 
       '***** Parameters Passed to exec ctl.usp_insertnewcontact' + @CRLF +
-      '     @pName = ''' + isnull(@pName ,'NULL') + '''' + @CRLF + 
+      '     @pCompanyName = ''' + isnull(@pCompanyName ,'NULL') + '''' + @CRLF + 
+	  '     @pContactName = ''' + isnull(@pContactName ,'NULL') + '''' + @CRLF + 
       '    ,@pTier = ''' + isnull(@pTier ,'NULL') + '''' + @CRLF + 
       '    ,@pEmail = ''' + isnull(@pEmail ,'NULL') + '''' + @CRLF + 
       '    ,@pPhone = ''' + isnull(@pPhone ,'NULL') + '''' + @CRLF + 
+	  '    ,@pSupportURL = ''' + isnull(@pSupportURL ,'NULL') + '''' + @CRLF + 
       '    ,@pAddress01 = ''' + isnull(@pAddress01 ,'NULL') + '''' + @CRLF + 
       '    ,@pAddress02 = ''' + isnull(@pAddress02 ,'NULL') + '''' + @CRLF + 
       '    ,@pCity = ''' + isnull(@pCity ,'NULL') + '''' + @CRLF + 
@@ -127,30 +131,38 @@ BEGIN TRY
 	-------------------------------------------------------------------------------
 
 	INSERT INTO ctl.Contact(
-	   [Name]	
-	  ,Tier		
-	  ,Email	
-	  ,Phone	
-	  ,Address01
-	  ,Address02
-	  ,City		
-	  ,[State]
-	  ,ZipCode
-	  ,CreatedBy
-	  ,CreatedDtm
+		 CompanyName
+		,ContactName
+		,Tier		
+		,Email	
+		,Phone	
+		,SupportURL
+		,Address01
+		,Address02
+		,City		
+		,[State]
+		,ZipCode
+		,CreatedBy
+		,CreatedDtm
+		,ModifiedBy
+		,ModifiedDtm
 		)
 	VALUES(
-	   @pName		
-	  ,@pTier		
-	  ,@pEmail	
-	  ,@pPhone	
-	  ,@pAddress01
-	  ,@pAddress02
-	  ,@pCity		
-	  ,@pState	
-	  ,@pZipCode	
-	  ,@CurrentUser
-	  ,@CurrentDtm
+		 @pCompanyName		
+		,@pContactName
+		,@pTier		
+		,@pEmail	
+		,@pPhone	
+		,@pSupportURL
+		,@pAddress01
+		,@pAddress02
+		,@pCity		
+		,@pState	
+		,@pZipCode	
+		,@CurrentUser
+		,@CurrentDtm
+		,@CurrentUser
+		,@CurrentDtm
 	);
 
 	-------------------------------------------------------------------------------

@@ -2,9 +2,9 @@
 		 @pPublisherCode			VARCHAR(10)
 		,@pContactName				VARCHAR(30)
 		,@pPublisherName			VARCHAR(50)
-		,@pPublisherDesc			VARCHAR(1000)	= 'Add a desc!'
+		,@pPublisherDesc			VARCHAR(1000)	= 'Unknown'
 		,@pInterfaceCode			VARCHAR(20)
-		,@pCreatedBy				VARCHAR(50)
+		,@pCreatedBy				VARCHAR(50)		= 'Unknown'
 		,@pSiteURL					VARCHAR(256)	= NULL  
 		,@pSiteUser					VARCHAR(256)	= NULL 
 		,@pSitePassword				VARCHAR(256)    = NULL           
@@ -89,6 +89,7 @@ DECLARE  @Rows					int					= 0
 		,@CurrentDtm			datetime			= getdate()
 		,@PreviousDtm			datetime			= getdate()
 		,@DbName				varchar(50)			= DB_NAME()
+		,@CurrentUser			varchar(50)			= CURRENT_USER
 		,@SchemaName			nvarchar(256)		= 'ctl'
 		,@PassphraseTableName	nvarchar(256)		= 'Publisher'
 		,@Passphrase			varchar(100)		= ''
@@ -176,7 +177,7 @@ BEGIN TRY
 
 	SELECT	 @ContactId			= ContactId
 	FROM	 ctl.Contact
-	WHERE	 [Name]				= @pContactName;
+	WHERE	 [ContactName]		= @pContactName;
 
     IF(NOT EXISTS(SELECT @ContactId) OR @ContactId IS NULL) -- <error test condition>
 
@@ -191,6 +192,12 @@ BEGIN TRY
 		  THROW @ErrNum, @ErrMsg, 1;
 	   END;
 
+-- If the caller provides a User name us it...
+	If  @pCreatedBy <> 'Unknown'
+		select @CurrentUser = @pCreatedBy
+-- Implied Else select @CurrentUser	= CURRENT_USER
+	
+
 
  INSERT INTO ctl.Publisher
     ([ContactId],
@@ -198,8 +205,6 @@ BEGIN TRY
 	[PublisherName],
 	[PublisherDesc],
 	InterfaceCode,
-	[CreatedDtm],
-	[CreatedBy],
 	[SiteURL],
 	[SiteUser],
 	[SitePassword],
@@ -208,6 +213,10 @@ BEGIN TRY
 	[SiteProtocol]
 	,PrivateKeyPassPhrase
 	,PrivateKeyFile
+	,CreatedDtm
+	,CreatedBy
+	,ModifiedDtm
+	,ModifiedBy
     )
   VALUES
     (@ContactId
@@ -215,8 +224,6 @@ BEGIN TRY
 	,@pPublisherName
 	,@pPublisherDesc
 	,@pInterfaceCode
-	,@CreateDate
-	,@pCreatedBy
 	,@pSiteURL
 	,@pSiteUser
 	,ENCRYPTBYPASSPHRASE(@Passphrase, @pSitePassword)
@@ -224,8 +231,11 @@ BEGIN TRY
 	,@pSitePort
 	,@pSiteProtocol
 	,ENCRYPTBYPASSPHRASE(@Passphrase, @pPrivateKeyPassPhrase)
-	,ENCRYPTBYPASSPHRASE(@Passphrase, @pPrivateKeyFile)   
-
+	,ENCRYPTBYPASSPHRASE(@Passphrase, @pPrivateKeyFile) 
+	,@CurrentDtm
+	,@CurrentUser
+	,@CurrentDtm
+	,@CurrentUser
     );
 
 	-------------------------------------------------------------------------------

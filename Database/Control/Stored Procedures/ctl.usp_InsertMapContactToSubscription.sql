@@ -1,4 +1,4 @@
-﻿CREATE procedure [ctl].[InsertMapContactToSubscription] (	
+﻿CREATE procedure [ctl].[usp_InsertMapContactToSubscription] (	
 		 @pSubscriptionCode			varchar(100)
 		,@pContactName				varchar(100)
 		,@pContactToSubscriptionDesc varchar(max)		= null
@@ -8,11 +8,11 @@
 ) as 
 
 /******************************************************************************
-File:		InsertMapContactToSubscription.sql
-Name:		InsertMapContactToSubscription
+File:		usp_InsertMapContactToSubscription.sql
+Name:		usp_InsertMapContactToSubscription
 Purpose:	Allows for the creation of mapping table for contact person for each Subscription
 
-exec ctl.[InsertMapContactToSubscription] 
+exec ctl.[usp_InsertMapContactToSubscription] 
 		 @pSubscriptionCode			= 'FMS1-EDL-COLLEGE-AU'
 		,@pContactName				= 'BI-Development'
 		,@ContactToSubscriptionDesc = 'Contact BI Development team in case of FMS failure'
@@ -74,7 +74,7 @@ EXEC [audit].usp_InsertStepLog
 --  initializations
 -------------------------------------------------------------------------------
 select	 @ParametersPassedChar   = 
-      '***** Parameters Passed to exec ctl.InsertMapContactToSubscription' + @CRLF +
+      '***** Parameters Passed to exec ctl.usp_InsertMapContactToSubscription' + @CRLF +
       '     @pSubscriptionCode = ''' + isnull(@pSubscriptionCode ,'NULL') + '''' + @CRLF + 
       '    ,@pContactName = ''' + isnull(@pContactName ,'NULL') + '''' + @CRLF + 
       '    ,@pContactToSubscriptionDesc = ''' + isnull(@pContactToSubscriptionDesc ,'NULL') + '''' + @CRLF + 
@@ -103,7 +103,7 @@ begin try
     
 		select  @ContactId				= isnull(cnt.ContactId, -1)
 		from    ctl.Contact				cnt
-		where   cnt.[Name]				= @pContactName
+		where   cnt.[ContactName]				= @pContactName
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm

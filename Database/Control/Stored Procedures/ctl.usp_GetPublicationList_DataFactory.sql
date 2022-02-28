@@ -138,7 +138,7 @@ GROUP BY p.PublicationId
 			,pn.RetryIntervalCode
 			,pn.RetryIntervalLength
 			,pn.RetryMax
-			,pn.MethodCode
+			--,pn.MethodCode
 			,pn.NextExecutionDtm
 			,pn.SLATime
 			,ri.[SLAFormat]

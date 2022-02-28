@@ -99,7 +99,7 @@ begin try
     
 		select  @ContactId				= isnull(cnt.ContactId, -1)
 		from    ctl.Contact				cnt
-		where   cnt.[Name]				= @pContactName
+		where   cnt.[ContactName]				= @pContactName
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm

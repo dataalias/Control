@@ -1,4 +1,4 @@
-﻿CREATE procedure [ctl].[InsertMapContactToPublication] (	
+﻿CREATE procedure [ctl].[usp_InsertMapContactToPublication] (	
 		 @pPublicationCode			varchar(100)
 		,@pContactName				varchar(100)
 		,@pContactToPublicationDesc varchar(max)		= null
@@ -8,11 +8,11 @@
 ) as 
 
 /******************************************************************************
-File:		InsertMapContactToPublication.sql
-Name:		InsertMapContactToPublication
+File:		usp_InsertMapContactToPublication.sql
+Name:		usp_InsertMapContactToPublication
 Purpose:	Allows for the creation of mapping table for contact person for each publication
 
-exec ctl.[InsertMapContactToPublication] 
+exec ctl.[usp_InsertMapContactToPublication] 
 		 @pPublicationCode			= 'ACCOUNTDIM-AU'
 		,@pContactName				= 'BI-Development'
 		,@pContactToPublicationDesc  = 'Contact BI Development team in case of Canvas failure'
@@ -74,7 +74,7 @@ EXEC [audit].usp_InsertStepLog
 --  initializations
 -------------------------------------------------------------------------------
 select	 @ParametersPassedChar =
-      '***** Parameters Passed to exec ctl.InsertMapContactToPublication' + @CRLF +
+      '***** Parameters Passed to exec ctl.usp_InsertMapContactToPublication' + @CRLF +
       '     @pPublicationCode = ''' + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
       '    ,@pContactName = ''' + isnull(@pContactName ,'NULL') + '''' + @CRLF + 
       '    ,@pContactToPublicationDesc = ''' + isnull(@pContactToPublicationDesc ,'NULL') + '''' + @CRLF + 
@@ -103,7 +103,7 @@ begin try
     
 		select  @ContactId				= isnull(cnt.ContactId, -1)
 		from    ctl.Contact				cnt
-		where   cnt.[Name]				= @pContactName
+		where   cnt.[ContactName]		= @pContactName
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm

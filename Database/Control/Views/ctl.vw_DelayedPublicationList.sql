@@ -15,7 +15,7 @@
 				GROUP BY PublicationId) AS i ON i.PublicationId = p.PublicationId
 	OUTER APPLY (SELECT ElapsedTimePercent = CASE p.IntervalCode
 			WHEN 'MIN'	 THEN ((DATEDIFF(ss, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * 60))
-			WHEN 'HR'	 THEN ((DATEDIFF(mi, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * 60))
+			WHEN 'HRLY'	 THEN ((DATEDIFF(mi, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * 60))
 			WHEN 'DLY'	 THEN ((DATEDIFF(hh, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * 24))
 			WHEN 'WKLY'	 THEN ((DATEDIFF(hh, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * 168))
 			WHEN 'MTHLY' THEN ((DATEDIFF(dd, p.NextExecutionDtm, GETDATE()) * 100) / (p.IntervalLength * (DATEDIFF(dd, p.NextExecutionDtm, DATEADD(mm, p.IntervalLength, p.NextExecutionDtm)))))
