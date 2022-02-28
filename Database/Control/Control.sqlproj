@@ -196,6 +196,7 @@
     <Build Include="Views\ctl.vw_PublisherContact.sql" />
     <None Include="Test\tst_StepLogging.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetLoadedIssueDetails.sql" />
+    <Build Include="Stored Procedures\usp_GetPublicationListSSIS.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\msdb.dacpac">
