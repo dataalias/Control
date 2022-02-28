@@ -279,7 +279,7 @@ begin try
 						,@object_type				= @ObjectType
 						,@parameter_name			= @ParameterName
 						,@parameter_value			= @ParameterValue
-    
+
 				select	 @LoopCount					= @LoopCount + 1
 						,@ObjectType				= -1
 						,@ParameterName				= 'N/A'
@@ -290,7 +290,7 @@ begin try
 		end  -- Load parameters
 
 		select	 @JSONSnippet		= replace(@JSONSnippet,@ReplaceJSONToken,'}'); 
-   
+
 		exec	 [$(SSISDB)].catalog.[start_execution]
 				 @execution_id		=  @ExecutionId
 

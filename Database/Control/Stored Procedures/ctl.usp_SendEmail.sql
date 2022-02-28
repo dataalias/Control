@@ -129,7 +129,7 @@ begin try
 				+ 'Error Messages'+ @CRLF
 				+ '--------------------------------------------------------------------------------------------------'+ @CRLF + @CRLF + @CRLF
 
-	exec msdb.dbo.sp_send_dbmail 
+	exec [$(msdb)].dbo.sp_send_dbmail 
 		 @from_address	 = @From
 		,@recipients	 = @pTo
 		,@importance	 = 'High'
