@@ -8,8 +8,8 @@
 AS
 
 /*****************************************************************************
- File:			usp_GetPublicationList.sql
- Name:			usp_GetPublicationList
+ File:			usp_GetPublicationListSSIS.sql
+ Name:			[usp_GetPublicationListSSIS]
  Purpose:		Returns all publications related to a particular publisher.
 				Both Active and InActive publications are returned.
 				It is the applications responsibility to decide what to do
@@ -363,25 +363,6 @@ end catch
 Date		Author			Description
 --------	-------------	---------------------------------------------------
 20161114	ffortunato		Initial Iteration
-20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
-20170110	ffortunato		Error handling
-20170120a	ffortunato		publication code should be varchar(50)
-20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
-20210312	ffortunato		modifying to be generic again.
-20210524	ffortunato		adding @pPublicationGroupSequence. so different 
-							pipelines can be called for a single publisher's 
-							publication..
-20211102	ffortunato		Preparing some changes in order to work with python.
-20211104	ffortunato		Adding some content about the most recent issue.
-20220125	ffortunato		+ SrcFileRegEx
-20220207	ffortunato		+ SrcFileRegEx
 20220226	ffortunato		- Lots fo fields to make SSIS easier
 
 ******************************************************************************/
-GO
-
-

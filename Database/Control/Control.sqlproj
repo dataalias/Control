@@ -197,7 +197,7 @@
     <Build Include="Views\ctl.vw_PublisherContact.sql" />
     <None Include="Test\tst_StepLogging.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetLoadedIssueDetails.sql" />
-    <Build Include="Stored Procedures\usp_GetPublicationListSSIS.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetPublicationListSSIS.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="..\SSISDB\dacpac\SSISDB.dacpac">
