@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
+﻿CREATE PROCEDURE [ctl].[usp_GetPublicationListSSIS]
 	 @pPublisherCode			varchar(50)		= 'UNK'	
 	,@pNextExecutionDateTime	datetime		= NULL --'3001-Jan-01'
 	,@pPublicationGroupSequence int				= 1
@@ -8,20 +8,18 @@
 AS
 
 /*****************************************************************************
- File:			usp_GetPublicationList.sql
- Name:			usp_GetPublicationList
+ File:			usp_GetPublicationListSSIS.sql
+ Name:			[usp_GetPublicationListSSIS]
  Purpose:		Returns all publications related to a particular publisher.
 				Both Active and InActive publications are returned.
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationList] @pPublisherCode = NULL
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AU'
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' 
+	exec ctl.[usp_GetPublicationListSSIS] @pPublisherCode = 'GLS', @pNextExecutionDateTime = '2/10/2022 1:40:40 PM'
 
  Parameters:    
 
- Called by:		Application
+ Called by:		SSIS
  Calls:          
 
  Author:		ffortunato
@@ -152,6 +150,14 @@ GROUP BY
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
+--  Generate Publication List
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Get Max IssueID Details'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'Getting the latest information for the last issue ofr the publication.'
+
 select	 @PublisherId			= isnull(PublisherId,-1)
 from	 ctl.Publisher			  pbr
 where	 pbr.PublisherCode		= @pPublisherCode
@@ -169,7 +175,7 @@ on		 pbn.PublisherId		= pbr.PublisherId
 join	 ctl.RefStatus			  rs
 on		 iss.StatusId			= rs.StatusId
 where	 pbr.PublisherCode		= @pPublisherCode
-and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from failed issues.
+and		 rs.StatusCode			in ('IC','IL','IC','IA','IN') -- We dont want values from failed issues.
 group by pbn.PublicationId
 
 update	 issd
@@ -177,8 +183,8 @@ set		 PeriodStartTime		= iss.PeriodStartTime
 		,PeriodEndTime			= iss.PeriodEndTime
 		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
 		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
-		,FirstRecordSeq			= iss.FirstRecordChecksum
-		,LastRecordSeq			= iss.LastRecordChecksum
+		,FirstRecordSeq			= iss.FirstRecordSeq
+		,LastRecordSeq			= iss.LastRecordSeq
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
@@ -195,17 +201,34 @@ from	@IssueDetail
 			,@StepOperation		= 'select'
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
+
+if exists (select top 1 1 
+			from 	ctl.Publication				  pn
+		--	left join @RetryPublications		  rpn
+		--	on		rpn.PublicationId			= pn.PublicationId
+			left join @IssueDetail				  id
+			on		id.PublicationId			= pn.PublicationId
+			join	ctl.Publisher				  pr 
+			on		pr.PublisherId				= pn.PublisherId
+			join	ctl.RefInterval				  ri
+			on		pn.IntervalCode				= ri.IntervalCode
+			where	pn.IsActive					= 1 
+		--	and		pn.IsDataHub				= 1
+			and		pn.Bound					= 'In'
+		--	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
+			and		pn.NextExecutionDtm			<= @NextExecutionDateTime
+			and		pr.PublisherCode			= @pPublisherCode
+		--	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+		)
+begin
+
 --	insert	into @PublicationList
-
-
-
-
-
 	select	 pr.PublisherId
 			,pr.PublisherName
 			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
+/*
 			,pr.InterfaceCode
 			,pr.SiteURL
 			,pr.SiteUser
@@ -215,14 +238,18 @@ from	@IssueDetail
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
+*/
 			,pn.SrcFileRegEx
+/*
 			,pn.IntervalCode
 			,pn.IntervalLength
 			,pn.RetryIntervalCode
 			,pn.RetryIntervalLength
 			,pn.RetryMax
+*/
 			,pn.ProcessingMethodCode
 			,pn.TransferMethodCode
+/*
 			,pn.NextExecutionDtm
 			,pn.SLATime
 			,ri.[SLAFormat]
@@ -230,18 +257,22 @@ from	@IssueDetail
 			,pn.Bound
 			,pn.SrcFileFormatCode  -- As FeedFormat
 			,pn.StandardFileFormatCode
+*/
 			,pn.SSISFolder
 			,pn.SSISProject
 			,pn.SSISPackage
+/*
 			,pn.SrcPublicationName		
 			,pn.SrcFilePath
+*/
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
-			,pn.PublicationGroupSequence
-			,id.IssueId						LastIssueId
-			,id.PeriodEndTime				HighWaterMarkDatetime
-			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
-			,LastRecordSeq					HighWaterMarkRecordSeq
+--			,pn.PublicationGroupSequence
+
+			,isnull(id.IssueId,-1)					  LastIssueId
+			,isnull(id.PeriodEndTime,cast('01-Jan-1900'as datetime))			  HighWaterMarkDatetime
+			,isnull(id.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset))			  HighWaterMarkDatetimeUTC
+			,isnull(id.LastRecordSeq,1)											  HighWaterMarkRecordSeq
 	from 	ctl.Publication				  pn
 --	left join @RetryPublications		  rpn
 --	on		rpn.PublicationId			= pn.PublicationId
@@ -259,7 +290,27 @@ from	@IssueDetail
 	and		pr.PublisherCode			= @pPublisherCode
 --	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
 	
-
+end 
+else
+begin
+	select 	 -1 PublisherId
+			,'N/A' PublisherName
+			,-1		PublicationId
+			,'N/A'	PublicationName
+			,'N/A'	PublicationCode
+			,'N/A'	SrcFileRegEx
+			,'N/A'	ProcessingMethodCode
+			,'N/A'	TransferMethodCode
+			,'N/A'	SSISFolder
+			,'N/A'	SSISProject
+			,'N/A'	SSISPackage
+			,'N/A'	PublicationFilePath
+			,'N/A'	PublicationArchivePath
+			,-1		LastIssueId
+			,cast('1900-01-01' as datetime)		HighWaterMarkDatetime
+			,cast('1900-01-01' as datetimeoffset(7))	HighWaterMarkDatetimeUTC
+			,-1		HighWaterMarkRecordSeq 
+end
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
 			,@Rows				= @@ROWCOUNT 
@@ -312,24 +363,6 @@ end catch
 Date		Author			Description
 --------	-------------	---------------------------------------------------
 20161114	ffortunato		Initial Iteration
-20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
-20170110	ffortunato		Error handling
-20170120a	ffortunato		publication code should be varchar(50)
-20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
-20210312	ffortunato		modifying to be generic again.
-20210524	ffortunato		adding @pPublicationGroupSequence. so different 
-							pipelines can be called for a single publisher's 
-							publication..
-20211102	ffortunato		Preparing some changes in order to work with python.
-20211104	ffortunato		Adding some content about the most recent issue.
-20220125	ffortunato		+ SrcFileRegEx
-20220207	ffortunato		+ SrcFileRegEx
-20220210	ffortunato		o StartTime --> EndTime  
-							highwater mark is the last end time not start time.
-							+ high warter for recordSeq as well
+20220226	ffortunato		- Lots fo fields to make SSIS easier
 
 ******************************************************************************/

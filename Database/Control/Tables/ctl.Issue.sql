@@ -20,6 +20,7 @@ date		author			description
 							naming default constraints
 							renaming indixes to conform to standards
 20210316	ffortunato		adding SrcIssueName
+20210316	ffortunato		PeriodEndTime Can be NULL during initial insert.
 ******************************************************************************/
 
 CREATE TABLE [ctl].[Issue](
@@ -41,7 +42,9 @@ CREATE TABLE [ctl].[Issue](
 	[FirstRecordChecksum] [varchar](2048) NULL,
 	[LastRecordChecksum] [varchar](2048) NULL,
 	[PeriodStartTime] [datetime] NOT NULL,
-	[PeriodEndTime] [datetime] NOT NULL,
+	[PeriodEndTime] [datetime] NULL,
+	[PeriodStartTimeUTC] [datetimeoffset]  NULL,
+	[PeriodEndTimeUTC] [datetimeoffset]  NULL,
 	[IssueConsumedDate] [datetime] NULL,
 	[RecordCount] [int] NOT NULL,
 	[RetryCount] [int] NOT NULL,
@@ -69,14 +72,14 @@ GO
 ALTER TABLE [ctl].[Issue] ADD  CONSTRAINT [DF__Issue__DataLakePath__Raw]  DEFAULT '/Raw Data Zone/...' FOR [DataLakePath]
 go
 
-ALTER TABLE [ctl].[Issue]  ADD  CONSTRAINT [FK_IssuePublicationId] FOREIGN KEY([PublicationId])
+ALTER TABLE [ctl].[Issue]  ADD  CONSTRAINT [FK_Issue__Publication__PublicationId] FOREIGN KEY([PublicationId])
 REFERENCES [ctl].[Publication] ([PublicationId])
 GO
 
 --ALTER TABLE [ctl].[Issue] CHECK CONSTRAINT [FK_IssuePublicationId]
 --GO
 
-ALTER TABLE [ctl].[Issue]  ADD  CONSTRAINT [FK_IssueStatusId] FOREIGN KEY([StatusId])
+ALTER TABLE [ctl].[Issue]  ADD  CONSTRAINT [FK_Issue__RefStatus__StatusId] FOREIGN KEY([StatusId])
 REFERENCES [ctl].[RefStatus] ([StatusId])
 GO
 

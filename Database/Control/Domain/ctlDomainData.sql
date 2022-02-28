@@ -118,7 +118,18 @@ BEGIN
 	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
 	VALUES ('JSON','JavaScript Object Notation','Named value pair file .','json','.json',system_user,getdate())
 END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefFileFormat] WHERE [FileFormatCode] IN ('AU'))
+BEGIN
 
+	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
+	VALUES ('AU','Audacity Audio File','An AU file is an audio file created by Audacity, a free, cross-platform audio editor. It is saved in a proprietary audio format used only by Audacity.','au','.au',system_user,getdate())
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefFileFormat] WHERE [FileFormatCode] IN ('MP3'))
+BEGIN
+
+	INSERT INTO [ctl].[RefFileFormat]     ([FileFormatCode]           ,[FileFormatName]          ,[FileFormatDesc], [FileExtension],[DotFileExtension]  ,[CreatedBy]  ,[CreatedDtm] )
+	VALUES ('MP3','MPEG Audio File','The MP3 lossy audio-data compression algorithm takes advantage of a perceptual limitation of human hearing called auditory masking.','mp3','.mp3',system_user,getdate())
+END
 go
 
 -- REf Transfer Method
@@ -333,17 +344,26 @@ BEGIN
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
 			   ('SFTP','Secure File Transfer Protocol','',system_user,getdate())
 END
+/*
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('CANVAS'))
 BEGIN
 
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
 			   ('CANVAS','Canvas Sync Command Line Utility','',system_user,getdate())
 END
+*/
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('TBL'))
 BEGIN
 
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
-			   ('TBL','Table','System directly interfactions with a relational database table.',system_user,getdate())
+			   ('TBL','Table','System directly interfaces with a relational database table.',system_user,getdate())
+
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('EMAIL'))
+BEGIN
+
+	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
+			   ('EMAIL','e-Mail','System interfaces with a mailbox and retrieves or sends attachements.',system_user,getdate())
 
 END
 
@@ -423,7 +443,7 @@ BEGIN
 	,[STATUSDESC],[STATUSTYPE]
 	,CreatedDtm,CREATEDBY)
 	VALUES ('IL','Issue Loaded'
-	,'??.'   ,'Issue'
+	,'The Load of the issues to staging/ods area complete. Subscribers can now access the information based on distribution.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
 

@@ -15,9 +15,30 @@ Purpose:	This procedure accpets a list of files that datahub has found on a
 			returns a subset list of those files that have not been processed.
 			This list will be used by powersehll to inititate a file transfer.
 
-exec ctl.GetIssueNamesToRetrieve -1, -1, 1
+exec:
 
-Parameters:    
+	declare @MyTable [ctl].[udt_IssueNameLookup]
+
+	insert into @MyTable
+	select 'Frank','Open',getdate()
+
+	select * from @MyTable
+
+	exec ctl.GetIssueNamesToRetrieve
+			 @pIssueNameLookup		= @MyTable
+			,@pPublicationCode      = 'N/A'
+			,@pLookBack				= Null
+			,@pETLExecutionId		= -1
+			,@pPathId				= -1
+			,@pVerbose				= 0
+
+Parameters:   
+			 @pIssueNameLookup		Table of vaules to be processed
+			,@pPublicationCode      Publication Codes to be evaulated
+			,@pLookBack				Determines how far back you want to search for a file.
+			,@pETLExecutionId		 
+			,@pPathId				 
+			,@pVerbose				 
 
 Called by:	DataHub powershell scripts
 Calls:          

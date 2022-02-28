@@ -20,6 +20,7 @@ AS
 	exec ctl.[GetStagedIssueList] 'CANVAS-AB' ,'IG',1 
     exec ctl.usp_GetStagedIssueList 'CNVSRTSQS','IS', 1 
 
+	HI ART
 
  Parameters:    
 

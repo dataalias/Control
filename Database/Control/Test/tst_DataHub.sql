@@ -36,6 +36,7 @@ Date		Author			Description
 20201130	ffortunato		Modifications to make posting group work.
 20210325	ffortunato		FeedFormat --> FileFormatCode
 20211008	ffortunato		Cleanup based on code changes.
+20220207	ffortunato		o Publication Names & Publisher Names.
 ******************************************************************************/
 
 -------------------------------------------------------------------------------

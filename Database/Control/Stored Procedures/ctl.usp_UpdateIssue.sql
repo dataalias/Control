@@ -15,7 +15,9 @@
 		,@pFirstRecordChecksum	varchar(2048)	= NULL
 		,@pLastRecordChecksum	varchar(2048)	= NULL
 		,@pPeriodStartTime		datetime		= NULL
+		,@pPeriodStartTimeUTC	datetimeoffset	= NULL
 		,@pPeriodEndTime		datetime		= NULL
+		,@pPeriodEndTimeUTC		datetimeoffset	= NULL
 		,@pIssueConsumedDate	datetime		= NULL
 		,@pRecordCount			int				= NULL
 		,@pModifiedBy			varchar(50)		= NULL
@@ -30,7 +32,38 @@ Purpose:        Updates the issue table with any values the application
 				wishes to add. If a value is null the value currently in the 
 				table is retained.
 
-exec ctl.usp_UpdateIssue 17, 'IC', 1
+
+Find an IssueId to Update
+
+declare @SomeIssueId Int = -1
+select  @SomeIssueId = max(IssueId) from ctl.Issue
+
+exec [ctl].[usp_UpdateIssue] (	
+		 @pIssueId				= @SomeIssueId
+		,@pStatusCode			= 'IF' -- Set it to failed.
+		,@pReportDate			= '1/1/2021'
+		,@pSrcDFPublisherId		= 1
+		,@pSrcDFPublicationId	= 2
+		,@pSrcDFIssueId			= 3
+		,@pSrcDFCreatedDate		= '1/1/2021'
+		,@pDataLakePath			= 'SomeNewPath'
+		,@pIssueName			= 'SomeNewFileName'
+		,@pSrcIssueName			= 'TheNameFromSource'
+		,@pPublicationSeq		= 1
+		,@pFirstRecordSeq		= 1001
+		,@pLastRecordSeq		= 2000
+		,@pFirstRecordChecksum	= 'AC2134'
+		,@pLastRecordChecksum	= 'AC21BD'
+		,@pPeriodStartTime		= '1/1/2021'
+		,@pPeriodStartTimeUTC	= '1/1/2021'
+		,@pPeriodEndTime		= '1/1/2021'
+		,@pPeriodEndTimeUTC		= '1/1/2021'
+		,@pIssueConsumedDate	= '1/1/2021'
+		,@pRecordCount			= 9999
+		,@pModifiedBy			= 'Me!!'
+		,@pModifiedDtm			= '1/1/2021'
+		,@pVerbose				= 0
+		,@pETLExecutionId		= -100
 
 Parameters:
 
@@ -42,29 +75,8 @@ Error:			50001 Unable to lookup Status.
 
 Author:			ffortunato
 Date:			20170106
-*******************************************************************************
-CHANGE HISTORY
-*******************************************************************************
-Date		Author		Description
---------	-------------	---------------------------------------------------
-20170106	ffortunato		Initial iteration
-20170120	ffortunato		STatus code should be varchar(20)
-			gopala			Made parameters default to null.
-20170126	ffortunato		Throwing errors (replacing raiserror)
-							replacing @ParametersPassedChar with latest format
-							issueId cannot be null.
-							subscriptionId no longer needed.
-20180321	ffortunato		Had to rebaseline for error handling. Made some 
-							changes to use case statements rather than just
-							isnull
-20180913	ffortunato		Add ETLExecutionId
-20190603	ochowkwale		In case of failure, check for number of retries and 
-							then set the issue to failed or to be retried. Send
-							email in case of failure
-20210316	ffortunato		Add SrcIssueName
-20210412	ffortunato		@pDataLakePath	
-
 ******************************************************************************/
+
 declare	 @Rows					integer
 		,@Err					integer
 		,@ErrMsg				nvarchar(3182)
@@ -165,8 +177,8 @@ BEGIN
 	AND		 c.IsActive				= 1
 	AND		 c.IsDataHub			= 1 -- IN (1,2)
 	--AND		 c.ProcessingMethodCode in ('ADFP','SSIS')
-
-	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
+/*
+	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, '<<MyEmail@Somewhere.com>>')), ';')
 	FROM ctl.Issue AS i
 	LEFT JOIN ctl.MapContactToPublication AS mctp 
 	ON mctp.PublicationId = i.PublicationId
@@ -183,7 +195,7 @@ BEGIN
 		,@pTo					= @Recipients
 		,@pSeverity				= @Severity
 		,@pIssueId				= @pIssueId
-
+*/
 END
 
 begin try
@@ -320,3 +332,29 @@ end catch
 -------------------------------------------------------------------------------
 -- End
 -------------------------------------------------------------------------------
+
+/******************************************************************************
+CHANGE HISTORY
+*******************************************************************************
+Date		Author		Description
+--------	-------------	---------------------------------------------------
+20170106	ffortunato		Initial iteration
+20170120	ffortunato		STatus code should be varchar(20)
+			gopala			Made parameters default to null.
+20170126	ffortunato		Throwing errors (replacing raiserror)
+							replacing @ParametersPassedChar with latest format
+							issueId cannot be null.
+							subscriptionId no longer needed.
+20180321	ffortunato		Had to rebaseline for error handling. Made some 
+							changes to use case statements rather than just
+							isnull
+20180913	ffortunato		Add ETLExecutionId
+20190603	ochowkwale		In case of failure, check for number of retries and 
+							then set the issue to failed or to be retried. Send
+							email in case of failure
+20210316	ffortunato		Add SrcIssueName
+20210412	ffortunato		@pDataLakePath	
+20211202	ffortunato		UTC Parameters. Fixed up execution in header.
+202120210	ffortunato		Removing email steps.
+
+******************************************************************************/

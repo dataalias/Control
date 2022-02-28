@@ -297,7 +297,7 @@ begin try
 					+  '@pPostingGroupProcesingId":"'	+ isnull(cast(@pPostingGroupProcessingId as varchar(10)),'NULL') + @CRLF
 					+  '@pIssueId":"'					+ isnull(cast(@pIssueId					 as varchar(10)),'NULL') + @CRLF
 
-		EXEC	 @JobReturnCode				= msdb.dbo.sp_start_job 
+		EXEC	 @JobReturnCode				= [$(msdb)].dbo.sp_start_job 
 				 @job_name					= @SQLJobName
 
 		if			 @JobReturnCode			= 1 -- fail return code
