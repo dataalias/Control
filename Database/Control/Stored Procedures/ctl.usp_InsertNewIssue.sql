@@ -4,6 +4,7 @@
 	,@pIssueName				varchar(255)	= 'Unknown'
 	,@pSrcIssueName				nvarchar(255)	= 'Unknown'
 	,@pStatusCode				varchar(20)		= null
+	-- TODO: These variables are missing their DF.
 	,@pSrcPublisherId			varchar(40)		= 'UNK'
 	,@pSrcPublicationId			varchar(40)		= 'UNK'
 	,@pSrcDFIssueId				varchar(100)	= 'UNK'
