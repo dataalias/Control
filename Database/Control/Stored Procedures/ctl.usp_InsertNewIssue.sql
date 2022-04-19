@@ -4,6 +4,7 @@
 	,@pIssueName				varchar(255)	= 'Unknown'
 	,@pSrcIssueName				nvarchar(255)	= 'Unknown'
 	,@pStatusCode				varchar(20)		= null
+	-- TODO: These variables are missing their DF.
 	,@pSrcPublisherId			varchar(40)		= 'UNK'
 	,@pSrcPublicationId			varchar(40)		= 'UNK'
 	,@pSrcDFIssueId				varchar(100)	= 'UNK'
@@ -17,7 +18,7 @@
 	,@pPeriodEndTime			datetime		= null
 	,@pPeriodEndTimeUTC			datetimeoffset	= null
 	,@pRecordCount				integer			= null
-	,@pETLExecutionId			int				= null
+	,@pETLExecutionId			nvarchar(1000)	= null
 	,@pCreateBy					varchar(30)		= null
 	,@pIssueId					int				output
 	,@pVerbose					bit				= 0)
@@ -471,4 +472,5 @@ Date		Author			Description
 20210525	ffortunato		Proc should calc the issue name if it is unknown.
 20211005    ffortunato		Building out a better Data Lake Path on default.
 20211202    ffortunato		Fixing up execution in header.
+20220414    ffortunato		o ETLExecutionId --> nvarchar(1000).
 ******************************************************************************/

@@ -23,7 +23,7 @@
 		,@pModifiedBy			varchar(50)		= NULL
 		,@pModifiedDtm			datetime		= NULL
 		,@pVerbose				bit				= 0
-		,@pETLExecutionId		int				= NULL)
+		,@pETLExecutionId		nvarchar(1000)	= NULL)
 AS 
 /*****************************************************************************
 File:			usp_UpdateIssue.sql
@@ -63,7 +63,7 @@ exec [ctl].[usp_UpdateIssue] (
 		,@pModifiedBy			= 'Me!!'
 		,@pModifiedDtm			= '1/1/2021'
 		,@pVerbose				= 0
-		,@pETLExecutionId		= -100
+		,@pETLExecutionId		= '-100'
 
 Parameters:
 
@@ -149,7 +149,7 @@ select	 @ParametersPassedChar	=
       '    ,@pModifiedBy = ''' + isnull(@pModifiedBy ,'NULL') + '''' + @CRLF + 
       '    ,@pModifiedDtm = ''' + isnull(convert(varchar(100),@pModifiedDtm ,13) ,'NULL') + '''' + @CRLF + 
       '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
+      '    ,@pETLExecutionId = ' + isnull(@pETLExecutionId,'NULL') + @CRLF + 
       '***** End of Parameters' + @CRLF 
 
 --	  raiserror ( @ParametersPassedChar, 16,1)
@@ -308,7 +308,7 @@ set      StatusId				= case  @StatusId when -1 then StatusId -- Keep the value i
 		,IssueConsumedDate		= isnull(@pIssueConsumedDate,IssueConsumedDate)
 		,RecordCount			= isnull(@pRecordCount,RecordCount)
 		,ETLExecutionID			= case
-									when	((@pEtlExecutionId is null) or (@pEtlExecutionId < 1)) then ISS.ETLExecutionID
+									when	(@pEtlExecutionId is null) then ISS.ETLExecutionID
 									else    @pEtlExecutionId
 								  end
 		,ModifiedBy				= isnull(@pModifiedBy,@ModifiedBy)
@@ -356,5 +356,5 @@ Date		Author		Description
 20210412	ffortunato		@pDataLakePath	
 20211202	ffortunato		UTC Parameters. Fixed up execution in header.
 202120210	ffortunato		Removing email steps.
-
+20220414    ffortunato		o ETLExecutionId --> nvarchar(1000).
 ******************************************************************************/

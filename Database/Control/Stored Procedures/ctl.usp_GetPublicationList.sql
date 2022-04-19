@@ -207,6 +207,7 @@ and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from faile
 group by pbn.PublicationId
 
 
+
 -------------------------------------------------------------------------------
 --  Update Issue Details
 -------------------------------------------------------------------------------
@@ -229,8 +230,6 @@ set		 PeriodStartTime		= isnull(iss.PeriodStartTime   ,cast('1900-01-01' as date
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
-
---print 'updated issue details with watermark values.'
 
 -------------------------------------------------------------------------------
 --  Generate Publication List
@@ -372,5 +371,5 @@ Date		Author			Description
 20220210	ffortunato		o StartTime --> EndTime  
 							highwater mark is the last end time not start time.
 							+ high warter for recordSeq as well
-
+20220405	ffortunato		o @IssueDetails is now updated correctly.
 ******************************************************************************/

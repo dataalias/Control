@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4A4944C7-ED7C-4DA5-B6B2-DEBF90CCDDD1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>dmutils</RootNamespace>
+    <AssemblyName>dmutils</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ctl\Add-ControlFile.ps1" />
+    <None Include="ctl\Edit-Issue.ps1" />
+    <None Include="ctl\FileCleanUp.ps1" />
+    <None Include="ctl\Get-IssueNamesToRetrieve.ps1" />
+    <None Include="ctl\Get-SqlServerJobStatus.ps1" />
+    <None Include="ctl\Invoke-ctlFileToIssue.ps1" />
+    <None Include="ctl\Invoke-SQLServerJob.ps1" />
+    <None Include="ctl\Invoke-StagingPackage.ps1" />
+    <None Include="ctl\New-Issue.ps1" />
+    <None Include="Datetime\Invoke-IntervalCheck.ps1" />
+    <None Include="Datetime\Invoke-SLACheck.ps1" />
+    <None Include="dmutils.psd1" />
+    <None Include="dmutils.psm1" />
+    <None Include="dmutils.tests.ps1" />
+    <None Include="FileShare\FileShareListCheckGet.ps1" />
+    <None Include="FileShare\Invoke-FileSharePut.ps1" />
+    <None Include="Get-DataFeed.ps1" />
+    <None Include="Hash.ps1" />
+    <None Include="Invoke-ErrorHandler.ps1" />
+    <None Include="Invoke-Unzip.ps1" />
+    <None Include="Put-DataFeed.ps1" />
+    <None Include="Send-eMail.ps1" />
+    <None Include="Table\dbIntervalCheckGet.ps1" />
+    <None Include="WinSCP\ftpListCheckGet.ps1" />
+    <None Include="WinSCP\ftpPut.ps1" />
+    <None Include="WinSCP\WinSCP.ps1" />
+    <None Include="WinSCP\WinSCP.psd1" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
