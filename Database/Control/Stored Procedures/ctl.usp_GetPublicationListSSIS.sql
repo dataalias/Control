@@ -15,7 +15,8 @@ AS
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationListSSIS] @pPublisherCode = 'GLS', @pNextExecutionDateTime = '2/10/2022 1:40:40 PM'
+	exec ctl.[usp_GetPublicationListSSIS] @pPublisherCode = 'GLS'
+										, @pNextExecutionDateTime = '2/10/2022 1:40:40 PM'
 
  Parameters:    
 
@@ -289,6 +290,7 @@ begin
 	and		pn.NextExecutionDtm			<= @NextExecutionDateTime
 	and		pr.PublisherCode			= @pPublisherCode
 --	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+	order by pn.PublicationId  -- This should be a processing order but that is only to meet a special case so....
 	
 end 
 else
@@ -364,5 +366,7 @@ Date		Author			Description
 --------	-------------	---------------------------------------------------
 20161114	ffortunato		Initial Iteration
 20220226	ffortunato		- Lots fo fields to make SSIS easier
+20220419	ffortunato		+ Order by PublicationId
+							ToDo: later add a real order col.
 
 ******************************************************************************/

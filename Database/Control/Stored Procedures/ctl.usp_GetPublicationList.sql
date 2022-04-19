@@ -15,10 +15,9 @@ AS
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationList] @pPublisherCode = NULL
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AU'
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' 
-
+	declare @MyDate datetime = getdatE()
+	exec ctl.[usp_GetPublicationList] @pPublisherCode = '8x8CC', @pNextExecutionDateTime = @MyDate
+	
  Parameters:    
 
  Called by:		Application
@@ -74,6 +73,8 @@ declare	@IssueDetail			table(
 		,IssueId				int
 		,FirstRecordSeq			int
 		,LastRecordSeq			int
+		,FirstRecordChecksum	varchar(2048)
+		,LastRecordChecksum 	varchar(2048)
 		,PeriodStartTime		datetime
 		,PeriodEndTime			datetime
 		,PeriodStartTimeUTC		datetimeoffset
@@ -105,6 +106,14 @@ If @pNextExecutionDateTime is null
 -- Figure out passphrase
 begin try
 
+-------------------------------------------------------------------------------
+--  Generate Publication List
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Getting Passphrase'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'select Passphrase from Passphrase.'
+
 	SELECT	@Passphrase =
 	(
 		SELECT	 Passphrase
@@ -113,6 +122,14 @@ begin try
 		AND		 SchemaName		= @SchemaName
 		AND		 TableName		= @PassphraseTableName
 	)
+
+-------------------------------------------------------------------------------
+--  Check Execution Date
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Check Execution Date'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'select @pNextExecutionDateTime.'
 
 -- Figure out Next Execution
 if (@pNextExecutionDateTime			= cast('3001-Jan-01' as datetime))
@@ -128,6 +145,15 @@ else
 -------------------------------------------------------------------------------
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+--  Check Execution Date
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Get Retry Publications'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'select ctl.Publication.'
+
 INSERT INTO @RetryPublications (
 		 PublicationId
 		,StatusCode
@@ -152,6 +178,14 @@ GROUP BY
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
+--  Get Issue Details
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Get Issue Details'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'select ctl.Issue, etc.'
+
 select	 @PublisherId			= isnull(PublisherId,-1)
 from	 ctl.Publisher			  pbr
 where	 pbr.PublisherCode		= @pPublisherCode
@@ -172,21 +206,32 @@ where	 pbr.PublisherCode		= @pPublisherCode
 and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from failed issues.
 group by pbn.PublicationId
 
+
+-------------------------------------------------------------------------------
+--  Update Issue Details
+-------------------------------------------------------------------------------
+	select	 @StepName			= 'Update Issue Details'
+			,@StepNumber		= @StepNumber + 1
+			,@StepOperation		= 'update'
+			,@StepDesc			= 'update ctl.Issue, with new water mark values.'
+
+--select * from @IssueDetail
+
 update	 issd
-set		 PeriodStartTime		= iss.PeriodStartTime
+set		 PeriodStartTime		= isnull(iss.PeriodStartTime   ,cast('1900-01-01' as datetime))
 		,PeriodEndTime			= iss.PeriodEndTime
-		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
+		,PeriodStartTimeUTC		= isnull(iss.PeriodStartTimeUTC,cast('1900-01-01' as datetime))
 		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
-		,FirstRecordSeq			= iss.FirstRecordChecksum
-		,LastRecordSeq			= iss.LastRecordChecksum
+		,FirstRecordSeq			= iss.FirstRecordSeq
+		,LastRecordSeq			= iss.LastRecordSeq
+		,FirstRecordChecksum	= iss.FirstRecordChecksum
+		,LastRecordChecksum 	= iss.LastRecordChecksum
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
 
-/* testing
-select * 
-from	@IssueDetail
-*/
+--print 'updated issue details with watermark values.'
+
 -------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
@@ -196,10 +241,6 @@ from	@IssueDetail
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
 --	insert	into @PublicationList
-
-
-
-
 
 	select	 pr.PublisherId
 			,pr.PublisherName

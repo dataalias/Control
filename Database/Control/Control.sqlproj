@@ -85,6 +85,7 @@
     <None Include="RefDacPac\SSISDB.dacpac" />
     <None Include="sbx.DataHub.publish.xml" />
     <None Include="DataHub_To_DEV_profile.publish.xml" />
+    <None Include="DataHub_To_Prod.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
