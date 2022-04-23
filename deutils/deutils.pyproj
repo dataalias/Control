@@ -2,16 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>c68c4415-bd76-427d-9a6d-8a69167fa0c7</ProjectGuid>
+    <ProjectGuid>feae0d2b-d486-4326-bb83-ff877f79aebb</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>deutils</Name>
-    <RootNamespace>deutils</RootNamespace>
+    <Name>deUtils</Name>
+    <RootNamespace>deUtils</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,19 +21,35 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="datahub\connection.py" />
-    <Compile Include="datahub\data_hub.py" />
-    <Compile Include="datahub\__init__.py" />
-    <Compile Include="delogging\delogging.py" />
-    <Compile Include="delogging\__init__.py" />
+    <Compile Include="dbConnection.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="deUtils.py" />
-    <Compile Include="secrets\aws_secrets.py" />
-    <Compile Include="secrets\__init__.py" />
+    <Compile Include="ftp\ftp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ftp\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Logging.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="main.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="setup.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="datahub\" />
-    <Folder Include="delogging\" />
-    <Folder Include="secrets\" />
+    <Folder Include="Logging\" />
+    <Folder Include="ftp\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

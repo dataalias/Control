@@ -30,9 +30,22 @@ Date:		20220401
 
 def log_to_console(function_name, message_type, message):
 
-    current_time = datetime.today()
+    current_time = datetime.today().strftime('%Y-%b-%d %H:%M:%S')
 
     try:
-        print(current_time, ',', function_name, ',', message_type, ',', message )
-    except:
-        print("Unable to Log!")
+        # print(current_time + ',' + function_name + ',' + message_type + ',' + message)
+        print(current_time, ',', function_name, ',', message_type, ',', message)
+    except Exception as e:
+        print("Unable to Log!", e)
+
+
+"""
+*******************************************************************************
+Change History:
+
+Author		Date		Description
+----------	----------	-------------------------------------------------------
+ffortunato  04/14/2022  Initial Iteration
+
+*******************************************************************************
+"""
