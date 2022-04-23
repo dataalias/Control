@@ -1,11 +1,39 @@
+"""
+*******************************************************************************
+File: aws_secrets.py
+
+Purpose: Gets secret values from AWS Secrets.
+
+Dependencies/Helpful Notes :
+
+*******************************************************************************
+"""
 # Use this code snippet in your app.
 # If you need more information about configurations or implementing the sample code, visit the AWS docs:
 # https://aws.amazon.com/developers/getting-started/python/
 
 import boto3
 import json
-# import base64
 from botocore.exceptions import ClientError
+
+"""
+*******************************************************************************
+Function: get_secret
+
+Purpose: Gets AWS secret data.
+
+Parameters:
+     secret_name - AWS secret name from the account the process is running in
+                   that contains the db connection information.  
+
+Calls:
+
+Called by:
+
+Returns: dictionary of secret values
+
+*******************************************************************************
+"""
 
 
 def get_secret(secret_name):
@@ -66,3 +94,15 @@ def get_secret(secret_name):
 
     db_connection_parms = json.loads(get_secret_value_response["SecretString"])
     return db_connection_parms
+
+
+"""
+*******************************************************************************
+Change History:
+
+Author		Date		Description
+----------	----------	-------------------------------------------------------
+ffortunato  04/11/2022  derived from AWS secrets code
+
+*******************************************************************************
+"""

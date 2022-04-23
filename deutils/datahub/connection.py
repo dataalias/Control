@@ -1,17 +1,28 @@
+"""
+*******************************************************************************
+File: connection.py
+
+Purpose: Core functions invoked by the Data Hub class that interact with the db.
+
+Dependencies/Helpful Notes :
+
+*******************************************************************************
+"""
+
 import pymssql
 
 
 def connect_database(host, user, password, database):
     """
-    Handle MySql Connection
-    :return:
+    Creates a pymssql connection for use by the class
+    :return: pymssql connection
     """
     try:
         conn = pymssql.connect(host, user, password, database)
     except pymssql.Error as err:
         # TODO: log errors in CloudWatch
         print("Connection error.", err)
-        return {}
+        return {'Status': 'Failure'}
 
     return conn
 
@@ -27,18 +38,67 @@ def get_publication_list(connection, params):
     try:
         sql = f"[ctl].[usp_GetPublicationList] @pPublisherCode = N'{params['PublisherCode']}', " \
                                              f"@pNextExecutionDateTime = N'{params['CurrentDate']}'"
-        print(sql)
+        # print(sql)
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
         publication_list = cursor.fetchall()
-
     except pymssql.Error as err:
         # TODO: log errors in CloudWatch
         error_msg = "Something went wrong getting publication list. {}".format(err)
         print(error_msg)
-        return {"message": error_msg}
+        return {"Status": error_msg}
+    finally:
+        cursor.close()
 
     return publication_list
+
+
+def prepare_issues(publication_list):
+    """
+    Use the Publication List to prepare an array of issues that will be processed.
+    :param publication_list:
+    :return: An Array of issues.
+    """
+    loop = 1
+    issue_list = []
+    index = {}
+    issue_list.append(index)
+    try:
+        for publication in publication_list:
+            index[publication['PublicationCode']] = loop
+            issue = {
+                'PublicationCode': publication['PublicationCode'],  # '8x8CRZ',
+                'DataLakePath': publication['PublicationFilePath'],  # 's3://dev-ascent-datalake/RawData/8x8CC/8x8CRZ/',
+                'IssueName': 'Unknown',
+                'SrcIssueName': 'Unknown',
+                'StatusCode': 'IP',  # Maybe you want to start with a different status.
+                'ReportDate': '1900-01-01',
+                'SrcDFPublisherId': 'UNK',
+                'SrcDFPublicationId': 'UNK',
+                'SrcDFIssueId': 'UNK',
+                'SrcDFCreatedDate': '',  # Technically you can read this from the ftp site.
+                'FirstRecordSeq': '-1',
+                'LastRecordSeq': '-1',
+                'FirstRecordChecksum': 'UNK',
+                'LastRecordChecksum': 'UNK',
+                'PeriodStartTime': '1900-01-01',
+                'PeriodStartTimeUTC': '1900-01-01',
+                'PeriodEndTime': '1900-01-01',
+                'PeriodEndTimeUTC': '1900-01-01',
+                'RecordCount': '-1',
+                'ETLExecutionId': '-1',
+                'CreateBy': 'DataHub',
+                'ModifiedBy': 'DataHub',
+                'IssueId': '-1',
+                'Verbose': '0'
+            }
+            issue_list.append(issue)
+            loop = loop + 1
+        issue_list[0] = index
+    except Exception as e:
+        print('Exception building issue ', e)
+
+    return issue_list
 
 
 def insert_new_issue(connection, issue):
@@ -72,7 +132,7 @@ def insert_new_issue(connection, issue):
                f",@pIssueId = N'-1'"
                f",@pVerbose = N'0'"
                )
-        print('This is the SQL to execute :: ', sql)
+        # print('This is the SQL to execute :: ', sql)
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
         issue_id = cursor.fetchall()
@@ -119,7 +179,7 @@ def update_issue(connection, issue):
                # f",@pIssueConsumedDate = N'{issue['IssueConsumedDate']}' "
                f",@pRecordCount = N'{issue['RecordCount']}' "
                f",@pModifiedBy = N'{issue['ModifiedBy']}' "
-               f",@pModifiedDtm = N'{issue['ModifiedDtm']}' "
+               # f",@pModifiedDtm = N'{issue['ModifiedDtm']}' "
                f",@pVerbose = N'0' "
                f",@pETLExecutionId = N'{issue['ETLExecutionId']}' "
                )
@@ -134,3 +194,29 @@ def update_issue(connection, issue):
         return {"Status": error_msg}
 
     return {"Status": "Success"}
+
+
+def is_issue_absent(connection, file_name):
+    # Determine if the file has already been processed by looking at ctl.issue.
+    cursor = connection.cursor(as_dict=True)
+    cursor.execute('select top 1 IssueId from ctl.issue where Statusid<>%s and SrcIssueName=%s', (5, file_name))
+    result = cursor.fetchall()
+    cursor.close()
+    if len(result) > 0:
+        return False
+    else:
+        return True
+
+
+"""
+*******************************************************************************
+Change History:
+
+Author		Date		Description
+----------	----------	-------------------------------------------------------
+acosta      04/08/2022  Initial Iteration
+ffortunato  04/11/2022  pyODBC --> pymssql
+                        + several new functions.
+
+*******************************************************************************
+"""

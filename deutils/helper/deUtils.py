@@ -10,9 +10,9 @@ Dependencies/Helpful Notes :
 """
 
 from secrets.aws_secrets import *
-from datahub.connection import *
+from DataHub.connection import *
 from delogging.delogging import *
-
+from ftp.ftp import *
 
 """
 *******************************************************************************
@@ -55,6 +55,30 @@ def get_db_connection_from_secret(secret_name):
         log_to_console(__name__, 'Err', str(e))
 
     return db_connection
+
+
+def get_ftp_connection_from_secret(secret_name):
+
+    try:
+        # get the secret
+        ftp_connection_secret = get_secret(secret_name)
+        print('ftp keys: ', ftp_connection_secret)
+
+        # get the values into variables
+        ftp_username = ftp_connection_secret["FTP_USERNAME"]
+        ftp_host = ftp_connection_secret["FTP_URL"]
+        ftp_password = ftp_connection_secret["FTP_PASSWORD"]
+        ftp_port = int(ftp_connection_secret["FTP_PORT"])
+        ftp_directory = ftp_connection_secret["FTP_FOLDER"]
+
+        # get the database connection
+        ftp_connection = open_ftp_connection(ftp_host, ftp_port, ftp_username, ftp_password, ftp_directory)
+
+    except Exception as e:
+        log_to_console(__name__, 'Err', str(e))
+        return{'Status': 'Failure'}
+
+    return ftp_connection
 
 
 """
