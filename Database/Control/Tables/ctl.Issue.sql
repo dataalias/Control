@@ -48,7 +48,7 @@ CREATE TABLE [ctl].[Issue](
 	[IssueConsumedDate] [datetime] NULL,
 	[RecordCount] [int] NOT NULL,
 	[RetryCount] [int] NOT NULL,
-	[ETLExecutionID] [int] NULL,
+	[ETLExecutionID] nvarchar(1000) NULL,
 	[CreatedBy] [varchar](50) NOT NULL,
 	[CreatedDtm] [datetime] NOT NULL,
 	[ModifiedBy] [varchar](50) NULL,
