@@ -196,19 +196,3 @@ class DataHub:
         except Exception as e:
             print("Failed to execute is_issue_absent: ", e)
         return response
-
-
-"""
-*******************************************************************************
-Change History:
-
-Author		Date		Description
-----------	----------	-------------------------------------------------------
-acosta		01/08/2022  Initial Iteration
-ffortunato  04/08/2022  + get_db_connection_from_secret
-ffortunato  04/11/2022  o pyODBC --> pymssql
-ffortunato  04/22/2022  + multiple new methods for the class.
-                        + issue_list to maintain issue data along with the class
-
-*******************************************************************************
-"""
