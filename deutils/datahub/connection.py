@@ -2,7 +2,8 @@
 *******************************************************************************
 File: connection.py
 
-Purpose: Core functions invoked by the Data Hub class that interact with the db.
+Purpose: Core functions invoked by the Data Hub class that interact with the db
+    These functions allow for a more simplified code bas with the data hub class
 
 Dependencies/Helpful Notes :
 
@@ -214,7 +215,6 @@ Change History:
 
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
-acosta      04/08/2022  Initial Iteration
 ffortunato  04/11/2022  pyODBC --> pymssql
                         + several new functions.
 
