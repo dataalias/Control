@@ -214,3 +214,16 @@ def is_issue_absent(connection, file_name):
         return False
     else:
         return True
+
+"""
+*******************************************************************************
+Change History:
+
+Author		Date		Description
+----------	----------	-------------------------------------------------------
+ffortunato  04/11/2022  pyODBC --> pymssql
+                        + several new functions.
+
+*******************************************************************************
+"""
+
