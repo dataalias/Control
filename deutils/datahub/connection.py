@@ -208,15 +208,3 @@ def is_issue_absent(connection, file_name):
         return True
 
 
-"""
-*******************************************************************************
-Change History:
-
-Author		Date		Description
-----------	----------	-------------------------------------------------------
-acosta      04/08/2022  Initial Iteration
-ffortunato  04/11/2022  pyODBC --> pymssql
-                        + several new functions.
-
-*******************************************************************************
-"""
