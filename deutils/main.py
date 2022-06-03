@@ -1,7 +1,7 @@
 from helper.deUtils import *
 from helper.ftps3xfer import *
 from delogging.delogging import log_to_console
-from DataHub.data_hub import *
+from datahub.data_hub import *
 from S3.S3UnZip import s3_unzip_file_multi_dest
 import boto3
 
