@@ -2,8 +2,15 @@
 *******************************************************************************
 File: connection.py
 
-Purpose: Core functions invoked by the Data Hub class that interact with the db
-    These functions allow for a more simplified code bas with the data hub class
+Purpose: Core functions invoked by the Data Hub class that interact with the db.
+    This allows the core class code to be lighter and more readable.
+
+connect_database: initiates a connection to a SQL Server Database
+get_publication_list: Get the list of publications associated with a publisher from Data Hub
+prepare_issues: Prepares an Issue Skeleton based on the publisher list passed
+insert_new_issue: Writes an issue record to the database
+update_issue: Writes status updates to an issue
+is_issue_absent: Determines if an isuee has already loaded to the system
 
 Dependencies/Helpful Notes :
 
@@ -208,7 +215,6 @@ def is_issue_absent(connection, file_name):
     else:
         return True
 
-
 """
 *******************************************************************************
 Change History:
@@ -220,3 +226,4 @@ ffortunato  04/11/2022  pyODBC --> pymssql
 
 *******************************************************************************
 """
+
