@@ -33,7 +33,9 @@ Properties:
     publication_idx = int :: Position of the active publication_code for the object.
     publication_code = str :: Currently active publication code for the object.
 
-Dependencies/Helpful Notes :
+Calls: connection.py - for functional support
+
+Calls ./connection.py - functions that support the datahub class.
 
 *******************************************************************************
 """
@@ -197,14 +199,12 @@ class DataHub:
             print("Failed to execute is_issue_absent: ", e)
         return response
 
-
 """
 *******************************************************************************
 Change History:
 
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
-acosta		01/08/2022  Initial Iteration
 ffortunato  04/08/2022  + get_db_connection_from_secret
 ffortunato  04/11/2022  o pyODBC --> pymssql
 ffortunato  04/22/2022  + multiple new methods for the class.
@@ -212,3 +212,4 @@ ffortunato  04/22/2022  + multiple new methods for the class.
 
 *******************************************************************************
 """
+
