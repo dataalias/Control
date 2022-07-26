@@ -22,22 +22,7 @@ Errors:
 Author:		Gopi Kadambari
 Date:		2018-03-13
 
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
-Date		Author			Description
---------	-------------	---------------------------------------------------
-2018-03-13	Gopi Kadambari	Original
-2018-03-14	Gopi Kadambari	Adding new join to publication table to get publicationpath
-2018-06-12	Jason Cabra	Add columns: PeriodStartTime (CharFull & CharTrim),
-				PublicationSeq, PublicationCode
-20201118	ffortunato		removing some warnings.
 ******************************************************************************/
-
--- TESTING --------------------------------------------------------------------
---declare @pIssueId	int				= 2185864
---declare @pVerbose	int				= 0
--------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 --  Declarations
@@ -95,37 +80,71 @@ BEGIN TRY
 	IF EXISTS
 	( 
 		SELECT 1
-		FROM ctl.Issue iss
+		FROM ctl.Issue id
 		JOIN ctl.Publication pub
-			ON iss.PublicationId = pub.PublicationId
-		WHERE iss.IssueId = @pIssueId 
+			ON id.PublicationId = pub.PublicationId
+		WHERE id.IssueId = @pIssueId 
 	)
 	BEGIN
 	
-  		SELECT
-			  iss.IssueId
-			, iss.IssueName
-			, pub.PublicationCode
-			, pub.PublicationFilePath
-			, CONVERT(VARCHAR(50), iss.PeriodStartTime, 121) AS PeriodStartTime
-			, iss.PublicationSeq
-
-		FROM ctl.Issue iss
-		JOIN ctl.Publication pub
-		on iss.PublicationId = pub.PublicationId 
-		WHERE iss.IssueId = @pIssueId
+		select	 pr.PublisherId
+				,pr.PublisherName
+				,pn.PublicationId
+				,pn.PublicationName
+				,pn.PublicationCode
+				,pr.InterfaceCode
+				-- URL and Login info should come from the Secret / Vault
+				,pn.SrcFileRegEx
+				,pn.IntervalCode
+				,pn.IntervalLength
+				,pn.RetryIntervalCode
+				,pn.RetryIntervalLength
+				,pn.RetryMax
+				,pn.ProcessingMethodCode
+				,pn.TransferMethodCode
+				,pn.NextExecutionDtm
+				,pn.SLATime
+				,ri.[SLAFormat]
+				,ri.[SLARegEx]
+				,pn.Bound
+				,pn.SrcFileFormatCode  -- As FeedFormat
+				,pn.StandardFileFormatCode
+				,pn.SSISFolder
+				,pn.SSISProject
+				,pn.SSISPackage
+				,pn.SrcPublicationName		
+				,pn.SrcFilePath
+				,pn.PublicationFilePath
+				,pn.PublicationArchivePath
+				,pn.PublicationGroupSequence
+				,id.IssueId						IssueId
+				,id.IssueName					IssueName
+				,id.PeriodStartTime				LastHighWaterMarkDatetime
+				,id.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
+				,id.PeriodEndTime				HighWaterMarkDatetime
+				,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+				,LastRecordSeq					HighWaterMarkRecordSeq
+		from 	ctl.Publication				  pn
+		left join ctl.Issue					  id
+		on		id.PublicationId			= pn.PublicationId
+		join	ctl.Publisher				  pr 
+		on		pr.PublisherId				= pn.PublisherId
+		join	ctl.RefInterval				  ri
+		on		pn.IntervalCode				= ri.IntervalCode
+		where	pn.IsActive					= 1 
+		and		id.IssueId					= @pIssueId
 
 	END
 	ELSE
 	BEGIN
 
 		SELECT
-			  0 AS IssueId
-			, 'NA' AS IssueName
-			, 'NA' AS PublicationCode
-			, 'NA' AS PublicationFilePath
+			  -1	AS IssueId
+			, 'NA'	AS IssueName
+			, 'NA'	AS PublicationCode
+			, 'NA'	AS PublicationFilePath
 			, '1900-01-01 00:00:00.000' AS PeriodStartTime
-			, 0 AS PublicationSeq
+			, -1	AS PublicationSeq
 
 	END
 
@@ -173,6 +192,18 @@ SELECT	 @CurrentDtm			= GETDATE()
 EXEC [audit].usp_InsertStepLog @MessageType, @CurrentDtm, @PreviousDtm, @StepNumber, @StepOperation, @JSONSnippet, @ErrNum, @ParametersPassedChar, @ErrMsg OUTPUT, @ParentStepLogId, @ProcName, @ProcessType, @StepName, @StepDesc OUTPUT, @StepStatus, @DbName, @Rows, @pETLExecutionId, @pPathId, @PrevStepLog OUTPUT, @pVerbose
 -------------------------------------------------------------------------------
 
-/****** Object:  StoredProcedure [oie].[usp_OIE_stage_work_Cleanup_behave]    Script Date: 03/28/2018 1:07:24 PM ******/
-SET ANSI_NULLS ON
 
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+2018-03-13	Gopi Kadambari	Original
+2018-03-14	Gopi Kadambari	Adding new join to publication table to get publicationpath
+2018-06-12	Jason Cabra	Add columns: PeriodStartTime (CharFull & CharTrim),
+				PublicationSeq, PublicationCode
+20201118	ffortunato		removing some warnings.
+20220726	ffortunato		Adding new attributes and new logic to supprt dh
+							processing within the new class.
+******************************************************************************/
