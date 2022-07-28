@@ -15,6 +15,7 @@
 		,@pDataFactoryName		varchar(255)	= 'N/A'
 		,@pDataFactoryPipeline	varchar(255)	= 'N/A'
 		,@pJobName				varchar(255)	= 'N/A'
+		,@pSQLStoredProcedure   varchar(255)	= 'N/A'
 		,@pRetryIntervalCode	varchar(20)		= 'UNK'
 		,@pRetryIntervalLength	int				= 1
 		,@pRetryMax				int				= 0
@@ -81,21 +82,6 @@ Calls:
 Author:         ffortunato
 Date:           20091020
 
-*******************************************************************************
-      change history
-*******************************************************************************
-date		author			description
---------	-------------	---------------------------------------------------
-20161020	ffortunato		adding process name to the postinggroup table.
-20161122	jprom			updated parameter comments and added examples.
-20180409	ffortunato		dusting off and preping for implementation.
-20180906	ffortunato		code validation changes.
-20200725	ochowkwale		parameters for NextExecutionDtm, TriggerType
-20210217	ffortunato		Adding Job Name to fire SQL Server Jobs
-20210327	ffortunato		Category stuff.
-20210327	ffortunato		- Trigger Type, Trigger Process.
-							o Interval code to include Immediate.
-20211008	ffortunato		o createdby
 ******************************************************************************/
 
 DECLARE	 @Rows					int				= 0
@@ -200,6 +186,7 @@ begin try
 		,DataFactoryName		
 		,DataFactoryPipeline	
 		,JobName
+		,SQLStoredProcedure
 		,RetryIntervalCode	
 		,RetryIntervalLength	
 		,RetryMax				
@@ -229,6 +216,7 @@ begin try
 		,@pDataFactoryName		
 		,@pDataFactoryPipeline	
 		,@pJobName
+		,@pSQLStoredProcedure
 		,@pRetryIntervalCode	
 		,@pRetryIntervalLength	
 		,@pRetryMax				
@@ -305,3 +293,21 @@ exec [audit].usp_InsertStepLog
 		,@ParametersPassedChar				,@ErrMsg output		,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 		,@StepDesc output	,@StepStatus	,@DbName			,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
+
+/******************************************************************************
+      change history
+*******************************************************************************
+date		author			description
+--------	-------------	---------------------------------------------------
+20161020	ffortunato		adding process name to the postinggroup table.
+20161122	jprom			updated parameter comments and added examples.
+20180409	ffortunato		dusting off and preping for implementation.
+20180906	ffortunato		code validation changes.
+20200725	ochowkwale		parameters for NextExecutionDtm, TriggerType
+20210217	ffortunato		Adding Job Name to fire SQL Server Jobs
+20210327	ffortunato		Category stuff.
+20210327	ffortunato		- Trigger Type, Trigger Process.
+							o Interval code to include Immediate.
+20211008	ffortunato		o createdby
+20220728	ffortunato		+ SQLStoredProcedure
+******************************************************************************/
