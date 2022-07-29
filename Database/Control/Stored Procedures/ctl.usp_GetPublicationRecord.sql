@@ -236,6 +236,7 @@ begin
 			,pn.SSISFolder
 			,pn.SSISProject
 			,pn.SSISPackage
+			,pn.GlueWorkflow
 			,pn.SrcPublicationName		
 			,pn.SrcFilePath
 			,pn.PublicationFilePath
@@ -334,6 +335,6 @@ Date		Author			Description
 20220712	ffortunato		Initial Iteration
 							Needed something for triggered events to get
 							datahub information.
-
+20220714	ffortunato		+ pn.GlueWorkflow
 
 ******************************************************************************/

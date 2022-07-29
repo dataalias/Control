@@ -516,7 +516,7 @@ begin try
 
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
+			,@Rows					= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
 
 		exec [audit].usp_InsertStepLog
@@ -528,14 +528,14 @@ begin try
 		select	 @JSONSnippet		= NULL
 
 		exec pg.ExecutePostingGroupProcessing 
-			 @pPGBId			= @PostingGroupBatchId
-			,@pPGId				= @PostingGroupId
+			 @pPGBId				= @PostingGroupBatchId
+			,@pPGId					= @PostingGroupId
 			,@pPGBatchSeq			= @PGPSeq
 			-- Need to  get rid of this $$$$$
 			--,@pIsDataHub			= @pIsDataHub
 			,@pETLExecutionId		= @pETLExecutionId
-			,@pPathId			= @pPathId
-			,@pVerbose			= @pVerbose
+			,@pPathId				= @pPathId
+			,@pVerbose				= @pVerbose
 
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm

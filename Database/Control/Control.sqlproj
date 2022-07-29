@@ -86,6 +86,7 @@
     <None Include="sbx.DataHub.publish.xml" />
     <None Include="DataHub_To_DEV_profile.publish.xml" />
     <None Include="DataHub_To_Prod.publish.xml" />
+    <None Include="DataHub_To_STG_profile.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

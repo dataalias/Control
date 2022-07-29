@@ -109,6 +109,7 @@ begin try
 -------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
+/*
 	select	 @StepName			= 'Getting Passphrase'
 			,@StepNumber		= @StepNumber + 1
 			,@StepOperation		= 'select'
@@ -122,7 +123,7 @@ begin try
 		AND		 SchemaName		= @SchemaName
 		AND		 TableName		= @PassphraseTableName
 	)
-
+*/
 -------------------------------------------------------------------------------
 --  Check Execution Date
 -------------------------------------------------------------------------------
@@ -247,6 +248,7 @@ on		 iss.IssueId			= issd.IssueId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
+			/*
 			,pr.SiteURL
 			,pr.SiteUser
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.[SitePassword]))				as SitePassword
@@ -255,6 +257,7 @@ on		 iss.IssueId			= issd.IssueId
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
+			*/
 			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
@@ -273,12 +276,14 @@ on		 iss.IssueId			= issd.IssueId
 			,pn.SSISFolder
 			,pn.SSISProject
 			,pn.SSISPackage
+			,pn.GlueWorkflow
 			,pn.SrcPublicationName		
 			,pn.SrcFilePath
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
 			,id.IssueId						LastIssueId
+			,'Unknown'						IssueName
 			,id.PeriodEndTime				HighWaterMarkDatetime
 			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
 			,LastRecordSeq					HighWaterMarkRecordSeq
@@ -372,4 +377,5 @@ Date		Author			Description
 							highwater mark is the last end time not start time.
 							+ high warter for recordSeq as well
 20220405	ffortunato		o @IssueDetails is now updated correctly.
+20220714	ffortunato		+ pn.GlueWorkflow
 ******************************************************************************/
