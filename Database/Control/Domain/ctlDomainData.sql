@@ -30,6 +30,7 @@ Date		Author		Description
 						Table
 20210105	ffortunato	more if statements
 20210312	ffortunato	reffileformat added.
+20220809	ffortunato	cleaning up issue statuses.
 
 ******************************************************************************/
 
@@ -371,7 +372,8 @@ print 'Complete Ref Interface Inserts'
 
 
 -- ISSUE STATUSES
-print 'Start Ref Issue Inserts'
+print 'Start Ref Status Inserts'
+print 'Loading Issue Statuses'
 
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IP'))
 BEGIN
@@ -389,7 +391,16 @@ BEGIN
 	,[STATUSDESC],[STATUSTYPE]
 	,CreatedDtm,CREATEDBY)
 	VALUES ('IS','Issue Staging'
-	,'Issue is currently being loaded onto local staging tables.' ,'Issue'
+	,'Issue is currently being loaded onto local staging area.' ,'Issue'
+	,GETDATE(),'ffortunato')
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IL'))
+BEGIN
+	INSERT INTO ctl.REFSTATUS ([STATUSCODE],[STATUSNAME]
+	,[STATUSDESC],[STATUSTYPE]
+	,CreatedDtm,CREATEDBY)
+	VALUES ('IL','Issue Loaded'
+	,'The Load of the issues to staging/ods area complete. Subscribers can now access the information based on distribution.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IN'))
@@ -410,15 +421,7 @@ BEGIN
 	,'Issue has been consumed by subscribing systems.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
-IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IF'))
-BEGIN
-	INSERT INTO ctl.REFSTATUS ([STATUSCODE],[STATUSNAME]
-	,[STATUSDESC],[STATUSTYPE]
-	,CreatedDtm,CREATEDBY)
-	VALUES ('IF','Issue Failed'
-	,'Issue has failed to be consumed by ALL subscribing systems.'   ,'Issue'
-	,GETDATE(),'ffortunato')
-END
+
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IA'))
 BEGIN
 	INSERT INTO ctl.REFSTATUS ([STATUSCODE],[STATUSNAME]
@@ -437,15 +440,18 @@ BEGIN
 	,'The stage table has to be rerun from the begining.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
-IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IL'))
+
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IF'))
 BEGIN
 	INSERT INTO ctl.REFSTATUS ([STATUSCODE],[STATUSNAME]
 	,[STATUSDESC],[STATUSTYPE]
 	,CreatedDtm,CREATEDBY)
-	VALUES ('IL','Issue Loaded'
-	,'The Load of the issues to staging/ods area complete. Subscribers can now access the information based on distribution.'   ,'Issue'
+	VALUES ('IF','Issue Failed'
+	,'Issue has failed to be consumed by ALL subscribing systems.'   ,'Issue'
 	,GETDATE(),'ffortunato')
 END
+
+print 'Loading Distribution Statuses'
 
 -- Distribution STATUSES
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('DN'))

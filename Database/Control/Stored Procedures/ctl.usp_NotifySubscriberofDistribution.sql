@@ -1,8 +1,8 @@
 ﻿CREATE procedure [ctl].[usp_NotifySubscriberOfDistribution] (
 		 @pIssueId			int			= -1
-		,@pStageStart			datetime		= NULL
-		,@pStageEnd			datetime		= NULL
-		,@pETLExecutionId		int			= -1
+		,@pStageStart		datetime	= NULL
+		,@pStageEnd			datetime	= NULL
+		,@pETLExecutionId	int			= -1
 		,@pPathId			int			= -1
 		,@pVerbose			bit			= 0)
 AS
@@ -18,7 +18,9 @@ Purpose:	This procedure determines if a process that has just completed
 Sample Execution:
 		exec ctl.usp_NotifySubscriberOfDistribution
 			 @pIssueId							= 9532
-			,@pETLExecutionId						= -1
+			,@pStageStart						= NULL
+			,@pStageEnd							= NULL
+			,@pETLExecutionId					= -1
 			,@pPathId							= -1
 			,@pVerbose							= 0
 
@@ -46,60 +48,60 @@ Date:		20180413
 --  Declarations
 -------------------------------------------------------------------------------
 
-DECLARE	 @Rows					int			= 0
-        ,@ErrNum				int			= -1
-		,@ErrMsg			nvarchar(max)		= 'N/A'
-		,@ParametersPassedChar		varchar(1000)   	= 'N/A'
-		,@CRLF				varchar(10)		= char(13) + char(10)
-		,@ProcName			varchar(256)		= OBJECT_NAME(@@PROCID) 
-		,@ParentStepLogId       	int			= -1
-		,@PrevStepLog			int			= -1
+DECLARE	 @Rows					int				= 0
+        ,@ErrNum				int				= -1
+		,@ErrMsg				nvarchar(max)	= 'N/A'
+		,@ParametersPassedChar	varchar(1000)   = 'N/A'
+		,@CRLF					varchar(10)		= char(13) + char(10)
+		,@ProcName				varchar(256)	= OBJECT_NAME(@@PROCID) 
+		,@ParentStepLogId       int				= -1
+		,@PrevStepLog			int				= -1
 		,@ProcessStartDtm		datetime		= getdate()
 		,@CurrentDtm			datetime		= getdate()
 		,@PreviousDtm			datetime		= getdate()
-		,@DbName			varchar(50)		= DB_NAME()
+		,@DbName				varchar(50)		= DB_NAME()
 		,@CurrentUser			varchar(50)		= CURRENT_USER
 		,@ProcessType			varchar(10)		= 'Proc'
-		,@StepName			varchar(256)		= 'Start'
+		,@StepName				varchar(256)	= 'Start'
 		,@StepOperation			varchar(50)		= 'N/A' 
 		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc			nvarchar(2048)		= 'Procedure started' 
+		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
 		,@StepStatus			varchar(10)		= 'Success'
 		,@StepNumber			varchar(10)		= 0
 		,@SubStepNumber			varchar(23)		= 0
-		,@Duration			varchar(10)		= 0
-		,@JSONSnippet			nvarchar(max)		= NULL
+		,@Duration				varchar(10)		= 0
+		,@JSONSnippet			nvarchar(max)	= NULL
 
-		,@SubscriptionCode		varchar(100)		= 'N/A'
-		,@PostingGroupBatchId		int			= -1
-		,@PostingGroupId		int			= -1
-		,@PostingGroupStatusId		int			= -1
-		,@PostingGroupStatusCode	varchar(20)		= 'PC' -- If we made it to this point the feed is staged.
-		,@DistStatusId			int			= -1
+		,@SubscriptionCode		varchar(100)	= 'N/A'
+		,@PostingGroupBatchId	int				= -1
+		,@PostingGroupId		int				= -1
+		,@PostingGroupStatusId	int				= -1
+		,@PostingGroupStatusCode	varchar(20)	= 'PC' -- If we made it to this point the feed is staged.
+		,@DistStatusId			int				= -1
 		,@DistStatusCode		varchar(10)		= 'DN'
-		,@DateId			int			= -1
-		,@ETLExecutionId		int			= -1 --This is the SSIS that will be invoked.
+		,@DateId				int				= -1
+		,@ETLExecutionId		int				= -1 --This is the SSIS that will be invoked.
 		,@DistributionId		bigint			= -1
-		,@Folder			varchar(100)		= 'N/A'
-		,@Project			varchar(100)		= 'N/A'
-		,@Package			varchar(100)		= 'N/A'
-		,@PGPSeq			int			= -1
-		,@SubscriberCode		varchar(100)		= 'EDL'
-		,@IssueStatusCodeLoaded		varchar(100)		= 'IL'
+		,@Folder				varchar(100)	= 'N/A'
+		,@Project				varchar(100)	= 'N/A'
+		,@Package				varchar(100)	= 'N/A'
+		,@PGPSeq				int				= -1
+		,@SubscriberCode		varchar(100)	= 'EDL'
+		,@IssueStatusCodeLoaded	varchar(100)	= 'IL'
 		,@DistributionStatusCodeAwait	varchar(100)		= 'DN'
 		,@DistributionStatusCodeNotify	varchar(100)		= 'DT'
-		,@LoopMax			int			= -1
-		,@LoopCount			int			=  1
+		,@LoopMax				int			= -1
+		,@LoopCount				int			=  1
 
 
 declare	 @NotificationList table (
 		 NotificationListId		int identity (1,1)	not null
-		,IssueId			int			not null
+		,IssueId				int				not null
 		,DistributionId			bigint			not null
-		,DistributionStatusCode		varchar(20)		not null
+		,DistributionStatusCode	varchar(20)		not null
 		,SubscriberCode			varchar(20)		not null
-		,SubscriptionCode		varchar(100)		not null
-		,DailyPublicationSeq		int			not null
+		,SubscriptionCode		varchar(100)	not null
+		,DailyPublicationSeq	int				not null
 )
 
 exec [audit].usp_InsertStepLog
@@ -170,9 +172,9 @@ begin try
 
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
-		,@Rows			= @@ROWCOUNT 
+			,@Rows				= @@ROWCOUNT 
 	select	 @CurrentDtm		= getdate()
-		,@JSONSnippet		= '{"@IssueStatusCodeLoaded":"'	+ @IssueStatusCodeLoaded +
+			,@JSONSnippet		= '{"@IssueStatusCodeLoaded":"'	+ @IssueStatusCodeLoaded +
 									  '","@DistributionStatusCodeAwait":"'	+ cast(@DistributionStatusCodeAwait as varchar(20)) +
 									  '","@pIssueId":"'	+ cast(@pIssueId as varchar(20)) + '"}'
 
@@ -186,7 +188,7 @@ begin try
 	select	 @StepName			= 'Loop through Distribution Records'
 			,@StepNumber		= @StepNumber + 1
 			,@StepOperation		= 'loop'
-			,@StepDesc		= 'Attempt to send notification to all subscribers of a specific publication.'
+			,@StepDesc			= 'Attempt to send notification to all subscribers of a specific publication.'
 
 	select  @LoopMax			= isnull(max(NotificationListId),-1)
 	from    @NotificationList
@@ -195,9 +197,9 @@ begin try
 
 		-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
-		,@Rows			= @@ROWCOUNT 
+		,@Rows					= @@ROWCOUNT 
 	select	 @CurrentDtm		= getdate()
-		,@JSONSnippet		= '{"Loop Count":"' + cast(@LoopMax as varchar(10)) + '"}'
+		,@JSONSnippet			= '{"Loop Count":"' + cast(@LoopMax as varchar(10)) + '"}'
 
 	exec audit.usp_InsertStepLog
 			 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -270,36 +272,36 @@ begin try
 		-- Get the batch Id, The Distribution StatusId and posting group id.
 		------------------------------------------------------------------------------
 		select	 @StepName			= 'Lookup @NotificationList Information'
-			,@StepNumber		= @StepNumber + 0
-			,@SubStepNumber    	= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.1'
-			,@StepOperation		= 'select'
-			,@StepDesc		= 'Priming the data needed to send notification.'
+				,@StepNumber		= @StepNumber + 0
+				,@SubStepNumber    	= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.1'
+				,@StepOperation		= 'select'
+				,@StepDesc			= 'Priming the data needed to send notification.'
 
 		select	 @DistributionId	= isnull(nl.DistributionId,-1)
-			,@SubscriptionCode	= isnull(nl.SubscriptionCode,'N/A')
+				,@SubscriptionCode	= isnull(nl.SubscriptionCode,'N/A')
 		from	 @NotificationList	  nl
 		where	 NotificationListId	= @LoopCount
 
 	-- Minor HAX. for the staged data subscription and posting group should be the same...
 	-- Make this a trigger on the bpi_dw posting group table to kick off the package...
 		select   @PostingGroupId	= isnull(pg.PostingGroupId,-1)
-			,@Folder		= isnull(pg.SSISFolder, 'N/A')
-			,@Project		= isnull(pg.SSISProject,'N/A')
-			,@Package		= isnull(pg.SSISPackage,'N/A')
+				,@Folder			= isnull(pg.SSISFolder, 'N/A')
+				,@Project			= isnull(pg.SSISProject,'N/A')
+				,@Package			= isnull(pg.SSISPackage,'N/A')
 		from	 pg.PostingGroup	  pg
 		where	 PostingGroupCode	= @SubscriptionCode
 
 	-- Posting Group sequence is reset with each new batch id.
-		select	 @PGPSeq		= isnull(max(PGPBatchSeq),0)+1
+		select	 @PGPSeq			= isnull(max(PGPBatchSeq),0)+1
 		from	 pg.PostingGroupProcessing
-		where	 PostingGroupBatchId	= @PostingGroupBatchId
-		and	 PostingGroupId		= @PostingGroupId
+		where	 PostingGroupBatchId= @PostingGroupBatchId
+		and		 PostingGroupId		= @PostingGroupId
 
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
-			,@Rows			= @@ROWCOUNT 
+				,@Rows				= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
-			,@JSONSnippet		= '{"@StatusId":"'		+ cast(@DistStatusId as varchar(20)) + 
+				,@JSONSnippet		= '{"@StatusId":"'		+ cast(@DistStatusId as varchar(20)) + 
 						  '","@SubscriptionCode":"'	+      @SubscriptionCode +
 						  '","@DistStatusId":"'		+ cast(@DistStatusId as varchar(20)) +
 						  '","@DistributionId":"'	+ cast(@DistributionId as varchar(20)) +
@@ -330,16 +332,16 @@ begin try
 				,@StepOperation		= 'validate'
 				,@StepDesc			= 'Make sure each of the lookups above returned appropriate values.'
 
-		if		 @SubscriptionCode	 = 'N/A'	or 
-				 @PostingGroupId	 = -1		or 
+		if		 @SubscriptionCode	= 'N/A'	or 
+				 @PostingGroupId	= -1	or 
 				 @PostingGroupBatchId	 = -1		or 
-				 @DateId		 = -1		or 
-				 @PGPSeq		 = -1		or -- error test condition
+				 @DateId			= -1	or 
+				 @PGPSeq			= -1	or -- error test condition
 				 exists (select top 1 1 
 						from	 pg.[PostingGroupProcessing]
 						where 	 PostingGroupBatchId	= @PostingGroupBatchId
-						and	 PostingGroupId		= @PostingGroupId
-						and	 PGPBatchSeq		= @PGPSeq)
+						and		 PostingGroupId			= @PostingGroupId
+						and		 PGPBatchSeq			= @PGPSeq)
 		begin
 			select   @ErrNum		= 50001
 					,@MessageType	= 'ErrCust'
@@ -374,16 +376,16 @@ begin try
 		-- Gathers the information for each distribution assoicated with an Issue that 
 		-- can be used to notify the subscribing system that processing can commense
 		-------------------------------------------------------------------------------
-		select	 @PostingGroupStatusId		= isnull(StatusId,-2)
-		from	 pg.RefStatus			  rs
-		where	 rs.StatusCode			= @PostingGroupStatusCode
+		select	 @PostingGroupStatusId	= isnull(StatusId,-2)
+		from	 pg.RefStatus		  rs
+		where	 rs.StatusCode		= @PostingGroupStatusCode
 		and	 rs.StatusType			= 'PostingGroup'
 
 		select	 @StepName			= 'Insert Distribution Information'
 				,@StepNumber		= @StepNumber + 0
 				,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
 				,@StepOperation		= 'insert'
-				,@StepDesc		= 'Gathers the information for each distribution assoicated with an Issue that can be used to notify the subscribing system that processing can commense.'
+				,@StepDesc			= 'Gathers the information for each distribution assoicated with an Issue that can be used to notify the subscribing system that processing can commense.'
 
 		insert	 into pg.[PostingGroupProcessing](
 				 [PostingGroupBatchId]		--[int] NOT NULL,
@@ -427,9 +429,9 @@ begin try
 
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
-			,@Rows			= @@ROWCOUNT 
+				,@Rows			= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
-			--,@JSONSnippet		= '{"":"' + @myvar + '"}' -- Only if needed.
+				--,@JSONSnippet		= '{"":"' + @myvar + '"}' -- Only if needed.
 
 		-- If no rows were added we should log a warning.
 		if @Rows <= 0
@@ -470,7 +472,7 @@ begin try
 			,@StepNumber		= @StepNumber + 0
 			,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.4'
 			,@StepOperation		= 'update'
-			,@StepDesc		= 'Notification can be set to "sent".'
+			,@StepDesc			= 'Notification can be set to "sent".'
 	
 		update	 dist
 		set		 StatusId	= (	select	 StatusId 
@@ -481,10 +483,10 @@ begin try
 	
 		-- Upon completion of the step, log it!
 		select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
+				,@Rows				= @@ROWCOUNT 
 		select	 @CurrentDtm		= getdate()
-			,@JSONSnippet		= '{"@DistributionId":"'     + cast(@DistributionId               as varchar(20)) + '"' +
-						  ',"@DistributionStatus":"' + cast(@DistributionStatusCodeNotify as varchar(20)) + '"}' 
+				,@JSONSnippet		= '{"@DistributionId":"'     + cast(@DistributionId               as varchar(20)) + '"' +
+									  ',"@DistributionStatus":"' + cast(@DistributionStatusCodeNotify as varchar(20)) + '"}' 
 
 		exec [audit].usp_InsertStepLog
 				 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
@@ -569,10 +571,10 @@ end try
 -------------------------------------------------------------------------------
 begin catch
 
-	select 	 @PreviousDtm			= @CurrentDtm
-		,@ErrNum			= @@ERROR
-		,@ErrMsg			= ERROR_MESSAGE()
-		,@Rows				= 0
+	select 	 @PreviousDtm		= @CurrentDtm
+			,@ErrNum			= @@ERROR
+			,@ErrMsg			= ERROR_MESSAGE()
+			,@Rows				= 0
 
 	select	 @StepStatus		= 'Failure'
 			,@CurrentDtm		= getdate()
@@ -640,4 +642,5 @@ Date		Author			Description
 20200515	ffortunato		making sure txn for new batch doesnt fail.
 							ISOLATION LEVEL SERIALIZABLE
 
+20220809	ffortunato		formatting
 ******************************************************************************/

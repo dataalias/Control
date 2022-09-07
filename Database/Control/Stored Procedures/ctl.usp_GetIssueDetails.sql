@@ -88,6 +88,7 @@ BEGIN TRY
 	BEGIN
 	
 		select	 pr.PublisherId
+				,pr.PublisherCode
 				,pr.PublisherName
 				,pn.PublicationId
 				,pn.PublicationName
