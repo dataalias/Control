@@ -13,7 +13,7 @@
 	,@pSSISPackage				varchar(255)	= 'N/A'
 	,@pDataFactoryName			varchar(255)	= 'N/A'
 	,@pDataFactoryPipeline		varchar(255)	= 'N/A'
-	,@pGlueWorkFlow				varchar(255)	= 'N/A'
+	,@pGlueWorkflow				varchar(255)	= 'N/A'
 	,@pSrcDeltaAttributes		varchar(2000)	= 'UNK'
 	,@pSrcFilePath				varchar(255)	= 'N/A'
 	,@pSrcFileRegEx				varchar(255)	= 'UNK'
@@ -148,7 +148,7 @@ SELECT	 @ParametersPassedChar	=
 		'    ,@pSSISPackage = '''		 + isnull(@pSSISPackage ,'NULL') + '''' + @CRLF + 
 		'    ,@pDataFactoryName = '''	 + isnull(@pDataFactoryName ,'NULL') + '''' + @CRLF + 
 		'    ,@pDataFactoryPipeline = ''' + isnull(@pDataFactoryPipeline ,'NULL') + '''' + @CRLF + 
-		'    ,@pGlueWorkFlow = '''		 + isnull(@pGlueWorkFlow ,'NULL') + '''' + @CRLF + 
+		'    ,@pGlueWorkflow = '''		 + isnull(@pGlueWorkflow ,'NULL') + '''' + @CRLF + 
 		'    ,@pSrcFilePath = '''		 + isnull(@pSrcFilePath ,'NULL') + '''' + @CRLF + 
 		'    ,@pSrcFileRegEx = '''		 + isnull(@pSrcFileRegEx ,'NULL') + '''' + @CRLF + 
 		'    ,@pStandardFileRegEx = '''	 + isnull(@pStandardFileRegEx ,'NULL') + '''' + @CRLF + 
@@ -375,7 +375,7 @@ begin try
 			,@pSSISPackage
 			,@pDataFactoryName
 			,@pDataFactoryPipeline
-			,@pGlueWorkFlow
+			,@pGlueWorkflow
 			,@pSrcDeltaAttributes
 			,@pCreatedBy
 			,@CreatedDate
@@ -469,5 +469,5 @@ Date		Author			Description
 20190926	ochowkwale		Change IsDataHub to INT from BIT
 20201022	ochowkwale		Parameters for Retrys
 20210325	ffortunato		RegEx and FileFormat
-20220907	ffortunato		+ GlueWorkFlow
+20220907	ffortunato		+ GlueWorkflow
 ******************************************************************************/

@@ -33,7 +33,7 @@ CREATE TABLE [pg].[PostingGroup](
 	[SSISPackage] [varchar](255) NOT NULL,
 	[DataFactoryName] [varchar](255) NOT NULL,
 	[DataFactoryPipeline] [varchar](255) NOT NULL,
-	[GlueWorkFlow] [varchar](255) NOT NULL,
+	[GlueWorkflow] [varchar](255) NOT NULL,
 	[JobName] varchar(255) NOT NULL,
 	[SQLStoredProcedure] varchar(255) NOT NULL, -- Need to fully qualify Database.Schema.ProcedureName
 	[IsActive] [bit] NOT NULL,
