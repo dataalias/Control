@@ -7,12 +7,13 @@
 	,@pPublicationFilePath		varchar(255)	= 'N/A'
 	,@pPublicationArchivePath	varchar(255)	= 'N/A'
 	,@pSrcFileFormatCode		varchar(20)		= 'N/A'
-	,@pStageJobName				VARCHAR(255)	= 'N/A'
-	,@pSSISFolder				VARCHAR(255)	= 'N/A'
-	,@pSSISProject				VARCHAR(255)	= 'N/A'
-	,@pSSISPackage				VARCHAR(255)	= 'N/A'
-	,@pDataFactoryName			VARCHAR(255)	= 'N/A'
-	,@pDataFactoryPipeline		VARCHAR(255)	= 'N/A'
+	,@pStageJobName				varchar(255)	= 'N/A'
+	,@pSSISFolder				varchar(255)	= 'N/A'
+	,@pSSISProject				varchar(255)	= 'N/A'
+	,@pSSISPackage				varchar(255)	= 'N/A'
+	,@pDataFactoryName			varchar(255)	= 'N/A'
+	,@pDataFactoryPipeline		varchar(255)	= 'N/A'
+	,@pGlueWorkFlow				varchar(255)	= 'N/A'
 	,@pSrcDeltaAttributes		varchar(2000)	= 'UNK'
 	,@pSrcFilePath				varchar(255)	= 'N/A'
 	,@pSrcFileRegEx				varchar(255)	= 'UNK'
@@ -33,7 +34,7 @@
 	,@pSLATime					varchar(20)		= NULL
 	,@pSLAEndTimeInMinutes		int				= -1
 	,@pNextExecutionDtm			datetime		= NULL -- '1900-01-01 00:00:00.000'
-	,@pIsActive					BIT				= 1  -- Why insert it if it isn't active...
+	,@pIsActive					bit				= 1  -- Why insert it if it isn't active...
 	,@pIsDataHub				bit				= 0  -- Maybe it isn't data hub, shouldn't be...
 	,@pBound					varchar(5)		= 'In'	 --Inbound or Outbound
 	,@pCreatedBy				varchar(50)
@@ -83,32 +84,6 @@ Error(s):		50001 - Publisher Code could not be looked up.
 Author:		ffortunato
 Date:		20091020
 
-*******************************************************************************
-       CHANGE HISTORY
-*******************************************************************************
-Date		Author			Description
---------	-------------	---------------------------------------------------
-20161205	ffortunato		removing some additional print statements.
-20161206	ffortunato		@pPublicationCode should be varchar 20.
-20170111	ffortunato		@pPublicationCode should be varchar 50.
-							@pSrcPublicationName should be 255
-20170120	ffortunato		Adding path variables. changing to alter
-20170126	ffortunato		Fixing issues when throwing errors.
-							redoing the parameter listing as well.
-							formatting.
-20170606	fforutnato		Adding destination table.	
-20180112	hbangad			Adding new fields-
-							1)FeedFormat
-							2)SrcFilePath
-							Added Insert Step Log and error handling
-20180228	fforutnato		Adding SLA and SQLJobName so we can kick off 
-							packages.
-20180611	fforutnato		SLA needs to be varchar (20) 
-20180705	fforutnato		Working on Adding retry logic.
-20190305	ochowkwale		Data is inbound or outbound	
-20190926	ochowkwale		Change IsDataHub to INT from BIT
-20201022	ochowkwale		Parameters for Retrys
-20210325	ffortunato		RegEx and FileFormat
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -173,6 +148,7 @@ SELECT	 @ParametersPassedChar	=
 		'    ,@pSSISPackage = '''		 + isnull(@pSSISPackage ,'NULL') + '''' + @CRLF + 
 		'    ,@pDataFactoryName = '''	 + isnull(@pDataFactoryName ,'NULL') + '''' + @CRLF + 
 		'    ,@pDataFactoryPipeline = ''' + isnull(@pDataFactoryPipeline ,'NULL') + '''' + @CRLF + 
+		'    ,@pGlueWorkFlow = '''		 + isnull(@pGlueWorkFlow ,'NULL') + '''' + @CRLF + 
 		'    ,@pSrcFilePath = '''		 + isnull(@pSrcFilePath ,'NULL') + '''' + @CRLF + 
 		'    ,@pSrcFileRegEx = '''		 + isnull(@pSrcFileRegEx ,'NULL') + '''' + @CRLF + 
 		'    ,@pStandardFileRegEx = '''	 + isnull(@pStandardFileRegEx ,'NULL') + '''' + @CRLF + 
@@ -356,6 +332,7 @@ begin try
 			,SSISPackage
 			,DataFactoryName
 			,DataFactoryPipeline
+			,GlueWorkflow
 			,SrcDeltaAttributes
 			,CreatedBy
 			,CreatedDtm
@@ -398,6 +375,7 @@ begin try
 			,@pSSISPackage
 			,@pDataFactoryName
 			,@pDataFactoryPipeline
+			,@pGlueWorkFlow
 			,@pSrcDeltaAttributes
 			,@pCreatedBy
 			,@CreatedDate
@@ -464,3 +442,32 @@ exec [audit].usp_InsertStepLog
 		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 		,@pVerbose
+
+/******************************************************************************
+       CHANGE HISTORY
+*******************************************************************************
+Date		Author			Description
+--------	-------------	---------------------------------------------------
+20161205	ffortunato		removing some additional print statements.
+20161206	ffortunato		@pPublicationCode should be varchar 20.
+20170111	ffortunato		@pPublicationCode should be varchar 50.
+							@pSrcPublicationName should be 255
+20170120	ffortunato		Adding path variables. changing to alter
+20170126	ffortunato		Fixing issues when throwing errors.
+							redoing the parameter listing as well.
+							formatting.
+20170606	fforutnato		Adding destination table.	
+20180112	hbangad			Adding new fields-
+							1)FeedFormat
+							2)SrcFilePath
+							Added Insert Step Log and error handling
+20180228	fforutnato		Adding SLA and SQLJobName so we can kick off 
+							packages.
+20180611	fforutnato		SLA needs to be varchar (20) 
+20180705	fforutnato		Working on Adding retry logic.
+20190305	ochowkwale		Data is inbound or outbound	
+20190926	ochowkwale		Change IsDataHub to INT from BIT
+20201022	ochowkwale		Parameters for Retrys
+20210325	ffortunato		RegEx and FileFormat
+20220907	ffortunato		+ GlueWorkFlow
+******************************************************************************/
