@@ -42,6 +42,7 @@ CREATE TABLE [ctl].[Publication](
 	[SSISPackage] [varchar](255) NOT NULL,
 	[DataFactoryName] [varchar](255) NOT NULL,
 	[DataFactoryPipeline] [varchar](255) NOT NULL,
+	[GlueWorkflow] [varchar](255) NOT NULL,
 	[IntervalCode] [varchar](20) NOT NULL,
 	[IntervalLength] [int] NOT NULL,
 	[SLATime] [varchar](20) NULL,
@@ -134,6 +135,9 @@ GO
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__DataFactoryPipeline__NA]  DEFAULT 'N/A' FOR [DataFactoryPipeline]
 GO
 
+ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__GlueWorkflow__NA]  DEFAULT 'N/A' FOR [GlueWorkflow]
+GO
+
 ALTER TABLE ctl.Publication ADD CONSTRAINT CHK_Publication_RetryInterval
 CHECK ((ctl.fn_GetIntervalInMinutes(RetryIntervalLength,RetryIntervalCode,-1,-1,0)) < (ctl.fn_GetIntervalInMinutes(IntervalLength,IntervalCode,-1,-1,0)))
 GO
@@ -201,4 +205,6 @@ date		author			description
 							Adding Processing Method Code (ADPF, SSIS, ...)
 							Existing method code defines snapshot, transaction, etc..)
 20210413	ffortunato		Fixing flower box.
+20210413	ffortunato		+ GlueWorkflow 
+							Time to start kicking off Glue jobs ...
 ******************************************************************************/

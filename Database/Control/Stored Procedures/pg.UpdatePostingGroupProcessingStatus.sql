@@ -110,21 +110,23 @@ begin try
 --print @pStatusCode
 IF (@pPostingGroupStatusCode = @PostingGoupFailure)
 BEGIN
-	SELECT @PostingGroupProcessingId = pr.PostingGroupProcessingId
-		,@pPostingGroupStatusCode = CASE WHEN (pr.RetryCount >= p.RetryMax) OR (DATEADD(mi,SLAEndTimeInMinutes,pr.CreatedDtm) < @CurrentDtm) 
-								THEN @PostingGoupFailure ELSE @PostingGroupRetry END	
-		,@Severity = CASE WHEN (p.RetryMax <= pr.RetryCount) AND r.StatusCode <> @PostingGoupFailure THEN 1 ELSE 0 END
-		,@Project = p.SSISProject
-		,@Package = p.SSISPackage
-		,@DataFactoryName = p.DataFactoryName
-		,@DataFactoryPipeline = p.DataFactoryPipeline
-	FROM pg.PostingGroup AS p
-	INNER JOIN pg.PostingGroupProcessing AS pr ON pr.PostingGroupId = p.PostingGroupId
-	INNER JOIN pg.RefStatus AS r ON r.StatusId = pr.PostingGroupStatusId
-	WHERE pr.PostingGroupBatchId = @pPostingGroupBatchId
-		AND pr.PostingGroupId = @pPostingGroupId
-		AND pr.PGPBatchSeq = @pPostingGroupBatchSeq
-		AND p.IsActive = 1
+	SELECT	 @PostingGroupProcessingId	= pr.PostingGroupProcessingId
+			,@pPostingGroupStatusCode	= CASE WHEN (pr.RetryCount >= p.RetryMax) OR (DATEADD(mi,SLAEndTimeInMinutes,pr.CreatedDtm) < @CurrentDtm) 
+												THEN @PostingGoupFailure ELSE @PostingGroupRetry END	
+			,@Severity					= CASE WHEN (p.RetryMax <= pr.RetryCount) AND r.StatusCode <> @PostingGoupFailure THEN 1 ELSE 0 END
+			,@Project					= p.SSISProject
+			,@Package					= p.SSISPackage
+			,@DataFactoryName			= p.DataFactoryName
+			,@DataFactoryPipeline		= p.DataFactoryPipeline
+	FROM	 pg.PostingGroup			AS p
+	JOIN	 pg.PostingGroupProcessing	AS pr
+	ON		 pr.PostingGroupId			= p.PostingGroupId
+	JOIN	 pg.RefStatus				AS r 
+	ON		 r.StatusId					= pr.PostingGroupStatusId
+	WHERE	 pr.PostingGroupBatchId		= @pPostingGroupBatchId
+	AND		 pr.PostingGroupId			= @pPostingGroupId
+	AND		 pr.PGPBatchSeq				= @pPostingGroupBatchSeq
+	AND		 p.IsActive					= 1
 	
 	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
 	FROM pg.PostingGroupProcessing AS pgp

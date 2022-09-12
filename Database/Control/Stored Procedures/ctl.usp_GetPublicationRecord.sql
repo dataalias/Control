@@ -1,26 +1,27 @@
-﻿CREATE PROCEDURE [ctl].[usp_GetPublicationList]
-	 @pPublisherCode			varchar(50)		= 'UNK'	
-	,@pNextExecutionDateTime	datetime		= NULL --'3001-Jan-01'
-	,@pPublicationGroupSequence int				= 1
+﻿CREATE PROCEDURE ctl.usp_GetPublicationRecord
+	 @pPublicationFilePath		varchar(255)	= 'UNK'	
 	,@pETLExecutionId			int				= -1
 	,@pPathId					int				= -1
 	,@pVerbose					bit				= 0
 AS
 
 /*****************************************************************************
- File:			usp_GetPublicationList.sql
- Name:			usp_GetPublicationList
- Purpose:		Returns all publications related to a particular publisher.
-				Both Active and InActive publications are returned.
-				It is the applications responsibility to decide what to do
-				with active or inactive records.
+ File:			ctl.usp_GetPublicationRecord.sql
+ Name:			ctl.usp_GetPublicationRecord
+ Purpose:		Returns a single publication related to a particular folder
+				path.
+				Only Active publications are returned.
+				Note: NextExecutionDate is not considered in this procedure 
+				because the proc is invoked by a trigger meaning a file is 
+				available.
+				
 
-	declare @MyDate datetime = getdatE()
-	exec ctl.[usp_GetPublicationList] @pPublisherCode = '8x8CC', @pNextExecutionDateTime = @MyDate
-	
+	exec ctl.usp_GetPublicationRecord @pPublicationFilePath = '/one/two'
+										
+
  Parameters:    
 
- Called by:		Application
+ Called by:		SSIS
  Calls:          
 
  Author:		ffortunato
@@ -61,6 +62,7 @@ declare	 @Rows					int				= 0
 		,@IssueRetry			varchar(2)		= 'IR'
 		,@NextExecutionDateTime datetime		= cast('3002-Jan-10' as datetime)
 		,@PublisherId			int				= -1
+		,@PublicationCode		varchar(50)		= 'N/A'
 		
 declare @RetryPublications table (
 		 PublicationId			int
@@ -73,20 +75,14 @@ declare	@IssueDetail			table(
 		,IssueId				int
 		,FirstRecordSeq			int
 		,LastRecordSeq			int
-		,FirstRecordChecksum	varchar(2048)
-		,LastRecordChecksum 	varchar(2048)
 		,PeriodStartTime		datetime
 		,PeriodEndTime			datetime
 		,PeriodStartTimeUTC		datetimeoffset
 		,PeriodEndTimeUTC		datetimeoffset)
 
 select	 @ParametersPassedChar	= 
-      '***** Parameters Passed to exec ctl.usp_GetPublicationList' + @CRLF +
-      '     @pPublisherCode = ''' + isnull(@pPublisherCode ,'NULL') + '''' + @CRLF + 
---      '    ,@pProcessingMethodCode = ''' + isnull(@pProcessingMethodCode ,'NULL') + '''' + @CRLF + 
---      '    ,@pStandardFileFormatCode = ''' + isnull(@pStandardFileFormatCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pNextExecutionDateTime = ''' + isnull(convert(varchar(100),@pNextExecutionDateTime ,13) ,'NULL') + '''' + @CRLF + 
-	  '    ,@pPublicationGroupSequence = ' + isnull(cast(@pPublicationGroupSequence as varchar(100)),'NULL') + @CRLF + 
+      '***** Parameters Passed to exec ctl.usp_GetPublicationRecord' + @CRLF +
+      '     @pPublicationFilePath = ''' + isnull(@pPublicationFilePath ,'NULL') + '''' + @CRLF + 
       '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
       '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
       '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
@@ -97,23 +93,11 @@ if @pVerbose					= 1
 		print @ParametersPassedChar
 	end
 
-If @pNextExecutionDateTime is null
-	select @pNextExecutionDateTime = cast('3001-Jan-01' as datetime)
-
 -------------------------------------------------------------------------------
 --  Main
 -------------------------------------------------------------------------------
 -- Figure out passphrase
 begin try
-
--------------------------------------------------------------------------------
---  Generate Publication List
--------------------------------------------------------------------------------
-/*
-	select	 @StepName			= 'Getting Passphrase'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'select'
-			,@StepDesc			= 'select Passphrase from Passphrase.'
 
 	SELECT	@Passphrase =
 	(
@@ -123,38 +107,11 @@ begin try
 		AND		 SchemaName		= @SchemaName
 		AND		 TableName		= @PassphraseTableName
 	)
-*/
--------------------------------------------------------------------------------
---  Check Execution Date
--------------------------------------------------------------------------------
-	select	 @StepName			= 'Check Execution Date'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'select'
-			,@StepDesc			= 'select @pNextExecutionDateTime.'
-
--- Figure out Next Execution
-if (@pNextExecutionDateTime			= cast('3001-Jan-01' as datetime))
--- No value was passed by the calling procedure so process normally.
-	select @NextExecutionDateTime	= @CurrentDtm
-else if (@pNextExecutionDateTime	= cast('1900-Jan-01' as datetime))
--- Calling procedure is not insterested in being constrained on next executation date time it wants to see all publication.
-	select @NextExecutionDateTime	= cast('3001-Jan-01' as datetime)
-else
--- Just let the ssytem check normally.
-	select @NextExecutionDateTime	= @pNextExecutionDateTime
 
 -------------------------------------------------------------------------------
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
---  Check Execution Date
--------------------------------------------------------------------------------
-	select	 @StepName			= 'Get Retry Publications'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'select'
-			,@StepDesc			= 'select ctl.Publication.'
-
+/*
 INSERT INTO @RetryPublications (
 		 PublicationId
 		,StatusCode
@@ -174,22 +131,22 @@ AND		r.StatusCode		= @IssueRetry
 GROUP BY
 		p.PublicationId
 		,r.StatusCode
-
+*/
 -------------------------------------------------------------------------------
 --  Check if any publication issues are retrying
 -------------------------------------------------------------------------------
+select  @PublicationCode =  PublicationCode
+from ctl.Publication
+where  PublicationFilePath = @pPublicationFilePath
+
 
 -------------------------------------------------------------------------------
---  Get Issue Details
+--  Generate Publication List
 -------------------------------------------------------------------------------
-	select	 @StepName			= 'Get Issue Details'
+	select	 @StepName			= 'Get Max IssueID Details'
 			,@StepNumber		= @StepNumber + 1
 			,@StepOperation		= 'select'
-			,@StepDesc			= 'select ctl.Issue, etc.'
-
-select	 @PublisherId			= isnull(PublisherId,-1)
-from	 ctl.Publisher			  pbr
-where	 pbr.PublisherCode		= @pPublisherCode
+			,@StepDesc			= 'Getting the latest information for the last issue ofr the publication.'
 
 Insert into @IssueDetail (
 		 PublicationId
@@ -203,35 +160,25 @@ join	 ctl.Publisher			  pbr
 on		 pbn.PublisherId		= pbr.PublisherId
 join	 ctl.RefStatus			  rs
 on		 iss.StatusId			= rs.StatusId
-where	 pbr.PublisherCode		= @pPublisherCode
-and		 rs.StatusCode			in ('IC','IL','IC','IA') -- We dont want values from failed issues.
+where	 pbn.PublicationCode	= @PublicationCode
+and		 rs.StatusCode			in ('IC','IL','IC','IA','IN') -- We dont want values from failed issues.
 group by pbn.PublicationId
 
-
-
--------------------------------------------------------------------------------
---  Update Issue Details
--------------------------------------------------------------------------------
-	select	 @StepName			= 'Update Issue Details'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'update'
-			,@StepDesc			= 'update ctl.Issue, with new water mark values.'
-
---select * from @IssueDetail
-
 update	 issd
-set		 PeriodStartTime		= isnull(iss.PeriodStartTime   ,cast('1900-01-01' as datetime))
+set		 PeriodStartTime		= iss.PeriodStartTime
 		,PeriodEndTime			= iss.PeriodEndTime
-		,PeriodStartTimeUTC		= isnull(iss.PeriodStartTimeUTC,cast('1900-01-01' as datetime))
+		,PeriodStartTimeUTC		= iss.PeriodStartTimeUTC
 		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
 		,FirstRecordSeq			= iss.FirstRecordSeq
 		,LastRecordSeq			= iss.LastRecordSeq
-		,FirstRecordChecksum	= iss.FirstRecordChecksum
-		,LastRecordChecksum 	= iss.LastRecordChecksum
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
 
+/* testing
+select * 
+from	@IssueDetail
+*/
 -------------------------------------------------------------------------------
 --  Generate Publication List
 -------------------------------------------------------------------------------
@@ -240,15 +187,29 @@ on		 iss.IssueId			= issd.IssueId
 			,@StepOperation		= 'select'
 			,@StepDesc			= 'Generating the publication list for use by Data Factory.'
 
---	insert	into @PublicationList
 
+if exists (select top 1 1 
+			from 	ctl.Publication				  pn
+			left join @IssueDetail				  id
+			on		id.PublicationId			= pn.PublicationId
+			join	ctl.Publisher				  pr 
+			on		pr.PublisherId				= pn.PublisherId
+			join	ctl.RefInterval				  ri
+			on		pn.IntervalCode				= ri.IntervalCode
+			where	pn.IsActive					= 1 
+			and		pn.Bound					= 'In'
+			and		pn.NextExecutionDtm			<= @NextExecutionDateTime
+			and		pn.PublicationCode			= @PublicationCode
+		)
+begin
+
+--	insert	into @PublicationList
 	select	 pr.PublisherId
 			,pr.PublisherName
 			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
-			/*
 			,pr.SiteURL
 			,pr.SiteUser
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.[SitePassword]))				as SitePassword
@@ -257,7 +218,6 @@ on		 iss.IssueId			= issd.IssueId
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
-			*/
 			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
@@ -282,14 +242,11 @@ on		 iss.IssueId			= issd.IssueId
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
-			,id.IssueId						LastIssueId
-			,'Unknown'						IssueName
-			,id.PeriodEndTime				HighWaterMarkDatetime
-			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
-			,LastRecordSeq					HighWaterMarkRecordSeq
+			,isnull(id.IssueId,-1)					  LastIssueId
+			,isnull(id.PeriodEndTime,cast('01-Jan-1900'as datetime))			  HighWaterMarkDatetime
+			,isnull(id.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset))			  HighWaterMarkDatetimeUTC
+			,isnull(id.LastRecordSeq,1)											  HighWaterMarkRecordSeq
 	from 	ctl.Publication				  pn
---	left join @RetryPublications		  rpn
---	on		rpn.PublicationId			= pn.PublicationId
 	left join @IssueDetail				  id
 	on		id.PublicationId			= pn.PublicationId
 	join	ctl.Publisher				  pr 
@@ -297,14 +254,33 @@ on		 iss.IssueId			= issd.IssueId
 	join	ctl.RefInterval				  ri
 	on		pn.IntervalCode				= ri.IntervalCode
 	where	pn.IsActive					= 1 
---	and		pn.IsDataHub				= 1
 	and		pn.Bound					= 'In'
---	and		(pn.NextExecutionDtm		<= @NextExecutionDateTime OR COALESCE(rpn.StatusCode,'Unknown') = @IssueRetry)
-	and		pn.NextExecutionDtm			<= @NextExecutionDateTime
-	and		pr.PublisherCode			= @pPublisherCode
---	and		pn.PublicationGroupSequence = @pPublicationGroupSequence
+	and		pn.PublicationCode			= @PublicationCode
+	order by pn.PublicationId  -- This should be a processing order but that is only to meet a special case so....
 	
-
+end 
+/*
+else
+begin
+	select 	 -1 PublisherId
+			,'N/A' PublisherName
+			,-1		PublicationId
+			,'N/A'	PublicationName
+			,'N/A'	PublicationCode
+			,'N/A'	SrcFileRegEx
+			,'N/A'	ProcessingMethodCode
+			,'N/A'	TransferMethodCode
+			,'N/A'	SSISFolder
+			,'N/A'	SSISProject
+			,'N/A'	SSISPackage
+			,'N/A'	PublicationFilePath
+			,'N/A'	PublicationArchivePath
+			,-1		LastIssueId
+			,cast('1900-01-01' as datetime)		HighWaterMarkDatetime
+			,cast('1900-01-01' as datetimeoffset(7))	HighWaterMarkDatetimeUTC
+			,-1		HighWaterMarkRecordSeq 
+end
+*/
 	-- Upon completion of the step, log it!
 	select	 @PreviousDtm		= @CurrentDtm
 			,@Rows				= @@ROWCOUNT 
@@ -356,26 +332,9 @@ end catch
 *******************************************************************************
 Date		Author			Description
 --------	-------------	---------------------------------------------------
-20161114	ffortunato		Initial Iteration
-20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
-20170110	ffortunato		Error handling
-20170120a	ffortunato		publication code should be varchar(50)
-20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
-20210312	ffortunato		modifying to be generic again.
-20210524	ffortunato		adding @pPublicationGroupSequence. so different 
-							pipelines can be called for a single publisher's 
-							publication..
-20211102	ffortunato		Preparing some changes in order to work with python.
-20211104	ffortunato		Adding some content about the most recent issue.
-20220125	ffortunato		+ SrcFileRegEx
-20220207	ffortunato		+ SrcFileRegEx
-20220210	ffortunato		o StartTime --> EndTime  
-							highwater mark is the last end time not start time.
-							+ high warter for recordSeq as well
-20220405	ffortunato		o @IssueDetails is now updated correctly.
+20220712	ffortunato		Initial Iteration
+							Needed something for triggered events to get
+							datahub information.
 20220714	ffortunato		+ pn.GlueWorkflow
+
 ******************************************************************************/

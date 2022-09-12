@@ -1,5 +1,5 @@
 /******************************************************************************
-File:           tst_DataHub.sql
+File:           Metadata_setup_DH_PG.sql
 Name:           Metdata setup for both Data Hub and Posting Group
 
 Purpose:        Series of test cases for pub sub. There is an expectation
@@ -57,6 +57,8 @@ delete ctl.Publication				where PublicationCode	in ('PUBN01-ACCT','PUBN02-ASSG',
 delete ctl.Subscriber				where subscribercode	in ('SUBR01' , 'SUBR02')
 delete ctl.Publisher				where publishercode		in ('PUBR01','PUBR02')
 delete ctl.Contact					where [ContactName]		in ('PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02')
+
+
 
 
 -------------------------------------------------------------------------------

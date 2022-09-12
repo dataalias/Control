@@ -568,13 +568,14 @@ print '----------------------------------------------------------'
 			,@pVerbose				= 0
 	end
 
+/*Skip SQL Agent Job trigger.
 	IF NOT EXISTS (SELECT TOP 1 1 FROM pg.[PostingGroupDependency] WHERE  DependencyCode = 'TST-ACCT-FACT-LOAD--To--TST-SQL-JOB-EXEC')
 	begin
 -------------------------------------------------------------------------------
 -- Building Dependency
 -- ASSG-FACT --> TST-SQL-JOB-EXEC
 -------------------------------------------------------------------------------
-
+ 
 --		table need to stage for fact to work
 		exec pg.[InsertPostingGroupDependency] 
 			 @pParentCode			=	'TST-SQL-JOB-EXEC'
@@ -584,7 +585,7 @@ print '----------------------------------------------------------'
 			,@pPathId				= -1
 			,@pVerbose				= 0
 	end
-
+*/
 -- Take a look to see that data propogated correctly.
 print '----------------------------------------------------------'
 print 'Posting Group Dependencies Created.'
@@ -1378,7 +1379,8 @@ exec pg.ExecutePostingGroupProcessing
 		,@pPathId				= -1
 		,@pVerbose				= 0
 
-
+/*
+We dont want to test the Execution of the SQL Job.
 
 select @BatchId = max(PostingGroupBatchId) from pg.postinggroupbatch
 select @PostingGroup = PostingGroupId from pg.postinggroup where PostingGroupCode = 'TST-SQL-JOB-EXEC'
@@ -1408,7 +1410,7 @@ exec pg.UpdatePostingGroupProcessingStatus
 		,@pPostingGroupStatusCode			='PC'
 
 print 'TST-SQL-JOB-EXEC is complete'
-
+*/
 -------------------------------------------------------------------------------
 -- Post Condition:
 -- Second Fact Load is Complete

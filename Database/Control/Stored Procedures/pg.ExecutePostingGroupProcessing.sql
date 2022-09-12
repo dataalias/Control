@@ -2,8 +2,6 @@
 		 @pPGBId				int				= -1
 		,@pPGId					int				= -1
 		,@pPGBatchSeq			int				= -1
-		--IsDataHub needs to be removed!!
-		--,@pIsDataHub			int				= -1
 		,@pETLExecutionId		int				= -1
 		,@pPathId				int				= -1
 		,@pVerbose				bit				= 0)
@@ -700,7 +698,7 @@ so other instances of this stored procedure do not run the same processes.
 					commit transaction PostingGroup
 
 					print 'exec [pg].[usp_ExecuteProcess]
-						 @pPostingGroupProcessingId				= ' + isnull(cast(@PostingGroupProcessingIdToExecute as varchar(20)),'NULL') + @CRLF +
+						  @pPostingGroupProcessingId			= ' + isnull(cast(@PostingGroupProcessingIdToExecute as varchar(20)),'NULL') + @CRLF +
 						',@pIssueId								= -1' + @CRLF +
 						',@pProcessStatus						= ' + @ProcessStatus +' output' +  @CRLF 
 
@@ -713,22 +711,11 @@ so other instances of this stored procedure do not run the same processes.
 					exec [pg].[usp_ExecuteProcess]
 						 @pPostingGroupProcessingId				= @PostingGroupProcessingIdToExecute
 						,@pIssueId								= -1 -- No issue date neeeds to be sent.
-						/*
-						,@pProcessingMethodCode					= @ParentProcessingMethodCode
-						,@pSSISFolder							= @SSISFolder
-						,@pSSISProject							= @SSISProject
-						,@pSSISPackage							= @SSISPackage
-						,@pSSISParameters						= @SSISParameters
-						,@pDataFactoryName						= @DataFactoryName
-						,@pDataFactoryPipeline					= @DataFactoryPipeline
-						,@pSQLJobName							= @JobName
-						*/
 						,@pAllowMultipleInstances				= @AllowMultipleInstances
 						,@pExecuteProcessStatus					= @ExecuteProcessStatus	output
 
-
 					exec audit.usp_InsertStepLog
-								@MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
+							 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
 							,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
 							,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
 							,@pVerbose
