@@ -1,16 +1,8 @@
 """
 *******************************************************************************
-File: connection.py
+File: data_hub_connection.py
 
 Purpose: Core functions invoked by the Data Hub class that interact with the db.
-    This allows the core class code to be lighter and more readable.
-
-connect_database: initiates a connection to a SQL Server Database
-get_publication_list: Get the list of publications associated with a publisher from Data Hub
-prepare_issues: Prepares an Issue Skeleton based on the publisher list passed
-insert_new_issue: Writes an issue record to the database
-update_issue: Writes status updates to an issue
-is_issue_absent: Determines if an isuee has already loaded to the system
 
 Dependencies/Helpful Notes :
 
@@ -26,13 +18,15 @@ def connect_database(host, user, password, database):
     :return: pymssql connection
     """
     try:
-        conn = pymssql.connect(host, user, password, database)
+
+        db_connection = pymssql.connect(host, user, password, database)
+
     except pymssql.Error as err:
         # TODO: log errors in CloudWatch
-        print("Connection error.", err)
+        print("connection.connect_database :: Connection error.", err)
         return {'Status': 'Failure'}
 
-    return conn
+    return db_connection
 
 
 def get_publication_list(connection, params):
@@ -44,16 +38,67 @@ def get_publication_list(connection, params):
     :return: publication_list dictionary of publication attributes
     """
     try:
-        sql = f"[ctl].[usp_GetPublicationList] @pPublisherCode = N'{params['PublisherCode']}', " \
+        # print(params)
+        if 'PublisherCode' in params:
+            # print('usp_GetPublicationList')
+            sql = f"[ctl].[usp_GetPublicationList] @pPublisherCode = N'{params['PublisherCode']}', " \
                                              f"@pNextExecutionDateTime = N'{params['CurrentDate']}'"
+        elif 'PublicationFilePath' in params:
+            # print('usp_GetPublicationRecord')
+            sql = f"[ctl].[usp_GetPublicationRecord] @pPublicationFilePath = N'{params['PublicationFilePath']}'"
+
+        elif 'IssueId' in params:
+            # print('usp_GetIssueDetails')
+            sql = f"[ctl].[usp_GetIssueDetails] @pIssueId = N'{params['IssueId']}'"
+        else:
+            # print('Cant determine what data to get from database.')
+            sql = 'N/A'
+
         # print(sql)
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
         publication_list = cursor.fetchall()
+        connection.commit()
+
     except pymssql.Error as err:
         # TODO: log errors in CloudWatch
-        error_msg = "Something went wrong getting publication list. {}".format(err)
-        print(error_msg)
+        error_msg = "pymssql Something went wrong getting publication list. {}".format(err)
+        print('data_hub_connection.get_publication_list :: ', error_msg)
+        return {"Status": error_msg}
+    except Exception as e:
+        # TODO: log errors in CloudWatch
+        error_msg = "connection.get_publication_list :: Something went wrong getting publication list. {}".format(e)
+        print('data_hub_connection.get_publication_list :: ', error_msg)
+        connection.rollback()
+        return {"Status": error_msg}
+
+    finally:
+        cursor.close()
+
+    return publication_list
+
+
+def get_publication_record(connection, params):
+    """
+    DEPRECATED
+    Call Get Publication List stored procedure
+    :param connection:
+    :param params:
+        PublicationFilePath: string
+    :return: publication_list dictionary of publication attributes
+    """
+    try:
+        sql = f"[ctl].[usp_GetPublicationRecord] @pPublicationFilePath = N'{params['PublicationFilePath']}'"
+        print(sql)
+        cursor = connection.cursor(as_dict=True)
+        cursor.execute(sql)
+        publication_list = cursor.fetchall()
+        connection.commit()
+    except pymssql.Error as err:
+        # TODO: log errors in CloudWatch
+        error_msg = "Something went wrong getting publication record. {}".format(err)
+        print('connection.get_publication_record :: ', error_msg)
+        connection.rollback()
         return {"Status": error_msg}
     finally:
         cursor.close()
@@ -67,17 +112,17 @@ def prepare_issues(publication_list):
     :param publication_list:
     :return: An Array of issues.
     """
-    loop = 1
     issue_list = []
     index = {}
     issue_list.append(index)
     try:
-        for publication in publication_list:
-            index[publication['PublicationCode']] = loop
+        for iteration, publication in enumerate(publication_list):
+            index[publication['PublicationCode']] = iteration + 1
+
             issue = {
-                'PublicationCode': publication['PublicationCode'],  # '8x8CRZ',
+                'PublicationCode': publication['PublicationCode'],
                 'DataLakePath': publication['PublicationFilePath'],  # 's3://dev-ascent-datalake/RawData/8x8CC/8x8CRZ/',
-                'IssueName': 'Unknown',
+                'IssueName':  'Unknown', # publication['IssueName'],
                 'SrcIssueName': 'Unknown',
                 'StatusCode': 'IP',  # Maybe you want to start with a different status.
                 'ReportDate': '1900-01-01',
@@ -95,16 +140,25 @@ def prepare_issues(publication_list):
                 'PeriodEndTimeUTC': '1900-01-01',
                 'RecordCount': '-1',
                 'ETLExecutionId': '-1',
-                'CreateBy': 'DataHub',
-                'ModifiedBy': 'DataHub',
+                'CreateBy': 'dh',
+                'ModifiedBy': 'dh',
                 'IssueId': '-1',
                 'Verbose': '0'
             }
+            # If we happened to get the data based on issue Id we can fill out more of this dictionary.
+            # This also assumes we are only looping once or we will get the same issue id for several publication.
+            # ToDo think about that!
+
+            if 'IssueId' in publication:
+                issue['IssueId'] = publication['IssueId']
+            if 'IssueName' in publication:
+                issue['IssueName'] = publication['IssueName']
+
             issue_list.append(issue)
-            loop = loop + 1
+
         issue_list[0] = index
     except Exception as e:
-        print('Exception building issue ', e)
+        print('data_hub_connection.prepare_issues :: Exception building issue ', e)
 
     return issue_list
 
@@ -117,6 +171,8 @@ def insert_new_issue(connection, issue):
     :return dict:
     """
     try:
+        # print('Going to process: ', issue, ' connection:', connection)
+
         sql = (f"EXEC [ctl].[usp_InsertNewIssue] "
                f"@pPublicationCode = N'{issue['PublicationCode']}' "
                f",@pDataLakePath = N'{issue['DataLakePath']}' "
@@ -141,15 +197,25 @@ def insert_new_issue(connection, issue):
                f",@pVerbose = N'0'"
                )
         # print('This is the SQL to execute :: ', sql)
+
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
         issue_id = cursor.fetchall()
+        connection.commit()
 
     except pymssql.Error as err:
         # TODO: log errors in CloudWatch
-        error_msg = "Something went wrong inserting new issue. {}".format(err)
+        connection.rollback()
+        error_msg = "connection.insert_new_issue :: Something went wrong inserting new issue. {}".format(err)
         print(error_msg)
         return {"message": error_msg}
+    except Exception as e:
+        error_msg = "connection.insert_new_issue :: Something went wrong inserting new issue. {}".format(e)
+        print(error_msg)
+        return {"message": error_msg}
+    finally:
+        if cursor:
+            cursor.close()
 
     return issue_id
 
@@ -194,12 +260,17 @@ def update_issue(connection, issue):
 
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
+        connection.commit()
 
     except pymssql.Error as err:
-        # TODO: log errors in CloudWatch
+        # log errors in CloudWatch
+        connection.rollback()
         error_msg = "Something went wrong updating the issue. {}".format(err)
-        print(error_msg)
+        print('connection.update_issue :: ', error_msg)
         return {"Status": error_msg}
+
+    finally:
+        cursor.close()
 
     return {"Status": "Success"}
 
@@ -215,15 +286,48 @@ def is_issue_absent(connection, file_name):
     else:
         return True
 
+
+def notify_subscriber_of_distribution(connection, params):
+    """
+    DEPRECATED
+    Call Get Publication List stored procedure
+    :param connection:
+    :param params dictionary:
+        IssueId: Key Indicator for the issue being notified.
+    :return: Success or Failure
+    """
+    try:
+        sql = f"ctl.usp_NotifySubscriberOfDistribution @pIssueId = N'{params['IssueId']}'"
+        # print(sql)
+        cursor = connection.cursor(as_dict=True)
+        cursor.execute(sql)
+        connection.commit()
+
+    except pymssql.Error as err:
+        # TODO: log errors in CloudWatch
+        error_msg = "Something went wrong getting publication record. {}".format(err)
+        print('connection.get_publication_record :: ', error_msg)
+        connection.rollback()
+        return {"Status": error_msg}
+    finally:
+        cursor.close()
+
+    return {'Status': 'Success'}
+
+
 """
 *******************************************************************************
 Change History:
 
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
+acosta      04/08/2022  Initial Iteration
 ffortunato  04/11/2022  pyODBC --> pymssql
                         + several new functions.
-
+ffortunato  05/03/2022  o for iteration, publication in enumerate(publication_list):
+ffortunato  07/29/2022  + Improving exception messages but still more to do.
+ffortunato  08/09/2022  + connection.commit(), connection.rollback()
+                        These are need to make sure there are no blocking 
+                        processs on the database. 
 *******************************************************************************
 """
-

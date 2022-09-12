@@ -9,7 +9,7 @@ Date:		20220401
 """
 
 import paramiko
-from ftp.fasttransport import *
+from delogging.delogging import log_to_console
 
 """
 ********************************************************************************
@@ -28,19 +28,16 @@ Date:		20220401
 
 def open_ftp_connection(ftp_host, ftp_port, ftp_username, ftp_password, ftp_directory):
 
-	from delogging.delogging import log_to_console
-
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 
 	try:
 		transport = paramiko.Transport(ftp_host, ftp_port)
-		#transport = FastTransport((ftp_host, ftp_port))
-		transport.default_window_size = 4294967294 # 2147483647
+		transport.default_window_size = 4294967294
 		transport.packetizer.REKEY_BYTES = pow(2, 40)
 		transport.packetizer.REKEY_PACKETS = pow(2, 40)
 
-		log_to_console(__name__, 'Info', "paramiko.Transport Success")
+		# log_to_console(__name__, 'Info', "paramiko.Transport Success")
 	except Exception as e:
 		err_msg = "conn_error: " + str(e)
 		log_to_console(__name__, 'Err', err_msg)
@@ -48,7 +45,7 @@ def open_ftp_connection(ftp_host, ftp_port, ftp_username, ftp_password, ftp_dire
 
 	try:
 		transport.connect(username=ftp_username, password=ftp_password)
-		log_to_console(__name__, 'Info', "transport.connect Success")
+		# log_to_console(__name__, 'Info', "transport.connect Success")
 	except Exception as e:
 		err_msg = "auth_error: " + str(e)
 		log_to_console(__name__, 'Err', err_msg)
@@ -75,6 +72,7 @@ Change History:
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
 ffortunato  04/12/2022  Initial Iteration
+ffortunato  07/29/2022  Fewer output messages.
 
 
 *******************************************************************************
