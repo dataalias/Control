@@ -1,3 +1,15 @@
+"""
+*******************************************************************************
+File: S3Upload.py
+
+Purpose: This module will upload file to S3, if the size of teh file is > 25MB
+Multipart upload is automatically initiated
+
+Dependencies/Helpful Notes :
+
+*******************************************************************************
+"""
+
 import logging
 from botocore.exceptions import ClientError
 import threading
@@ -7,10 +19,11 @@ import sys
 from boto3.s3.transfer import TransferConfig
 
 
-def s3_multi_part_upload(file_name, bucket, object_name=None):
+def multi_part_upload_with_s3(file_name, s3bukcetname, object_name=None):
     # Multipart upload
     """Upload a file to an S3 bucket
 
+    :param s3bukcetname: Bucket to upload to
     :param file_name: File to upload
     :param bucket: Bucket to upload to
     :param object_name: S3 object name. If not specified then file_name is used
@@ -20,7 +33,7 @@ def s3_multi_part_upload(file_name, bucket, object_name=None):
                             multipart_chunksize=1024 * 25, use_threads=True)
     s3 = boto3.resource('s3')
     try:
-        s3.meta.client.upload_file(Body=file_name, Bucket=bucket, Key=object_name,
+        s3.meta.client.upload_file(file_name, s3bukcetname, object_name,
                                    ExtraArgs={'ACL': 'public-read'},
                                    Config=config,
                                    Callback=ProgressPercentage(file_name)
@@ -36,26 +49,27 @@ class ProgressPercentage(object):
         self._seen_so_far = 0
         self._lock = threading.Lock()
 
-    def __call__(self, bytes_amount):
-        # To simplify we'll assume this is hooked up
-        # to a single filename.
-        with self._lock:
-            self._seen_so_far += bytes_amount
-            percentage = (self._seen_so_far / self._size) * 100
-            sys.stdout.write(
-                "\r%s  %s / %s  (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
-            sys.stdout.flush()
+
+def __call__(self, bytes_amount):
+    # To simplify we'll assume this is hooked up
+    # to a single filename.
+    with self._lock:
+        self._seen_so_far += bytes_amount
+        percentage = (self._seen_so_far / self._size) * 100
+        sys.stdout.write(
+            "\r%s  %s / %s  (%.2f%%)" % (
+                self._filename, self._seen_so_far, self._size,
+                percentage))
+        sys.stdout.flush()
 
 
 """
 *******************************************************************************
 Change History:
 
-Author		Date		Description
-----------	----------	-------------------------------------------------------
-
+Author		    Date		    Description
+----------	   ----------	    -----------------------------------------------
+schandramouly  04/11/2022       Initial Iteration
 
 *******************************************************************************
 """

@@ -10,7 +10,7 @@ Dependencies/Helpful Notes :
 """
 
 from secrets.aws_secrets import *
-from DataHub.connection import *
+from dh.data_hub_connection import *
 from delogging.delogging import *
 from ftp.ftp import *
 
@@ -62,7 +62,7 @@ def get_ftp_connection_from_secret(secret_name):
     try:
         # get the secret
         ftp_connection_secret = get_secret(secret_name)
-        print('ftp keys: ', ftp_connection_secret)
+        #print('ftp keys: ', ftp_connection_secret)
 
         # get the values into variables
         ftp_username = ftp_connection_secret["FTP_USERNAME"]

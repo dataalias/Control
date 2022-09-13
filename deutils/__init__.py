@@ -1,7 +1,7 @@
 """
 setup.py
 deUtils/
-    DataHub/
+    dh/
         __init__.py
     secrets/
         __init__.py

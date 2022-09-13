@@ -21,6 +21,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="dbConnection.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="deUtils.py" />
     <Compile Include="ftp\ftp.py">
       <SubType>Code</SubType>
     </Compile>
