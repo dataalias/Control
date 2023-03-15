@@ -7,10 +7,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='deUtils',
-    version='3.1.0',
+    version='0.1.1',
     author='',
     author_email='',
-    description='This project is a wrapper library to call utility functions that interact with Data Hub.',
+    description='This project is a wrapper library to call utility functions easily',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://git-codecommit.us-east-1.amazonaws.com/v1/repos/deDataHub',

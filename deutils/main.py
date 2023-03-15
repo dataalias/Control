@@ -1,169 +1,193 @@
-from helper.deUtils import *
-from helper.ftps3xfer import *
-from delogging.delogging import log_to_console
-from DataHub.data_hub import *
-from S3.S3UnZip import s3_unzip_file_multi_dest
+from S3.S3ReadObject import Read_Objects_From_S3
+from dh.data_hub import *
+import time
+import json
 import boto3
+from datetime import datetime
+from secrets.aws_secrets import *
+
+# Opening JSON file
 
 
-dl_bucket = 'dev-ascent-datalake'
-dl_path_crz = 'RawData/8x8CC/8x8CRZ/'
-dl_path_cr = 'RawData/8x8CC/8x8CR/'
-dl_path_cri = 'RawData/8x8CC/8x8CRI/'
-s3_connection = boto3.client("s3")
-CHUNK_SIZE = 6291456  # for parallel processing of chunks for bigger files
+# returns JSON object as
+# a dictionary
 
-loop = 1
-throttle = 2
+
+try:
+    config_data = Read_Objects_From_S3("dev-ascent-de-assets", "DataHubStagingEvent/config/S3_file_event_lambda.json")
+    file_content = config_data.get()['Body'].read()
+    json_content = json.loads(file_content)
+    print(json_content["__Header"]["Env"]["EnvironmentAbbreviation"])
+
+except Exception as e:
+    print(e)
+
+# Variable declarations.
+
+# exit(1)
 
 pub_list_parms = {}
-pub_list_parms['PublisherCode'] = '8x8CC'
+pub_list_parms['PublisherCode'] = 'PUBR01'
 pub_list_parms['CurrentDate'] = '2099-Dec-31 23:59:59'  # datetime.today().strftime('%Y-%b-%d %H:%M:%S')
 
-issue_updates = {}
+issue = {}
 
+
+# So Starteth main.
+
+
+print(__name__, ': about to make a data hub')
 # Instantiate data hub.
-MyDataHub = DataHub('dev/devadw/DataHub/Glue_svc')
-MyDataHub.get_publication_list(pub_list_parms)
 
-# connect to the ftp site.
-ftp_con = get_ftp_connection_from_secret('glue/ftp/moveit')
-list_of_files_on_ftp = ftp_con.listdir()
+# Inititate a datahub object for each publisher involved with the test
+print(__name__, ': Create object MyDataHub_PUBR01')
+MyDataHub_PUBR01 = DataHub('dev/devadw/DataHub/Glue_svc')
+print(__name__, ': Create object MyDataHub_PUBR02')
+MyDataHub_PUBR02 = DataHub('dev/devadw/DataHub/Glue_svc')
 
-print('Publication List V')
-for x in MyDataHub.publication_list:
+print(__name__, ': Create object MyDataHub_PUBR03')
+MyDataHub_PUBR03 = DataHub('dev/devadw/DataHub/Glue_svc')
+
+print(__name__, ': Create object MyDataHub_PUBR04')
+MyDataHub_PUBR04 = DataHub('dev/devadw/DataHub/Glue_svc')
+print(__name__, ': Create object MyDataHub_PUBR05')
+MyDataHub_PUBR05 = DataHub('dev/devadw/DataHub/Glue_svc')
+print(__name__, ': Create object MyDataHub_PUBR06')
+MyDataHub_PUBR06 = DataHub('dev/devadw/DataHub/Glue_svc')
+print(__name__, ': Create object MyDataHub_PUBR07')
+MyDataHub_PUBR07 = DataHub('dev/devadw/DataHub/Glue_svc')
+
+
+
+response = MyDataHub_PUBR01.get_publication_list(pub_list_parms)
+print(__name__, ': Get publication list PUBR01: ', response)
+
+for r in MyDataHub_PUBR01.publication_list:
+    print(r)
+
+for x in MyDataHub_PUBR01.issue_list:
     print(x)
-print('Issue List V')
-for y in MyDataHub.issue_list:
-    print(y)
 
+
+pub_list_parms['PublisherCode'] = 'PUBR02' #swapping over to the other publisher
+response = MyDataHub_PUBR02.get_publication_list(pub_list_parms)
+print(__name__, ': Get publication list PUBR02: ', response)
+
+print('My Publication code: ', MyDataHub_PUBR01.get_publication_code())
+
+MyDataHub_PUBR01.set_publication_code('PUBN01-ACCT')
+MyDataHub_PUBR01.insert_new_issue()
+
+
+issue['IssueName'] = 'PUBN01-ACCT_20220805_moo.dat'
+issue['StatusCode'] = 'IS'
+
+MyDataHub_PUBR01.update_issue(issue)
+issue['StatusCode'] = 'IL'
+
+MyDataHub_PUBR01.update_issue(issue)
+print(__name__, 'IssueId: ', MyDataHub_PUBR01.get_issue_id(), ' Publication Code: ', MyDataHub_PUBR01.get_publication_code())
+MyDataHub_PUBR01.notify_subscriber_of_distribution()
+
+MyDataHub_PUBR01.set_publication_code('PUBN02-ASSG')
+MyDataHub_PUBR01.insert_new_issue()
+
+issue['IssueName'] = 'PUBN02-ASSG_20220805_w00.dat'
+issue['StatusCode'] = 'IS'
+
+MyDataHub_PUBR01.update_issue(issue)
+
+
+issue['IssueName'] = 'PUBN02-ASSG_20220805_w01.dat'
+issue['StatusCode'] = 'IL'
+
+MyDataHub_PUBR01.update_issue(issue)
+print(__name__, 'IssueId: ', MyDataHub_PUBR01.get_issue_id(), ' Publication Code: ', MyDataHub_PUBR01.get_publication_code())
+MyDataHub_PUBR01.notify_subscriber_of_distribution()
+
+
+issue['IssueName'] = 'PUBN03-COUR_20220805_w01.dat'
+
+MyDataHub_PUBR02.set_publication_code('PUBN03-COUR')
+MyDataHub_PUBR02.insert_new_issue()
+
+issue['StatusCode'] = 'IS'
+
+MyDataHub_PUBR02.update_issue(issue)
+
+issue['StatusCode'] = 'IL'
+
+MyDataHub_PUBR02.update_issue(issue)
+print(__name__, 'IssueId: ', MyDataHub_PUBR02.get_issue_id(), ' Publication Code: ', MyDataHub_PUBR02.get_publication_code())
+MyDataHub_PUBR02.notify_subscriber_of_distribution()
 """
-print(MyDataHub.get_publication_code())
-print('xxxxxxxxx')
-print('About to set the publication code')
-# Prime data hub to work with the zip file.
+print(datetime.now())
+
+MyDataHub_PUBR03 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR04 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR05 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR06 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR07 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR08 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR09 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR10 = DataHub('dev/devadw/DataHub/Glue_svc')
+print('10 data hubs', datetime.now())
+MyDataHub_PUBR11 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR12 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR13 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR14 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR15 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR16 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR17 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR18 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR19 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR20 = DataHub('dev/devadw/DataHub/Glue_svc')
+print('20 data hubs', datetime.now())
+MyDataHub_PUBR21 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR22 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR23 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR24 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR25 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR26 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR27 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR28 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR29 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR30 = DataHub('dev/devadw/DataHub/Glue_svc')
+print('30 data hubs', datetime.now())
+MyDataHub_PUBR31 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR32 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR33 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR34 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR35 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR36 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR37 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR38 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR39 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR40 = DataHub('dev/devadw/DataHub/Glue_svc')
+print('40 data hubs', datetime.now())
+MyDataHub_PUBR41 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR42 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR43 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR44 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR45 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR46 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR47 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR48 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR49 = DataHub('dev/devadw/DataHub/Glue_svc')
+MyDataHub_PUBR50 = DataHub('dev/devadw/DataHub/Glue_svc')
 """
-MyDataHub.set_publication_code('8x8CRZ')
-print(MyDataHub.get_publication_code())
-print('Did i get something? ^')
+print('50 data hubs', datetime.now())
+
+region_name = "us-east-1"
+secret_name = "dev/devadw/DataHub/Glue_svc"
+
+for i in range(100):
+    try:
+        MySecret = get_secret("dev/devadw/DataHub/Glue_svc")
+        print(i, ' ', MySecret)
+    except Exception as e:
+        print(e)
 
 
-for file in list_of_files_on_ftp:
-    # Determine if the file has already been processed by looking at ctl.issue.
-    # True file doesn't exist and we continue. False don't process again.
-    process = MyDataHub.is_issue_absent(file)
-    # process = True
 
-    log_to_console(__name__, 'Info', f"Processing File: {file}")
-    # Copy the file from ftp to s3.
-    if process:
-        # Get folder path
-        try:
-            s3_key = dl_path_crz + file[18:22] + '/' + file[22:24] + '/' + file[24:26] + '/' + file
-
-            MyDataHub.set_publication_code('8x8CRZ')
-            issue_updates['DataLakePath'] = 's3://' + dl_bucket + s3_key
-            issue_updates['SrcIssueName'] = file
-            issue_updates['IssueName'] = file
-            issue_updates['PeriodStartTime'] = file[18:22] + '/' + file[22:24] + '/' + file[24:26]
-            issue_updates['PeriodEndTime'] = file[18:22] + '/' + file[22:24] + '/' + file[24:26]
-            MyDataHub.set_issue_val(issue_updates)
-
-            # ToDo make this less syntax
-            MyDataHub.insert_new_issue()
-
-            result = transfer_file_from_ftp_to_s3(s3_connection, ftp_con, file, dl_bucket, s3_key, CHUNK_SIZE)
-            issue_updates['StatusCode'] = 'IL'
-            MyDataHub.update_issue(issue_updates)
-
-            msg = ('FTP transfer Complete. Bucket: ' + dl_bucket + ' s3 Key: ' + s3_key)
-            log_to_console(__name__, 'Info', msg)
-
-        except Exception as e:
-            msg = ('Ftp transfer failed. ', e)
-            log_to_console(__name__, 'Err', msg)
-
-        # insert the issue and keep going.
-        try:
-            # Clean up issue_updates, so we don't update too much good stuff.
-            issue_updates = {}
-
-            MyDataHub.set_publication_code('8x8CRI')
-            issue_updates['StatusCode'] = 'IS'
-            MyDataHub.set_issue_val(issue_updates)
-            MyDataHub.insert_new_issue()
-            MyDataHub.set_publication_code('8x8CR')
-            MyDataHub.set_issue_val(issue_updates)
-            MyDataHub.insert_new_issue()
-
-        except Exception as e:
-            msg = ('Unable to update issue data for zip file. ', e)
-            log_to_console(__name__, 'Err', msg)
-
-        # now let's unzip what we got.
-        try:
-            msg = 'Initiating unzip of ' + s3_key
-            log_to_console(__name__, 'Info', msg)
-
-            # Todo S3_Unzipped_Folder --> Use the datahub object instead...
-            S3_Unzipped_Folder = {'Index': dl_path_cri + file[18:22] + '/' + file[22:24] + '/' + file[24:26] + '/',
-                                  'Recording': dl_path_cr + file[18:22] + '/' + file[22:24] + '/' + file[24:26] + '/'}
-            s3_unzip_file_multi_dest(dl_bucket, s3_key, S3_Unzipped_Folder, MyDataHub)
-
-            # Update update issues.
-            MyDataHub.set_publication_code('8x8CRI')
-            issue_updates['StatusCode'] = 'IS'
-            MyDataHub.update_issue(issue_updates)
-
-            MyDataHub.set_publication_code('8x8CR')
-            issue_updates['StatusCode'] = 'IL'
-            MyDataHub.update_issue(issue_updates)
-
-            msg = ('Unzip Complete. ')
-            log_to_console(__name__, 'Info', msg)
-
-        except Exception as e:
-            msg = ('Unzip failed. ', e)
-            log_to_console(__name__, 'Info', msg)
-
-        # Get the data to stage and ods
-        try:
-            MyDataHub.set_publication_code('8x8CRI')
-            issue_updates['StatusCode'] = 'IL'
-            MyDataHub.update_issue(issue_updates)
-
-            msg = 'Data written to Stage and ODS and Issue updated.'
-            log_to_console(__name__, 'Info', msg)
-
-        except Exception as e:
-            msg = 'Cant load the data to Stage or ODS.'
-            log_to_console(__name__, 'Info', msg)
-
-        #
-        msg = 'Done Processing file: ' + file
-        log_to_console(__name__, 'Info', msg)
-        loop = loop + 1
-        if loop == throttle:
-            break  # after one successful run.
-
-    # if we hit this else there is nothing to do for the file goto the next one.
-    else:
-        msg = 'Issue present in DataHub. file: ' + file + ' not processed.'
-        log_to_console(__name__, 'Info', msg)
-
-# Final Cleanup
-ftp_con.close()
-# ToDo MyDataHub.close()
-
-
-"""
-*******************************************************************************
-Change History:
-
-Author		Date		Description
-----------	----------	-------------------------------------------------------
-ffortunato  04/22/2022  Initial Iteration
-                        This main shouldn't be part of the project.
-
-*******************************************************************************
-"""
+print('done')
