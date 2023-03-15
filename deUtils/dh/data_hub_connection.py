@@ -89,11 +89,8 @@ def get_publication_record(connection, params):
     """
     try:
         sql = f"[ctl].[usp_GetPublicationRecord] @pPublicationFilePath = N'{params['PublicationFilePath']}'"
-<<<<<<<< HEAD:deUtils/dh/data_hub_connection.py
         print('Deprecated: ', sql)
-========
-        print(sql)
->>>>>>>> 713686e096df58617a2c10aa1060c4c7094fe20e:deutils/dh/data_hub_connection.py
+
         cursor = connection.cursor(as_dict=True)
         cursor.execute(sql)
         publication_list = cursor.fetchall()
@@ -333,5 +330,6 @@ ffortunato  07/29/2022  + Improving exception messages but still more to do.
 ffortunato  08/09/2022  + connection.commit(), connection.rollback()
                         These are need to make sure there are no blocking 
                         processs on the database. 
+ffortunato  03/15/2023  o merge conflicts
 *******************************************************************************
 """

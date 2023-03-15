@@ -158,11 +158,7 @@ class DataHub:
             self.issue_list = dh_connect.prepare_issues(self.publication_list)
             # set the publication code and index to the first value returned.
             if self.publication_list:
-<<<<<<<< HEAD:deUtils/dh/data_hub.py
-                self.publication_code = self.publication_list[0]['PublicationCode']
-                self.publication_idx = self.issue_list[0][self.publication_code]
-                response = success
-========
+
                 # print(self.publication_list)
                 # print(self.issue_list)
                 self.publication_code = self.publication_list[0]['PublicationCode']
@@ -171,7 +167,7 @@ class DataHub:
                 # print('DataHub.get_publication_idx() = ', self.publication_idx)
 
             response = success
->>>>>>>> 713686e096df58617a2c10aa1060c4c7094fe20e:deutils/dh/data_hub.py
+
         except Exception as e:
             print("dh.get_publication_list :: Can't get publication list :: ", e)
 
@@ -244,12 +240,7 @@ class DataHub:
     def is_issue_absent(self, file_name):
         """
         This function determines if an issue has been processed already via a lookup in the issue table.
-<<<<<<<< HEAD:deUtils/dh/data_hub.py
-        :param  self: DataHub object.
-                file_name: Name of the file to be looked up.
-========
         :param file_name: Name of the file to be looked up.
->>>>>>>> 713686e096df58617a2c10aa1060c4c7094fe20e:deutils/dh/data_hub.py
         :return: True: The file is absent and should be processed by the system.
                  False: The file has already been processed and should _not_ be loaded again.
         """
@@ -263,13 +254,8 @@ class DataHub:
 
     def notify_subscriber_of_distribution(self):
         """
-<<<<<<<< HEAD:deUtils/dh/data_hub.py
         :param self DataHub object.
         :return: response {'Status': 'Failure'} _or_ {'Status': 'Failure'}
-========
-        :param params:
-        :return:
->>>>>>>> 713686e096df58617a2c10aa1060c4c7094fe20e:deutils/dh/data_hub.py
         """
         response = {'Status': 'Failure'}
         success = {'Status': 'Success'}
@@ -298,5 +284,6 @@ ffortunato  04/22/2022  + multiple new methods for the class.
                         + issue_list to maintain issue data along with the class
 ffortunato  07/29/2022  + Improving exception messages but still more to do.
 ffortunato  08/05/2022  + notify_subscriber_of_distribution
+ffortunato  03/15/2023  o merge conflicts
 *******************************************************************************
 """
