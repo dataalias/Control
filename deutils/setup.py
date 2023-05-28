@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='deUtils',
-    version='0.2.1',
+    version='3.1.0',
     author='',
     author_email='',
     description='This project is a wrapper library to call utility functions that interact with Data Hub.',

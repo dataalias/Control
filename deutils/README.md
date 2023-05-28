@@ -14,10 +14,10 @@ The DataHub class allows python packages to interact with the datahub database.
     connect :: Private, establishes the database connection.
     get_secret :: Private, looks up the secret data from AWS.
     
-    get_publication_list: Provide a Publication Code and Returns a list of publications associated with the provided publisher_code
-        Publisher Code
-        Publication File Path :: Get Pulication Record
-        Issue Id :: G
+    get_publication_list: Provide one of the following values to pull associated publication data:
+        Publisher Code: Pulls a list of all publication associated with the publisher code.
+        Publication File Path :: returns a single Pulication Record associated with the file path.
+        Issue Id :: returns a single Publication Reocrds associated with the issue id.
         If and IssueId or PublicationFilePath are passed all publication and issue data will be returned for the single publication.
     * get_publication_record: <Depricated Use get_publication_list>. Provide a file path and it will return the single publication associated path
     * get_issue_details: <Depricated Use get_publication_list>. Provide an IssueId and the fruntion returns its details to the DataHub class properties.    
@@ -146,6 +146,7 @@ datetime
 | User       | Date       | Comment                                                                     |
 |------------|------------|-----------------------------------------------------------------------------|
 | ffortunato | 04/22/2022 | Initial Iteration. Moved most class and function definitions to the readme. |
-| ffortunato | 04/25/2022 | Adding additional details for several functions.|
+| ffortunato | 04/25/2022 | Adding additional details for several functions.                            |
+| ffortunato | 08/11/2022 | Adding additional details for several functions. Unittest is now added.     |
 
 [Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)

@@ -2,9 +2,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>feae0d2b-d486-4326-bb83-ff877f79aebb</ProjectGuid>
+    <ProjectGuid>3d0d6401-c93f-421d-b11f-e926eb377181</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,35 +22,51 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="dbConnection.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="deUtils.py" />
-    <Compile Include="ftp\ftp.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ftp\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Logging.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="setup.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="delogging\delogging.py" />
+    <Compile Include="delogging\__init__.py" />
+    <Compile Include="dh\data_hub.py" />
+    <Compile Include="dh\data_hub_connection.py" />
+    <Compile Include="dh\test_data_hub.py" />
+    <Compile Include="dh\__init__.py" />
+    <Compile Include="ftp\fasttransport.py" />
+    <Compile Include="ftp\ftp.py" />
+    <Compile Include="ftp\__init__.py" />
+    <Compile Include="helper\deUtils.py" />
+    <Compile Include="helper\ftps3xfer.py" />
+    <Compile Include="helper\__init__.py" />
+    <Compile Include="main.py" />
+    <Compile Include="pg\posting_group.py" />
+    <Compile Include="pg\posting_group_connection.py" />
+    <Compile Include="pg\__init__.py" />
+    <Compile Include="S3\S3CreateFolder.py" />
+    <Compile Include="S3\S3PutObject.py" />
+    <Compile Include="S3\S3ReadObject.py" />
+    <Compile Include="S3\S3UnZip.py" />
+    <Compile Include="S3\S3Upload.py" />
+    <Compile Include="S3\S3_file_event_lambda.py" />
+    <Compile Include="S3\__init__.py" />
+    <Compile Include="secrets\aws_secrets.py" />
+    <Compile Include="secrets\__init__.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="test\__init__.py" />
+    <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Logging\" />
+    <Folder Include="dh\" />
+    <Folder Include="delogging\" />
     <Folder Include="ftp\" />
+    <Folder Include="helper\" />
+    <Folder Include="test\" />
+    <Folder Include="secrets\" />
+    <Folder Include="S3\" />
+    <Folder Include="pg\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include="LICENSE" />
+    <Content Include="pyproject.toml" />
+    <Content Include="README.md" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

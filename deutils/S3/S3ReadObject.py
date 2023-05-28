@@ -11,13 +11,7 @@ Dependencies/Helpful Notes :
 *******************************************************************************
 """
 
-import logging
-from botocore.exceptions import ClientError
-import threading
 import boto3
-import os
-import sys
-from boto3.s3.transfer import TransferConfig
 
 
 def Read_Objects_From_S3(S3_BucketName, object_name=None):

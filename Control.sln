@@ -7,7 +7,7 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Control", "Database\Control
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dmutils", "dmutils\dmutils.csproj", "{4A4944C7-ED7C-4DA5-B6B2-DEBF90CCDDD1}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "deutils", "deutils\deutils.pyproj", "{C68C4415-BD76-427D-9A6D-8A69167FA0C7}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "deUtils", "deUtils\deUtils.pyproj", "{3D0D6401-C93F-421D-B11F-E926EB377181}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,9 +31,9 @@ Global
 		{4A4944C7-ED7C-4DA5-B6B2-DEBF90CCDDD1}.Development|Any CPU.Build.0 = Debug|Any CPU
 		{4A4944C7-ED7C-4DA5-B6B2-DEBF90CCDDD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A4944C7-ED7C-4DA5-B6B2-DEBF90CCDDD1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C68C4415-BD76-427D-9A6D-8A69167FA0C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C68C4415-BD76-427D-9A6D-8A69167FA0C7}.Development|Any CPU.ActiveCfg = Debug|Any CPU
-		{C68C4415-BD76-427D-9A6D-8A69167FA0C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D0D6401-C93F-421D-B11F-E926EB377181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D0D6401-C93F-421D-B11F-E926EB377181}.Development|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D0D6401-C93F-421D-B11F-E926EB377181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
