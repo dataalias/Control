@@ -82,8 +82,8 @@ BEGIN TRY
 		SELECT 1
 		FROM ctl.Issue id
 		JOIN ctl.Publication pub
-			ON id.PublicationId = pub.PublicationId
-		WHERE id.IssueId = @pIssueId 
+			ON iss.PublicationId = pub.PublicationId
+		WHERE iss.IssueId = @pIssueId 
 	)
 	BEGIN
 	
@@ -113,27 +113,35 @@ BEGIN TRY
 				,pn.SSISFolder
 				,pn.SSISProject
 				,pn.SSISPackage
+				,pn.GlueWorkflow
 				,pn.SrcPublicationName		
 				,pn.SrcFilePath
 				,pn.PublicationFilePath
 				,pn.PublicationArchivePath
 				,pn.PublicationGroupSequence
-				,id.IssueId						IssueId
-				,id.IssueName					IssueName
-				,id.PeriodStartTime				LastHighWaterMarkDatetime
-				,id.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
-				,id.PeriodEndTime				HighWaterMarkDatetime
-				,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
-				,LastRecordSeq					HighWaterMarkRecordSeq
+				,iss.IssueId					IssueId
+				,iss.IssueName					IssueName
+				,iss.PeriodStartTime			LastHighWaterMarkDatetime
+				,iss.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
+				,iss.PeriodEndTime				HighWaterMarkDatetime
+				,iss.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+				,iss.LastRecordSeq				HighWaterMarkRecordSeq
+				,rs.StatusCode					IssueStatusCode
+				,iss.RecordCount				RecordCount
+				,iss.ETLExecutionID				ETLExecutionID
+				,iss.ReportDate					ReportDate
+
 		from 	ctl.Publication				  pn
-		left join ctl.Issue					  id
-		on		id.PublicationId			= pn.PublicationId
+		join	ctl.Issue					  iss
+		on		iss.PublicationId			= pn.PublicationId
 		join	ctl.Publisher				  pr 
 		on		pr.PublisherId				= pn.PublisherId
 		join	ctl.RefInterval				  ri
 		on		pn.IntervalCode				= ri.IntervalCode
+		join	ctl.RefStatus				  rs
+		on		iss.StatusId				= rs.StatusId
 		where	pn.IsActive					= 1 
-		and		id.IssueId					= @pIssueId
+		and		iss.IssueId					= @pIssueId
 
 	END
 	ELSE
@@ -207,4 +215,6 @@ Date		Author			Description
 20201118	ffortunato		removing some warnings.
 20220726	ffortunato		Adding new attributes and new logic to supprt dh
 							processing within the new class.
+20230527	ffortunato		getting consistency with Get Publication List and
+							Record. Gateway API
 ******************************************************************************/

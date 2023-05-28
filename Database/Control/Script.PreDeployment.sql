@@ -4,19 +4,22 @@ GO
 
 print 'Start Predeployment Script'
 
-/*
-IF (SELECT 1 FROM ctl.RefStatus where StatusCode = 'IR') IS NULL
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IX'))
 BEGIN
-	INSERT INTO ctl.RefStatus (StatusCode,StatusName,StatusDesc,StatusType,CreatedBy,CreatedDtm)
-	VALUES ('IR','Issue Retry','Issue needs to be retried','Issue','ochowkwale',GETDATE())
+	
+	INSERT INTO ctl.RefStatus ([STATUSCODE],[STATUSNAME]
+	,[STATUSDESC],[STATUSTYPE]
+	,CreatedDtm,CREATEDBY)
+	VALUES ('IX','Issue Extract'
+	,'Issue is ready to be extracted from source.' ,'Issue'
+	,GETDATE(),'ffortunato')
 END
 
-IF (SELECT 1 FROM pg.RefStatus where StatusCode = 'PR') IS NULL
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('S3'))
 BEGIN
-	INSERT INTO pg.RefStatus (StatusCode,StatusName,StatusDesc,StatusType,CreatedBy,CreatedDtm)
-	VALUES ('PR','PostingGroupProcessing Retry','Posting Group Processing record needs to be retried','PostingGroupProcessing','ochowkwale',GETDATE())
-END
-*/
 
+	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
+			   ('S3','S3 Bucket','The system will connect with an S3 bucket to faclitate data transfer.',system_user,getdate())
+END
 
 print 'Complete Predeployment Script'

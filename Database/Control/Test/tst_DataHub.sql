@@ -198,14 +198,6 @@ exec [ctl].[usp_InsertNewSubscriber]
     ,@pSubscriberName				= '01 Test Subscriber'
 	,@pSubscriberDesc				= '01 Test Subscriber'
     ,@pInterfaceCode				= 'TBL'
-	,@pSiteURL						= NULL  
-	,@pSiteUser						= NULL 
-	,@pSitePassword					= NULL           
-	,@pSiteHostKeyFingerprint		= NULL                             
-	,@pSitePort						= NULL
-	,@pSiteProtocol					= NULL
-	,@pPrivateKeyPassPhrase			= NULL 
-	,@pPrivateKeyFile				= NULL 
 	,@pNotificationHostName			= 'SBXSRV01'
 	,@pNotificationInstance			= 'SBXSRV01'
 	,@pNotificationDatabase			= 'SBXSRV01'

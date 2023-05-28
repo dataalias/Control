@@ -210,6 +210,7 @@ begin
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
+			/*
 			,pr.SiteURL
 			,pr.SiteUser
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.[SitePassword]))				as SitePassword
@@ -218,6 +219,7 @@ begin
 			,pr.SiteProtocol
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
 			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
+			*/
 			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
