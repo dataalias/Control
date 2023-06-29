@@ -37,6 +37,7 @@ Date		Author			Description
 20210325	ffortunato		FeedFormat --> FileFormatCode
 20211008	ffortunato		Cleanup based on code changes.
 20220207	ffortunato		o Publication Names & Publisher Names.
+20230615	ffortunato		+ triggertypecode on publication
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -198,6 +199,14 @@ exec [ctl].[usp_InsertNewSubscriber]
     ,@pSubscriberName				= '01 Test Subscriber'
 	,@pSubscriberDesc				= '01 Test Subscriber'
     ,@pInterfaceCode				= 'TBL'
+	,@pSiteURL						= NULL  
+	,@pSiteUser						= NULL 
+	,@pSitePassword					= NULL           
+	,@pSiteHostKeyFingerprint		= NULL                             
+	,@pSitePort						= NULL
+	,@pSiteProtocol					= NULL
+	,@pPrivateKeyPassPhrase			= NULL 
+	,@pPrivateKeyFile				= NULL 
 	,@pNotificationHostName			= 'SBXSRV01'
 	,@pNotificationInstance			= 'SBXSRV01'
 	,@pNotificationDatabase			= 'SBXSRV01'
@@ -273,6 +282,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSLATime						= '01:00'
 	,@pSLAEndTimeInMinutes			= NULL
 	,@pNextExecutionDtm				= '1900-01-01 00:00:00.000'
+	,@pTriggerTypeCode				= 'SCH'
 	,@pIsActive						= 1  
 	,@pIsDataHub					= 1
 	,@pBound						= 'In'

@@ -16,7 +16,7 @@
 		,@pDataFactoryPipeline	varchar(255)	= 'N/A'
 		,@pJobName				varchar(255)	= 'N/A'
 		,@pSQLStoredProcedure   varchar(255)	= 'N/A'
-		,@pGlueWorkFlow			varchar(255)	= 'N/A'
+		,@pGlueWorkflow			varchar(255)	= 'N/A'
 		,@pRetryIntervalCode	varchar(20)		= 'UNK'
 		,@pRetryIntervalLength	int				= 1
 		,@pRetryMax				int				= 0
@@ -186,7 +186,7 @@ begin try
 		,SSISPackage		
 		,DataFactoryName		
 		,DataFactoryPipeline	
-		,GlueWorkFlow
+		,GlueWorkflow
 		,JobName
 		,SQLStoredProcedure
 		,RetryIntervalCode	
@@ -217,7 +217,7 @@ begin try
 		,@pSSISPackage	
 		,@pDataFactoryName		
 		,@pDataFactoryPipeline	
-		,@pGlueWorkFlow
+		,@pGlueWorkflow
 		,@pJobName
 		,@pSQLStoredProcedure
 		,@pRetryIntervalCode	

@@ -261,3 +261,13 @@ __pycache__/
 *.pyc
 /deUtils/dh/data_hub - Copy.py
 /deUtils/dh/data_hub_connection - Copy.py
+
+
+# Terraform and sam
+.aws-sam
+infra/terraform.tfstate.backup
+Control/AWS/infra/.terraform
+samconfig.toml
+*.zip
+template.yaml
+dist/

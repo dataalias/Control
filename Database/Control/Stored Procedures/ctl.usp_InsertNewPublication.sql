@@ -34,9 +34,11 @@
 	,@pSLATime					varchar(20)		= NULL
 	,@pSLAEndTimeInMinutes		int				= -1
 	,@pNextExecutionDtm			datetime		= NULL -- '1900-01-01 00:00:00.000'
+	,@pTriggerTypeCode			varchar(20)		= 'N/A'
 	,@pIsActive					bit				= 1  -- Why insert it if it isn't active...
 	,@pIsDataHub				bit				= 0  -- Maybe it isn't data hub, shouldn't be...
 	,@pBound					varchar(5)		= 'In'	 --Inbound or Outbound
+	,@pKeyStoreName				varchar(1000)	= 'N/A'
 	,@pCreatedBy				varchar(50)
 	,@pETLExecutionId			int				= -1
 	,@pPathId					int				= -1
@@ -74,6 +76,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'Workday'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'Roster_Main_Workday.dtsx'
+	,@pKeyStoreName				= 'Waka waka'
 	,@pCreatedBy				= 'ffortunato' -- varchar(50)
 
 Called by:		Application
@@ -167,9 +170,11 @@ SELECT	 @ParametersPassedChar	=
 		'    ,@pSLATime = '''			 + isnull(@pSLATime ,'NULL') + '''' + @CRLF + 
 		'    ,@pSLAEndTimeInMinutes = ''' + isnull(cast(@pSLAEndTimeInMinutes as varchar(20)) ,'NULL') + '''' + @CRLF + 
 		'    ,@pNextExecutionDtm = '''	 + isnull(convert(varchar(100),@pNextExecutionDtm ,13) ,'NULL') + '''' + @CRLF + 
-		'    ,@pIsActive = '			 + isnull(cast(@pIsActive as varchar(100)),'NULL') + @CRLF + 
-		'    ,@pIsDataHub = '			 + isnull(cast(@pIsDataHub as varchar(100)),'NULL') + @CRLF + 
+		'    ,@pTriggerTypeCode = '		 + isnull(cast(@pTriggerTypeCode as varchar(20)),'NULL') + @CRLF + 
+		'    ,@pIsActive = '			 + isnull(cast(@pIsActive as varchar(10)),'NULL') + @CRLF + 
+		'    ,@pIsDataHub = '			 + isnull(cast(@pIsDataHub as varchar(10)),'NULL') + @CRLF + 
 		'    ,@pBound = '''				 + isnull(@pBound ,'NULL') + '''' + @CRLF + 
+		'    ,@pKeyStoreName = '''		 + isnull(@pKeyStoreName ,'NULL') + '''' + @CRLF + 
 		'    ,@pCreatedBy = '''			 + isnull(@pCreatedBy ,'NULL') + '''' + @CRLF + 
 		'    ,@pETLExecutionId = '		 + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 		'    ,@pPathId = '				 + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
@@ -324,6 +329,7 @@ begin try
 			,SLATime
 			,SLAEndTimeInMinutes
 			,NextExecutionDtm
+			,TriggerTypeCode
 			,IsActive
 			,IsDataHub
 			,Bound
@@ -334,6 +340,7 @@ begin try
 			,DataFactoryPipeline
 			,GlueWorkflow
 			,SrcDeltaAttributes
+			,KeyStoreName
 			,CreatedBy
 			,CreatedDtm
 			,ModifiedBy
@@ -367,6 +374,7 @@ begin try
 			,@pSLATime
 			,@pSLAEndTimeInMinutes
 			,@pNextExecutionDtm
+			,@pTriggerTypeCode
 			,@pIsActive
 			,@pIsDataHub
 			,@pBound
@@ -377,6 +385,7 @@ begin try
 			,@pDataFactoryPipeline
 			,@pGlueWorkflow
 			,@pSrcDeltaAttributes
+			,@pKeyStoreName
 			,@pCreatedBy
 			,@CreatedDate
 			,@pCreatedBy -- Ya ya its modified
@@ -470,4 +479,5 @@ Date		Author			Description
 20201022	ochowkwale		Parameters for Retrys
 20210325	ffortunato		RegEx and FileFormat
 20220907	ffortunato		+ GlueWorkflow
+20230614	ffortunato		+ @pKeyStoreName, +@pTriggerTypeCode
 ******************************************************************************/

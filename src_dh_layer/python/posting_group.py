@@ -20,9 +20,9 @@ Dependencies/Helpful Notes :
 *******************************************************************************
 """
 
-import pg.posting_group_connection as pg_connect
-import secrets.aws_secrets as pg_secret
-
+import posting_group_connection as pg_connect
+import aws_secrets as pg_secret
+from delogging import log_to_console
 
 class PostingGroup:
     """
@@ -36,6 +36,10 @@ class PostingGroup:
 
         :param secret_key: This is the key in aws secrets that stores credentials to the database.
         """
+        self.issue_list = []
+        self.publication_list = ()
+        self.publication_idx = -1
+        self.publication_code = 'Unknown'
 
         self.secret = self.get_secret(
             secret_key=secret_key
@@ -44,7 +48,8 @@ class PostingGroup:
             host=self.secret['host'],
             user=self.secret['user'],
             password=self.secret['password'],
-            database=self.secret['database']
+            database=self.secret['database'],
+            dbInstanceIdentifier=self.secret['dbInstanceIdentifier']
         )
 
     @classmethod
@@ -52,7 +57,7 @@ class PostingGroup:
         return pg_secret.get_secret(secret_key)
 
     @classmethod
-    def connect(cls, host, user, password, database):
+    def connect(cls, host, user, password, database, dbInstanceIdentifier):
         """
         Get database connection object to manage all stored procedures calls
         :return: connection to the dh database.
@@ -61,10 +66,43 @@ class PostingGroup:
             host=host,
             user=user,
             password=password,
-            database=database
+            database=database,
+            dbInstanceIdentifier=dbInstanceIdentifier
+
         )
+    
+    
+    
+    def get_publication_list(self, params):
+        """
+        THIS IS BS FOR TESTING
+        Return publication list
+        :return:
+        """
+        response = {'Status': 'Failure'}
+        success = {'Status': 'Success'}
+        try:
+            self.publication_list = pg_connect.get_publication_list(self.db_connection, params)
+
+        except Exception as err:
+            error_msg = "data_hub.get_publication_list :: Failed. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
 
     def update_posting_group_processing_status(self):
+        """
+        :param self DataHub object.
+        :return: response {'Status': 'Failure'} _or_ {'Status': 'Failure'}
+        """
+        response = {'Status': 'Failure'}
+        success = {'Status': 'Success'}
+        try:
+
+            response.update(success)
+        except Exception as e:
+            print("pg.update_posting_group_processing_status :: Unable to update pgp status: ", e)
+            self.db_connection.rollback()
+
+        return response
 
 """
 *******************************************************************************
@@ -73,5 +111,6 @@ Change History:
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
 ffortunato	08/09/2022  Initial Iteration
+ffortunato	08/09/2022  o update_posting_group_processing_status
 *******************************************************************************
 """

@@ -48,6 +48,7 @@ CREATE TABLE [ctl].[Publication](
 	[SLATime] [varchar](20) NULL,
 	[SLAEndTimeInMinutes] [int] NULL,
 	[NextExecutionDtm] [datetime] NOT NULL,
+	TriggerTypeCode varchar(20) NOT NULL,
 	[IsActive] [bit] NOT NULL,
 	[IsDataHub] BIT NOT NULL, -- this needs to be changed to a bit. I'm mad at you omkar.
 	[Bound] [varchar](10) NOT NULL,
@@ -58,6 +59,7 @@ CREATE TABLE [ctl].[Publication](
 	--[SLAIntervalLength] [int] NULL,
 	[PublicationGroupSequence] int not null, -- This atribute allows us to group publication pulls for publishers that have lots of publications. It also allows us to enforce and order to publication loads or use different pipelines.
 	[PublicationGroupDesc] varchar(1000) not null,
+	[KeyStoreName] varchar(1000) not null,
 	[CreatedBy] [varchar](50) NOT NULL,
 	[CreatedDtm] [datetime] NOT NULL,
 	[ModifiedBy] [varchar](50) NULL,
@@ -122,6 +124,8 @@ ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__StandardFormat
 GO
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__RetryMax__0]  DEFAULT 0 FOR [RetryMax]
 GO
+ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__TriggerTypeCode__NA]  DEFAULT 'N/A' FOR [TriggerTypeCode]
+GO
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__StageJobName__NA]  DEFAULT 'N/A' FOR [StageJobName]
 GO
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__SSISFolder__NA]  DEFAULT 'N/A' FOR [SSISFolder]
@@ -136,6 +140,9 @@ ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__DataFactoryPip
 GO
 
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__GlueWorkflow__NA]  DEFAULT 'N/A' FOR [GlueWorkflow]
+GO
+
+ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__KeyStoreName__NA]  DEFAULT 'N/A' FOR [KeyStoreName]
 GO
 
 ALTER TABLE ctl.Publication ADD CONSTRAINT CHK_Publication_RetryInterval
@@ -174,6 +181,10 @@ GO
 
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_Method_Publication__TransferMethodCode] FOREIGN KEY([TransferMethodCode])
 REFERENCES [ctl].[RefTransferMethod] ([TransferMethodCode])
+GO
+
+ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_TriggerType_Publication__TriggerTypeCode] FOREIGN KEY([TriggerTypeCode])
+REFERENCES [ctl].[RefTriggerType] ([TriggerTypeCode])
 GO
 
 --ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [FK_Method_Publication__MethodCode] FOREIGN KEY([MethodCode])

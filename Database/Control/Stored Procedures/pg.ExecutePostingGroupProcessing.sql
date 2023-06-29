@@ -100,6 +100,7 @@ DECLARE	 @Rows					int				= 0
 		,@DataFactoryName		varchar(255)	= 'N/A'
 		,@DataFactoryPipeline	varchar(255)	= 'N/A'
 		,@DataFactoryStatus		varchar(255)	= 'N/A'
+		,@GlueWorkflow			varchar(255)	= 'N/A'
 		,@ExecutionString		varchar(2000)	= 'N/A'
 		,@DateId				int				= -1
 --		,@MaxPGPBatchSeq		int				= -1
@@ -388,6 +389,7 @@ so other instances of this stored procedure do not run the same processes.
 				,@DataFactoryName				= PG.DataFactoryName
 				,@DataFactoryPipeline			= PG.DataFactoryPipeline
 				,@JobName						= PG.JobName
+				,@GlueWorkflow					= PG.GlueWorkflow
 				,@TotalCount					= PGCR.TotalCount
 				,@ReadyCount					= PGCR.ReadyCount
 				,@ExecutingPostingGroupId		= PGCR.PostingGroupId
@@ -708,12 +710,15 @@ so other instances of this stored procedure do not run the same processes.
 							,@StepOperation		= 'execute'
 							,@StepDesc			= 'Execute Posting Group Processing Id:'  + cast(@PostingGroupProcessingIdToExecute as varchar(12))
 
+/* Temporary until we have things to kick off.
 					exec [pg].[usp_ExecuteProcess]
 						 @pPostingGroupProcessingId				= @PostingGroupProcessingIdToExecute
 						,@pIssueId								= -1 -- No issue date neeeds to be sent.
 						,@pAllowMultipleInstances				= @AllowMultipleInstances
 						,@pExecuteProcessStatus					= @ExecuteProcessStatus	output
 
+Insert the execution and needed data into a record set that will be returned to the lambda for processing.
+*/
 					exec audit.usp_InsertStepLog
 							 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
 							,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
@@ -902,165 +907,3 @@ Date		Author			Description
 
 20215026	ffortunato		BIG ELSE.
 ******************************************************************************/
-
-
-
---leaving this here for postarity for a bit.
-/*
-
-					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupId',		@ExecutingPostingGroupId)
-					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchSeq',	@NextPGPBatchSeq)
-					insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchId',	@pPGBId)
-
-					IF (@ParentProcessingMethodCode = 'SSIS')
-					BEGIN
-						-- Note when calling the next package Batch and Posting Group must be sent as well.
-						select	 @StepName			= 'Execute Posting Group'
-								,@StepNumber		= @StepNumber + 0
-								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
-								,@StepOperation		= 'execute'
-								,@StepDesc			= 'Execute SSIS Package: ' + @SSISPackage
-
-					-- pretend execution   COMMENT THIS print OUT WHEN YOU WANT TO KICK THINGS OFF.
-					
-					print 'execute '	+ isnull(@SSISPackage, 'BAD RESULT') 
-										+ ' PostingGroupBatchId:='	+ cast(@pPGBId as varchar) 
-										+ ' ParentPostingGroupId='	+ cast(@ExecutingPostingGroupId as varchar(20))
-										+ ' ChildPostingGroupId='	+ cast(@pPGId as varchar(20))
-										+ ' Cur Sequence Number='	+ cast(@CurPGPBatchSeq as varchar(20))
-										+ ' Next Sequence Number='	+ cast(@NextPGPBatchSeq as varchar(20))
-										+ ' @SSISProject='	+ @SSISProject
-										+ ' @ServerName='	+ @ServerName
-										+ ' @SSISFolder='	+ @SSISFolder
-										+ ' @SSISPackage='	+ @SSISPackage
-					
-
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupId',		@ExecutingPostingGroupId)
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchSeq',	@NextPGPBatchSeq)
-						insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupBatchId',	@pPGBId)
-						
-						--insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupMethod',	@PostingGroupMethod)    $$$$ NEver pass method becuase it know what was called
-						--insert into	@SSISParameters values (@ObjectType,'pkg_PostingGroupMode',		@PostingGroupMode)  -- Passing mode to determin how I should run. This can be picked up by the ETL instead.
-/*
-						exec pg.usp_ExecuteSSISPackage 
-								 @pSSISProject		= @SSISProject
-								,@pServerName		= @ServerName
-								,@pSSISFolder		= @SSISFolder
-								,@pSSISPackage		= @SSISPackage
-								,@pSSISParameters	= @SSISParameters
-								,@pETLExecutionId	= @pETLExecutionId
-								,@pPathId			= @pPathId
-								,@pVerbose			= @pVerbose
-*/
-						select	 @PreviousDtm		= @CurrentDtm
-								,@Rows				= @@ROWCOUNT 
-						select	 @CurrentDtm		= getdate()
-								,@JSONSnippet		= '{"@SSISFolder":"'	+ @SSISFolder  + '",'
-													+  '"@SSISProject":"'	+ @SSISProject + '",'
-													+  '"@SSISPackage":"'	+ @SSISPackage + '",'
-													+  '"@TotalCount":"'	+ cast(@TotalCount as varchar(20)) + '",'
-													+  '"@ReadyCount":"'	+ cast(@ReadyCount as varchar(20)) + '",'
-													+  '"@PostingGroupBatchId":"'	+ cast(@pPGBId as varchar(20)) + '",'
-													+  '"@PGPBatchSeq":"'	+ cast(@CurPGPBatchSeq as varchar(20)) + '",'
-													+  '"@ExecutingPostingGroupId Parent":"'+ cast(@ExecutingPostingGroupId as varchar(20))  + '",'
-													+  '"@ChildPostingGroupId Child":"'+ cast(@pPGId as varchar(20))  + '",'
-													+  '"@CurPGPBatchSeq Parent":"'+ cast(@CurPGPBatchSeq as varchar(20))  + '",'
-													+  '"@NextPGPBatchSeq Child":"'+ cast(@NextPGPBatchSeq as varchar(20))  + '",'
-													+  '"@ExecutionId":"'	+ cast(@ExecutionId as varchar(20)) + '",'
-													+  '"@ReferenceId":"'	+ cast(@ReferenceId as varchar(20))+ '"}' 	
-
-						exec audit.usp_InsertStepLog
-								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-								,@pVerbose
-
-						select	 @JSONSnippet		= NULL
-					END -- Call SSIS Package
-					ELSE IF (@ParentProcessingMethodCode = 'ADFP')    --$$$$ Get me in coach.
-					begin
-
-						-- Note when calling the next package Batch and Posting Group must be sent as well.
-						select	 @StepName			= 'Execute Posting Group ADFP'
-								,@StepNumber		= @StepNumber + 0
-								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
-								,@StepOperation		= 'execute'
-								,@StepDesc			= 'Execute Azure Data Factory Pipeline: '
-
-						print 'execute  [pg].[usp_ExecuteDataFactory]'										+ @CRLF
-										+ ' @pDataFactoryName		= '''	+ @DataFactoryName		+ ''''	+ @CRLF
-										+ ' @pDataFactoryPipeline	= '''	+ @DataFactoryPipeline	+ ''''	+ @CRLF
-										+ ' @pStatus				= @DataFactoryStatus  output'			+ @CRLF
-										+ ' PostingGroupBatchId:'	+ cast(@pPGBId as varchar) 
-										+ ' ParentPostingGroupId:'	+ cast(@ExecutingPostingGroupId as varchar(20))
-										+ ' ChildPostingGroupId:'	+ cast(@pPGId as varchar(20))
-										+ ' Cur Sequence Number:'	+ cast(@CurPGPBatchSeq as varchar(20))
-										+ ' Next Sequence Number:'	+ cast(@NextPGPBatchSeq as varchar(20))
-/*
-						-- We are assuming that we can get the posting group processing id from within the job.
-						EXEC	 [pg].[usp_ExecuteDataFactory] 
-								 @pDataFactoryName		= @DataFactoryName
-								,@pDataFactoryPipeline	= @DataFactoryPipeline
-								,@pStatus				= @DataFactoryStatus output
-								,@pETLExecutionId		= -1
-								,@pPathId				= -1
-								,@pVerbose				= 0
-*/
-						-- Upon completion of the step, log it!
-						select	 @PreviousDtm		= @CurrentDtm
-								,@Rows				= @@ROWCOUNT 
-						select	 @CurrentDtm		= getdate()
-
-						exec audit.usp_InsertStepLog
-								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-								,@pVerbose
-
-					end -- Execute a SQL Job
-					ELSE IF (@ParentProcessingMethodCode = 'SQLJ')    --$$$$ Get me in coach.
-					begin
-
-						-- Note when calling the next package Batch and Posting Group must be sent as well.
-						select	 @StepName			= 'Execute Posting Group'
-								,@StepNumber		= @StepNumber + 0
-								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
-								,@StepOperation		= 'execute'
-								,@StepDesc			= 'Execute SQL Server Job: ' + @JobName
-
-						-- We are assuming that we can get the posting group processing id from within the job.
-						EXEC	 @JobReturnCode		= msdb.dbo.sp_start_job 
-									@job_name		= @JobName
-
-						-- Upon completion of the step, log it!
-						select	 @PreviousDtm		= @CurrentDtm
-								,@Rows				= @@ROWCOUNT 
-						select	 @CurrentDtm		= getdate()
-
-						exec audit.usp_InsertStepLog
-								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-								,@pVerbose
-
-					end -- Execute a SQL Job
-					else -- Unable to find anything to run.
-					begin
-						select	 @StepName			= 'Unable to Execute Posting Group'
-								,@StepNumber		= @StepNumber + 0
-								,@SubStepNumber		= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.3'
-								,@StepOperation		= 'warning'
-								,@StepDesc			= 'Unknown execution type' + @JobName
-
-						-- Upon completion of the step, log it!
-						select	 @PreviousDtm		= @CurrentDtm
-								,@Rows				= @@ROWCOUNT 
-						select	 @CurrentDtm		= getdate()
-
-						exec audit.usp_InsertStepLog
-								 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-								,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-								,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-								,@pVerbose
-					end -- Bad else
-*/

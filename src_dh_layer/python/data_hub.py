@@ -14,10 +14,15 @@ Methods:
     get_secret :: Private, looks up the secret data from AWS.
     get_publication_list: Returns a list of publications associated with the provided publisher_code
     * get_publication_record: Deprecated
+
     get_publication_code: Returns the active publication code for the data hub object.
     set_publication_code: Allows the user to set / change the active publication Code.
     get_publication_idx: Returns the active publication index  for the data hub object.
     set_publication_idx: N/A set publication code now sets the index as well.
+
+    get_issue_details: Gets the latest issue details for a given file name.
+        get_issue_details: Gets the latest issue details for a given issue_id.
+
     insert_new_issue: Takes stored issue information and inserts it to the db. Returns IssueId
     update_issue: Takes stored issue information and updates it to the db based on stored IssueId
     is_issue_absent: Returns a true or false based on the file name's presence in data hub.
@@ -44,8 +49,9 @@ Dependencies/Helpful Notes :
 *******************************************************************************
 """
 
-import dh.data_hub_connection as dh_connect
-import secrets.aws_secrets as dh_secret
+import data_hub_connection as dh_connect
+import aws_secrets as dh_secret
+from delogging import log_to_console
 
 
 class DataHub:
@@ -64,6 +70,7 @@ class DataHub:
         self.publication_list = ()
         self.publication_idx = -1
         self.publication_code = 'Unknown'
+        self.get_type = 'Unknown'
 
         self.secret = self.get_secret(
             secret_key=secret_key
@@ -115,8 +122,10 @@ class DataHub:
             if self.publication_list:
                 self.publication_idx = self.issue_list[0][self.publication_code]
                 # print(self.publication_idx)
-        except Exception as e:
-            print('dh.set_publication_code Failed', self.publication_code, e)
+        except Exception as err:
+            # print('dh.set_publication_code Failed', self.publication_code, e)
+            error_msg = "data_hub.set_publication_code Failed :: publication_code:{}  Error:{}".format(self.publication_code, err)
+            log_to_console(__name__,'Error',error_msg)
 
     def get_publication_idx(self):
         """
@@ -132,8 +141,9 @@ class DataHub:
         """
         try:
             return self.issue_list[self.publication_idx]['IssueId']
-        except Exception as e:
-            print('dh.get_issue_id Failed', e)
+        except Exception as err:
+            error_msg = "data_hub.get_issue_id :: Failed. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
             return -1
 
     def set_issue_val(self, issue_updates):
@@ -154,43 +164,36 @@ class DataHub:
         response = {'Status': 'Failure'}
         success = {'Status': 'Success'}
         try:
-            self.publication_list = dh_connect.get_publication_list(self.db_connection, params)
-            self.issue_list = dh_connect.prepare_issues(self.publication_list)
+            if   'TriggerTypeCode'     in params and params['TriggerTypeCode'] == 'SCH': self.get_type = 'Schedule'
+            elif 'PublisherCode'       in params: self.get_type = 'PublisherCode'
+            elif 'PublicationFilePath' in params: self.get_type = 'PublicationFilePath'
+            elif 'IssueId'             in params: self.get_type = 'IssueId'
+            elif 'FileName'            in params: self.get_type = 'FileName'
+            else: 
+                error_msg = "data_hub.get_publication_list :: Failed. '(DataHub Custom) Invalid parameters passed to get_publication list.: {}".format(params)
+                raise Exception (error_msg)
+
+            self.publication_list = dh_connect.get_publication_list(self.db_connection, params, self.get_type)
+            self.issue_list = dh_connect.prepare_issues(self.publication_list, self.get_type)
+
             # set the publication code and index to the first value returned.
             if self.publication_list:
-
-                # print(self.publication_list)
-                # print(self.issue_list)
                 self.publication_code = self.publication_list[0]['PublicationCode']
                 self.publication_idx = self.issue_list[0][self.publication_code]
-                # print('DataHub.get_publication_code() = ', self.publication_code)
-                # print('DataHub.get_publication_idx() = ', self.publication_idx)
-
-            response = success
-
-        except Exception as e:
-            print("dh.get_publication_list :: Can't get publication list :: ", e)
-
-        return response
-
-    def get_publication_record(self, params):
-        """
-        DEPRECATED
-        Return publication record.
-        :return:
-        """
-        response = {'Status': 'Failure'}
-        success = {'Status': 'Success'}
-        try:
-            self.publication_list = dh_connect.get_publication_record(self.db_connection, params)
-            self.issue_list = dh_connect.prepare_issues(self.publication_list)
-            response = success
-        except Exception as e:
-            print("dh.get_publication_record :: Can't get publication record :: ", e)
+                response = success
+                
+        except Exception as err:
+            error_msg = "data_hub.get_publication_list :: Failed. Error: {}".format(err)
+            log_to_console(__name__,'Error',error_msg)
+            if not self.publication_list:
+                #No publication list was returned. This isn't necessacarily and error.
+                response['Message'] = 'No Publication list was returned.'
+            else:
+                raise    Exception (error_msg)
 
         return response
 
-    def insert_new_issue(self):  # , issue):
+    def insert_new_issue(self):
         """
         Create a record given a set of parameters needed to create an issue. The newly issued
         IssueId will be updated in the parameter set for use when updating later.
@@ -200,16 +203,21 @@ class DataHub:
         response = {'Status': 'Failure'}
         success = {'Status': 'Success'}
         try:
+            #print(self.issue_list[self.publication_idx])
             issue_id = dh_connect.insert_new_issue(self.db_connection, self.issue_list[self.publication_idx])
-            # print('Issue Id Returned:', issue_id)
+            # issue_id = [{'IssueId': 6432}]   This is an array of dictionaries...
+            #print('Issue Id Returned:', issue_id)
             self.db_connection.commit()
             self.issue_list[self.publication_idx].update(issue_id[0])
-            response.update(success)
-        except Exception as e:
-            print("dh.insert_new_issue :: Can't insert new issue to database. ", e)
+            response = success
+
+        except Exception as err:
+            error_msg = "data_hub.insert_new_issue :: Failed inserting new issue to database. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
             self.db_connection.rollback()
-        finally:
-            return response
+            raise Exception (error_msg)
+        
+        return response
 
     def update_issue(self, issue):
         """
@@ -222,17 +230,16 @@ class DataHub:
         """
         response = {'Status': 'Failure'}
         success = {'Status': 'Success'}
-        try:
-            # print('dh.update_issue About to update:', issue)
-            # print('Updating Issue List')
-            # print(self.issue_list[self.publication_idx])
+        try: 
             self.issue_list[self.publication_idx].update(issue)
             response = dh_connect.update_issue(self.db_connection, self.issue_list[self.publication_idx])
-            # response = dh_connect.update_issue(self.db_connection, issue)
             self.db_connection.commit()
+            if issue['StatusCode'] == 'IL':
+                self.notify_subscriber_of_distribution()
             response.update(success)
-        except Exception as e:
-            print("dh.update_issue :: Can't update issue: ", e)
+        except Exception as err:
+            error_msg = "data_hub.update_issue :: Failed updating existing issue to database. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
             self.db_connection.rollback()
 
         return response
@@ -240,7 +247,8 @@ class DataHub:
     def is_issue_absent(self, file_name):
         """
         This function determines if an issue has been processed already via a lookup in the issue table.
-        :param file_name: Name of the file to be looked up.
+        :param  self: DataHub object.
+                file_name: Name of the file to be looked up.
         :return: True: The file is absent and should be processed by the system.
                  False: The file has already been processed and should _not_ be loaded again.
         """
@@ -248,8 +256,9 @@ class DataHub:
         response = False
         try:
             response = dh_connect.is_issue_absent(self.db_connection, file_name)
-        except Exception as e:
-            print("dh.is_issue_absent :: Failed to execute is_issue_absent: ", e)
+        except Exception as err:
+            error_msg = "data_hub.is_issue_absent :: Failed looking up issue. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
         return response
 
     def notify_subscriber_of_distribution(self):
@@ -264,8 +273,9 @@ class DataHub:
             response = dh_connect.notify_subscriber_of_distribution(self.db_connection,
                                                                     self.issue_list[self.publication_idx])
             response.update(success)
-        except Exception as e:
-            print("dh.notify_subscriber_of_distribution :: Unable to trigger notification and down stream process: ", e)
+        except Exception as err:
+            error_msg = "data_hub.notify_subscriber_of_distribution :: Unable to trigger notification and down stream process. Error:{}".format(err)
+            log_to_console(__name__,'Error',error_msg)
             self.db_connection.rollback()
 
         return response
@@ -284,6 +294,6 @@ ffortunato  04/22/2022  + multiple new methods for the class.
                         + issue_list to maintain issue data along with the class
 ffortunato  07/29/2022  + Improving exception messages but still more to do.
 ffortunato  08/05/2022  + notify_subscriber_of_distribution
-ffortunato  03/15/2023  o merge conflicts
+ffortunato  20230522    o modified logging to us log to console.  
 *******************************************************************************
 """

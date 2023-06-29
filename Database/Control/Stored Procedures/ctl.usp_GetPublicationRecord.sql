@@ -72,6 +72,7 @@ declare @RetryPublications table (
 declare	@IssueDetail			table(
 		 IssueDetailId			int identity(1,1)
 		,PublicationId			int
+		,PublicationSeq			int
 		,IssueId				int
 		,FirstRecordSeq			int
 		,LastRecordSeq			int
@@ -171,6 +172,7 @@ set		 PeriodStartTime		= iss.PeriodStartTime
 		,PeriodEndTimeUTC		= iss.PeriodEndTimeUTC
 		,FirstRecordSeq			= iss.FirstRecordSeq
 		,LastRecordSeq			= iss.LastRecordSeq
+		,PublicationSeq			= iss.PublicationSeq
 from	 @IssueDetail			  issd
 join	 ctl.Issue	iss
 on		 iss.IssueId			= issd.IssueId
@@ -205,21 +207,12 @@ begin
 
 --	insert	into @PublicationList
 	select	 pr.PublisherId
+			,pr.PublisherCode
 			,pr.PublisherName
 			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
-			/*
-			,pr.SiteURL
-			,pr.SiteUser
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.[SitePassword]))				as SitePassword
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.SiteHostKeyFingerprint))		as SiteHostKeyFingerprint
-			,pr.SitePort
-			,pr.SiteProtocol
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
-			*/
 			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
@@ -244,10 +237,15 @@ begin
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
-			,isnull(id.IssueId,-1)					  LastIssueId
-			,isnull(id.PeriodEndTime,cast('01-Jan-1900'as datetime))			  HighWaterMarkDatetime
-			,isnull(id.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset))			  HighWaterMarkDatetimeUTC
-			,isnull(id.LastRecordSeq,1)											  HighWaterMarkRecordSeq
+			,pn.KeyStoreName
+			,isnull(id.IssueId,-1)						LastIssueId
+			,'Unknown'									IssueName
+			,convert(varchar(40),isnull(id.PeriodStartTime,cast('01-Jan-1900'as datetime)),121)		LastHighWaterMarkDatetime
+			,convert(varchar(40),isnull(id.PeriodStartTimeUTC,cast('01-Jan-1900'as datetime)),121 )	LastHighWaterMarkDatetimeUTC
+			,convert(varchar(40),isnull(id.PeriodEndTime,cast('01-Jan-1900'as datetime)),121)			HighWaterMarkDatetime
+			,convert(varchar(40),isnull(id.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset)),121)	HighWaterMarkDatetimeUTC
+			,isnull(id.LastRecordSeq,1)					HighWaterMarkRecordSeq
+			,isnull(id.PublicationSeq,0)				PublicationSeq
 	from 	ctl.Publication				  pn
 	left join @IssueDetail				  id
 	on		id.PublicationId			= pn.PublicationId
@@ -338,5 +336,7 @@ Date		Author			Description
 							Needed something for triggered events to get
 							datahub information.
 20220714	ffortunato		+ pn.GlueWorkflow
-
+20230602	ffortunato		- URL / User Password data.
+							+ pr.PublisherCode
+20230614	ffortunato		+ KeyStoreName
 ******************************************************************************/
