@@ -61,7 +61,8 @@ declare	 @Rows					int				= 0
 		,@IssueRetry			varchar(2)		= 'IR'
 		,@NextExecutionDateTime datetime		= cast('3002-Jan-10' as datetime)
 		,@PublisherId			int				= -1
-		
+		--,@DummyFileDate			varchar(10)		= replace(convert(varchar(10),getdate(),121),'-','')
+
 declare @RetryPublications table (
 		 PublicationId			int
 		,StatusCode				VARCHAR(20)
@@ -70,6 +71,7 @@ declare @RetryPublications table (
 declare	@IssueDetail			table(
 		 IssueDetailId			int identity(1,1)
 		,PublicationId			int
+		,PublicationSeq			int
 		,IssueId				int
 		,FirstRecordSeq			int
 		,LastRecordSeq			int
@@ -228,8 +230,9 @@ set		 PeriodStartTime		= isnull(iss.PeriodStartTime   ,cast('1900-01-01' as date
 		,LastRecordSeq			= iss.LastRecordSeq
 		,FirstRecordChecksum	= iss.FirstRecordChecksum
 		,LastRecordChecksum 	= iss.LastRecordChecksum
+		,PublicationSeq			= iss.PublicationSeq
 from	 @IssueDetail			  issd
-join	 ctl.Issue	iss
+join	 ctl.Issue				  iss
 on		 iss.IssueId			= issd.IssueId
 
 -------------------------------------------------------------------------------
@@ -243,21 +246,13 @@ on		 iss.IssueId			= issd.IssueId
 --	insert	into @PublicationList
 
 	select	 pr.PublisherId
+			,@pPublisherCode			PublisherCode
 			,pr.PublisherName
 			,pn.PublicationId
 			,pn.PublicationName
 			,pn.PublicationCode
 			,pr.InterfaceCode
-			/*
-			,pr.SiteURL
-			,pr.SiteUser
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.[SitePassword]))				as SitePassword
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.SiteHostKeyFingerprint))		as SiteHostKeyFingerprint
-			,pr.SitePort
-			,pr.SiteProtocol
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyPassPhrase))		as PrivateKeyPassPhrase
-			,CONVERT(varchar(256), DECRYPTBYPASSPHRASE(@PassPhrase, pr.PrivateKeyFile))				as PrivateKeyFile
-			*/
+
 			,pn.SrcFileRegEx
 			,pn.IntervalCode
 			,pn.IntervalLength
@@ -282,11 +277,21 @@ on		 iss.IssueId			= issd.IssueId
 			,pn.PublicationFilePath
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
+			,pn.KeyStoreName
 			,id.IssueId						LastIssueId
-			,'Unknown'						IssueName
+			,'Unknown'						IssueName			-- Unk_' + pn.PublicationCode + '_00000_' + 	@DummyFileDate					IssueName
+			,id.PeriodStartTime				LastHighWaterMarkDatetime
+			,id.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
 			,id.PeriodEndTime				HighWaterMarkDatetime
 			,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+			/*
+			,convert(varchar(40),isnull(iss.PeriodStartTime,cast('01-Jan-1900'as datetime)),121)		LastHighWaterMarkDatetime
+			,convert(varchar(40),isnull(iss.PeriodStartTimeUTC,cast('01-Jan-1900'as datetime)),121 )	LastHighWaterMarkDatetimeUTC
+			,convert(varchar(40),isnull(iss.PeriodEndTime,cast('01-Jan-1900'as datetime)),121)			HighWaterMarkDatetime
+			,convert(varchar(40),isnull(iss.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset)),121)	HighWaterMarkDatetimeUTC
+			*/
 			,LastRecordSeq					HighWaterMarkRecordSeq
+			,id.PublicationSeq
 	from 	ctl.Publication				  pn
 --	left join @RetryPublications		  rpn
 --	on		rpn.PublicationId			= pn.PublicationId
@@ -378,4 +383,7 @@ Date		Author			Description
 							+ high warter for recordSeq as well
 20220405	ffortunato		o @IssueDetails is now updated correctly.
 20220714	ffortunato		+ pn.GlueWorkflow
+20230522	ffortunato		+ Start, Start UTC 
+							This will make things closer to get Issue.
+20230614	ffortunato		+ ,pn.KeyStoreName
 ******************************************************************************/

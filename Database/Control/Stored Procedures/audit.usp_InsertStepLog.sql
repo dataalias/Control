@@ -77,6 +77,8 @@ Date		Author			Description
 
 20170911	ffortunato		updated paramerter list.
 
+20230528	ffortunato		Removing Transaction and @Steplog = query :(
+
 ******************************************************************************/
 
 -------------------------------------------------------------------------------
@@ -142,10 +144,10 @@ begin try
 
 -- Starting transaction to ensure Id's remain consistent.
 
-BEGIN TRANSACTION StepLogInsert
+--BEGIN TRANSACTION StepLogInsert
 
 select	@SteplogId			= isnull(max(StepLogId) + 1 ,1)
-	from	[audit].StepLog
+	from	[audit].StepLog with (nolock)
 
 	exec	[audit].[usp_CreateStepLogDescription] 
 			 @pMessageType			= @pMessageType
@@ -204,7 +206,7 @@ insert into [audit].StepLog (
 
 select  @pStepLogId				= isnull(SCOPE_IDENTITY(),-1)
 
-COMMIT TRANSACTION StepLogInsert
+--COMMIT TRANSACTION StepLogInsert
 
 /*
 if @pVerbose					= 1

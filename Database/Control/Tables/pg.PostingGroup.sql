@@ -122,6 +122,9 @@ GO
 ALTER TABLE [pg].[PostingGroup] ADD  CONSTRAINT [DF__PostingGroup__SQLStoredProcedure__NA]  DEFAULT 'N/A' FOR [SQLStoredProcedure]
 GO
 
+ALTER TABLE [pg].[PostingGroup] ADD  CONSTRAINT [DF__PostingGroup__GlueWorkflow__NA]  DEFAULT 'N/A' FOR [GlueWorkflow]
+GO
+
 ALTER TABLE [pg].[PostingGroup] ADD  CONSTRAINT [DF__PostingGroup__RetryMax__0]  DEFAULT 0 FOR [RetryMax]
 GO
 
@@ -162,4 +165,5 @@ date		author			description
 							server job.... Adding processing type (Normal, Hist
 							...
 20210327	ffortunato		Lots of default / not null work.
+20230602	ffortunato		+ GlueWorkflow Default.
 ******************************************************************************/

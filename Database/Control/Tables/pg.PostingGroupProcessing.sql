@@ -36,7 +36,7 @@ CREATE TABLE [pg].[PostingGroupProcessing](
 	[RetryCount] [int] NOT NULL,
 	[IssueId] [bigint] NOT NULL,
 	[DistributionId] [bigint] NOT NULL,
-	[ETLExecutionID] [int] NULL,
+	[ETLExecutionId] [int] NULL,
 	[CreatedBy] [varchar](50) NOT NULL,
 	[CreatedDtm] [datetime] NOT NULL,
 	[ModifiedBy] [varchar](50) NULL,

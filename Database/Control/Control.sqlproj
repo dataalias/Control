@@ -67,6 +67,7 @@
     <Folder Include="Domain" />
     <Folder Include="Test" />
     <Folder Include="RefDacPac" />
+    <Folder Include="PrePostDeploy" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Indexes\README.md" />
@@ -78,22 +79,19 @@
     <None Include="Functions\README.md" />
     <None Include="Domain\README.md" />
     <None Include="README.md" />
-    <None Include="Script.Rollback.sql" />
     <None Include="Test\TestScript.sql" />
     <None Include="Control.publish.xml" />
-    <None Include="DataHub.publish.xml" />
     <None Include="RefDacPac\SSISDB.dacpac" />
-    <None Include="sbx.DataHub.publish.xml" />
-    <None Include="DataHub_To_DEV_profile.publish.xml" />
-    <None Include="DataHub_To_Prod.publish.xml" />
-    <None Include="DataHub_To_STG_profile.publish.xml" />
+    <None Include="devadw_Control.publish.xml" />
+    <None Include="stgadw_Control.publish.xml" />
+    <None Include="PRODUCTION_MSSQL_Control.publish.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="Script.PostDeployment.sql" />
     <None Include="Domain\Script.PassphraseDomain.sql" />
+    <PostDeploy Include="PrePostDeploy\Script.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PreDeploy Include="Script.PreDeployment.sql" />
+    <PreDeploy Include="PrePostDeploy\Script.PreDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Schemas\ctl.sql" />
@@ -195,12 +193,14 @@
     <Build Include="Tables\pg.RefProcessingMode.sql" />
     <None Include="Test\tst_RemoveAllDataHubObjects.sql" />
     <Build Include="Views\ctl.vw_PublicationContacts.sql" />
-    <None Include="Create Stored Procedure %28New Menu).sql" />
     <Build Include="Views\ctl.vw_PublisherContact.sql" />
     <None Include="Test\tst_StepLogging.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetLoadedIssueDetails.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetPublicationListSSIS.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetPublicationRecord.sql" />
+    <None Include="PrePostDeploy\Script.Rollback.sql" />
+    <Build Include="Stored Procedures\ctl.usp_GetPublicationListScheduled.sql" />
+    <Build Include="Tables\ctl.RefTriggerType.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
