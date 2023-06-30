@@ -1,5 +1,6 @@
 ﻿CREATE PROCEDURE [ctl].[usp_GetIssueDetails] (
-		 @pIssueId		        INT
+		 @pIssueId		        INT				= null
+		,@pFileName				varchar(255)	= 'Unknown'
 		,@pETLExecutionId		INT				= -1
 		,@pPathId				INT				= -1
 		,@pVerbose				BIT				= 0)
@@ -74,13 +75,20 @@ BEGIN TRY
 	-- Set Log Values
 	select	 @StepName			= 'Select Issue Records'
 			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'Select'
-			,@StepDesc			= 'SelectiNg records from Issue table for the given IssueId'
+			,@StepOperation		= 'select'
+			,@StepDesc			= 'Returns Issue records table for the given IssueId: ' + cast(@pIssueId as varchar(20))
+
+	IF (@pIssueId <= 0 or @pIssueId is null) and @pFileName <> 'Unknown'
+	BEGIN
+		SELECT	 @pIssueId		= isnull(max(IssueId),-1)
+		FROM	 ctl.Issue		  iss
+		WHERE	 IssueName		= @pFileName
+	END
 
 	IF EXISTS
 	( 
 		SELECT 1
-		FROM ctl.Issue id
+		FROM ctl.Issue iss
 		JOIN ctl.Publication pub
 			ON iss.PublicationId = pub.PublicationId
 		WHERE iss.IssueId = @pIssueId 
@@ -119,17 +127,18 @@ BEGIN TRY
 				,pn.PublicationFilePath
 				,pn.PublicationArchivePath
 				,pn.PublicationGroupSequence
+				,pn.KeyStoreName
 				,iss.IssueId					IssueId
 				,iss.IssueName					IssueName
-				,iss.PeriodStartTime			LastHighWaterMarkDatetime
-				,iss.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
-				,iss.PeriodEndTime				HighWaterMarkDatetime
-				,iss.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
+				,convert(varchar(40),isnull(iss.PeriodStartTime,cast('01-Jan-1900'as datetime)),121)		LastHighWaterMarkDatetime
+				,convert(varchar(40),isnull(iss.PeriodStartTimeUTC,cast('01-Jan-1900'as datetime)),121 )	LastHighWaterMarkDatetimeUTC
+				,convert(varchar(40),isnull(iss.PeriodEndTime,cast('01-Jan-1900'as datetime)),121)			HighWaterMarkDatetime
+				,convert(varchar(40),isnull(iss.PeriodEndTimeUTC,cast('01-Jan-1900'as datetimeoffset)),121)	HighWaterMarkDatetimeUTC
 				,iss.LastRecordSeq				HighWaterMarkRecordSeq
-				,rs.StatusCode					IssueStatusCode
+				,rs.StatusCode					StatusCode
 				,iss.RecordCount				RecordCount
-				,iss.ETLExecutionID				ETLExecutionID
-				,iss.ReportDate					ReportDate
+				,iss.ETLExecutionId				ETLExecutionId
+				,convert( varchar(40),iss.ReportDate,121 )				ReportDate
 
 		from 	ctl.Publication				  pn
 		join	ctl.Issue					  iss
@@ -199,8 +208,6 @@ SELECT	 @CurrentDtm			= GETDATE()
 		,@StepOperation			= 'N/A'
 
 EXEC [audit].usp_InsertStepLog @MessageType, @CurrentDtm, @PreviousDtm, @StepNumber, @StepOperation, @JSONSnippet, @ErrNum, @ParametersPassedChar, @ErrMsg OUTPUT, @ParentStepLogId, @ProcName, @ProcessType, @StepName, @StepDesc OUTPUT, @StepStatus, @DbName, @Rows, @pETLExecutionId, @pPathId, @PrevStepLog OUTPUT, @pVerbose
--------------------------------------------------------------------------------
-
 
 
 /******************************************************************************
@@ -217,4 +224,7 @@ Date		Author			Description
 							processing within the new class.
 20230527	ffortunato		getting consistency with Get Publication List and
 							Record. Gateway API
+							o StatusCode <-- IssueStatusCode
+							o little formatting of output.
+20230614	ffortunato		+ ,pn.KeyStoreName
 ******************************************************************************/

@@ -1,0 +1,14 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - ls
+      - cd DataHubS3Trigger
+      - zip -r DataHubS3Trigger.zip .
+  build:
+    commands:
+      - echo "Updating lambda Function..."
+      - aws lambda update-function-code --function-name DataHubS3Trigger --zip-file fileb://DataHubS3Trigger.zip
+      - echo "DONE!!"
