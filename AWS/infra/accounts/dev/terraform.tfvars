@@ -20,8 +20,8 @@ datahub_layer           = "arn:aws:lambda:us-east-1:000000000000:layer:Python39-
 #deUtils_layer           = "arn:aws:lambda:us-east-1:000000000000:layer:Python39-deUtils:latest"
                            
 timeout_seconds         = 120
-db_dh = "adw"
-db_dw = "adw"
+db_dh = "dw"
+db_dw = "dw"
 sqs_pg_dw_name = "deDWPostingGroup.fifo"
 sqs_pg_dlq_name = "deDWPostingGroup-dlq.fifo"
 fifo = true

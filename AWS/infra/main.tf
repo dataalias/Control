@@ -179,7 +179,7 @@ Generic definition for the code pipeline and the associated pipeline needed to d
 */
 
 module "codepipeline" {
-  source = "git@github.com:MyProject/terraform-codepipeline.git?ref=2d8000255c23a8b83ee927acf1007f8e477198ea"
+  source = "git@github.com:MyProject/terraform-codepipeline.git?ref=MySha"
   region                  = var.region
   account_id              = var.account_id
   artifact_bucket         = var.artifact_bucket
