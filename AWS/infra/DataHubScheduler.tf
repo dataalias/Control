@@ -27,7 +27,7 @@ resource "aws_lambda_function" "terraform_DataHubScheduler" {
   runtime                        = "python3.9"
   depends_on                     = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
   source_code_hash               = data.archive_file.zip_DataHubScheduler.output_base64sha256
-  layers                         = ["${aws_lambda_layer_version.python39-deutils-layer.arn}",var.mssql_layer,var.boto_layer]
+  layers                         = ["${aws_lambda_layer_version.python39-dedatahub-layer.arn}",var.mssql_layer,var.boto_layer]
   timeout                        = 240
   
   environment {

@@ -23,8 +23,8 @@ Dependencies/Helpful Notes : N/A
 #sys.path.insert(1,'/Users/ffortunato/source/repos/deDataHub/src_dh_layer/python')
 import json
 import os
-from delogging import log_to_console
-from data_hub import *
+from deUtils.delogging import log_to_console
+from deUtils.data_hub import *
 
 # import requests
 

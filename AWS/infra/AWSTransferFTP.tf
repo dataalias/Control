@@ -21,7 +21,11 @@ resource "aws_transfer_server" "data_hub_ftp" {
   #force_destroy          = var.force_destroy
   #security_policy_name   = var.security_policy_name
   #logging_role           = join("", aws_iam_role.logging[*].arn)
-
+  tags = {
+    Environment = var.env
+    Department = "Data Engineering"
+    DepartmentCode = "DE"
+  }
 }
 
 data "aws_s3_bucket" "landing" {
