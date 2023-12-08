@@ -15,13 +15,17 @@ Dependencies/Helpful Notes : N/A
 *******************************************************************************
 """
 
+#import sys
+#sys.path.insert(1,'./python')
+
 import json
 import boto3
 import os
-from delogging import log_to_console
-from data_hub import *
-from datetime import datetime
-from pytz import timezone
+#from delogging import log_to_console
+from deUtils.delogging import log_to_console
+from deUtils.data_hub import *
+from datetime import datetime, timedelta
+#from pytz import timezone
 #import pytz
 
 # this block can be commented out. this is just for local testing.
@@ -60,11 +64,13 @@ def lambda_handler(event, context):
                 "body": json.dumps(response),
             }
     now = datetime.now()
+    #Hax this should be timezone math ... see comments below
+    now = now - timedelta(hours =7)
     FileDate = now.strftime("%Y%m%d%H%M%S")
     
     CurrenDateUTC = now.strftime("%Y-%m-%d %H:%M:%S")
-    #CurrentDate = CurrenDateUTC.astimezone(timezone('US/Pacific'))
-    CurrentDate = now.astimezone(timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")
+    #This should be the code that we use. based on Hax above.
+    CurrentDate = now.strftime("%Y-%m-%d %H:%M:%S")
 
     # Testing
     # CurrenDate = '2024-01-01 01:00:59.123'
@@ -111,8 +117,11 @@ def lambda_handler(event, context):
                 my_data_hub.insert_new_issue()
 
                 #Fire the work flow with the issue as the payload.
-                GlueWorkflow = environment + db_dw +'_'+ publication['GlueWorkflow']
-                print('Workflow: ', GlueWorkflow)
+                if environment != 'prod':
+                    GlueWorkflow = environment + db_dw +'_'+ publication['GlueWorkflow']
+                else:
+                    GlueWorkflow = publication['GlueWorkflow']
+                #print('Workflow: ', GlueWorkflow)
                 
                 issue =  my_data_hub.issue_list[my_data_hub.publication_idx]
                 issue_id_str = str(issue['IssueId'])
@@ -169,5 +178,7 @@ ffortunato  2023-06-15  Initial Iteration
 ffortunato  2023-06-19  Ficing Up parameters for Glue Workflow call.
 ffortunato  2023-06-27  +UTC --> PST.
                         +More elegantly handle no publication list.
+ffortunato  2023-06-29  ~Release hax for UTC to PST this needs to be changed.
+                        ~If condition for GlueWorkflow name...
 *******************************************************************************
 """

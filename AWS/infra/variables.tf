@@ -124,15 +124,21 @@ variable "lambda_function_name_api" {
   type        = string
 }
 
+ variable  "api_method_post_issue" {
+  description = "This is the method for updateing an IssueId."
+  type = string
+  default  = "deDataHubAPI"
+ }   
+
 variable "datahub_function_name" {
   description = "The name of the Lambda function."
   type        = string
 }
-
+/*
 variable "pandas_layer" {
   type = string
 }
-
+*/
 variable "mssql_layer" {
   type = string
 }
@@ -141,7 +147,7 @@ variable "boto_layer" {
   type = string
 }
 
-variable "deutils_layer" {
+variable "datahub_layer" {
   type = string
 }
 
@@ -208,19 +214,26 @@ variable "iam_role_arn" {
 
 variable "data_hub_connection_secret" {
   type    = string
+  default = "subnet-809a4bda"
 }
 
 variable "subnet_ids" {
   type    = list(string)
-  default = ["subnet--#######"]
+  default = ["subnet-809a4bda"]
 }
 
 variable "security_group_ids" {
   type    = list(string)
-  default = ["sg-#######"]
+  default = ["sg-cef0c8b0","sg-0219e0118e42120c5","sg-068e4856d4a4e7811"]
 }
 
 variable "layers_list" {
   type    = list(string)
-
+  default = ["subnet-809a4bda"]
 }
+/*
+variable "depends_on_list" {
+  type    = list(string)
+  default = ["sg-cef0c8b0","sg-0219e0118e42120c5","sg-068e4856d4a4e7811"]
+}
+*/

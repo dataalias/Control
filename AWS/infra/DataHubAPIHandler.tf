@@ -26,9 +26,8 @@ resource "aws_lambda_function" "terraform_deDataHubAPIHandler" {
   runtime                        = "python3.9"
   depends_on                     = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
   source_code_hash               = data.archive_file.zip_DataHubAPIHandler_code.output_base64sha256
-  layers                         = ["${aws_lambda_layer_version.python39-deutils-layer.arn}",var.mssql_layer,var.boto_layer]
+  layers                         = ["${aws_lambda_layer_version.python39-dedatahub-layer.arn}",var.mssql_layer,var.boto_layer]
   timeout                        = 120
-  
   environment {
    variables = {
       MyLambdaEnvName =  var.env,
@@ -39,7 +38,13 @@ resource "aws_lambda_function" "terraform_deDataHubAPIHandler" {
        subnet_ids = var.subnet_ids
        security_group_ids = var.security_group_ids
    }
-
+/*
+   tags = {
+    Environment = var.env
+    Department = "Data Engineering"
+    DepartmentCode = "DE"
+  }
+  */
 }
 
 resource "aws_lambda_permission" "apigw_lambda" {
@@ -49,7 +54,8 @@ resource "aws_lambda_permission" "apigw_lambda" {
   principal     = "apigateway.amazonaws.com"
 
   # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
-  source_arn = "${aws_api_gateway_rest_api.deDataHubAPI.execution_arn}/*/*/*"
+  #source_arn = "${aws_api_gateway_rest_api.deDataHubAPI.execution_arn}/*/*/*"
+  source_arn = "${aws_api_gateway_rest_api.deDataHubAPI.execution_arn}/${var.env}/POST/${var.api_method_post_issue}"
 }
 
 resource "aws_lambda_function_event_invoke_config" "lambdaconfig_deDataHubAPIHandler" {

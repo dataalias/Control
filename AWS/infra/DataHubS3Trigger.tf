@@ -20,8 +20,7 @@ resource "aws_lambda_function" "terraform_DataHubS3Trigger" {
   runtime                        = "python3.9"
   depends_on                     = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
   source_code_hash               = data.archive_file.zip_the_python_code.output_base64sha256
-  #layers                         = ["${aws_lambda_layer_version.python39-deutils-layer.arn}","arn:aws:lambda:us-east-1:760872459209:layer:pandas39:1","arn:aws:lambda:us-east-1:760872459209:layer:boto39:1","arn:aws:lambda:us-east-1:760872459209:layer:pymssql39:1"]
-  layers                         = ["${aws_lambda_layer_version.python39-deutils-layer.arn}",var.mssql_layer,var.boto_layer]
+  layers                         = ["${aws_lambda_layer_version.python39-dedatahub-layer.arn}",var.mssql_layer,var.boto_layer]
   timeout                        = 120
   
   environment {
@@ -31,8 +30,8 @@ resource "aws_lambda_function" "terraform_DataHubS3Trigger" {
     }
   }
   vpc_config {
-       subnet_ids = var.subnet_ids
-       security_group_ids = var.security_group_ids 
+       subnet_ids = var.subnet_ids # ["subnet-809a4bda"]
+       security_group_ids = var.security_group_ids # ["sg-cef0c8b0","sg-0219e0118e42120c5","sg-068e4856d4a4e7811"]
    }
 }
 
@@ -50,7 +49,6 @@ resource "aws_s3_bucket_notification" "aws-lambda-trigger" {
     lambda_function_arn = "${aws_lambda_function.terraform_DataHubS3Trigger.arn}"
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "RawData/"
-    #filter_prefix       = "Conformed/"  # Shouldn't this be RawData ??
   }
 }
 

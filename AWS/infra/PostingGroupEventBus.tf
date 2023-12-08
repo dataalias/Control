@@ -1,3 +1,13 @@
+/*******************************************************************************
+File Name: .tfvars
+
+Purpose: This file contains the variables that are used in the terraform code.
+
+Eventbridge.
+
+Envrionment: dev
+*******************************************************************************/
+
 /*
 module "eventbridge" {
   source = "terraform-aws-modules/eventbridge/aws"
@@ -52,3 +62,15 @@ resource "aws_sqs_queue" "posting_group_deadletter_queue" {
   fifo_queue = var.fifo
 }
 */
+
+
+/******************************************************************************
+
+ Change Log
+
+Date      Name          Description
+********  ************* *******************************************************
+
+20230801  ffortunato    Initial Version
+
+******************************************************************************/

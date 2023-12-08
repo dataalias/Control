@@ -6,7 +6,7 @@ terraform {
     }
   }
 
-  required_version = "~> 1.4.6"
+  required_version = "~> 1.5.0"
 }
 
 provider "aws" {
@@ -16,7 +16,10 @@ provider "aws" {
       Environment                        = var.env
       Service                            = "data_hub"
       Note                               = "Managed by Terraform"
-      BillingCode = "DE"
+      "mission:managed-cloud:monitoring" = "infrastructure"
+      Department                         = "Data Engineering"
+      DepartmentCode                     = "DE"
+      Repository                         = var.artifact_prefix
     }
   }
 }
@@ -99,94 +102,84 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
  policy_arn  = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
-# This is the s3 trigger.
+
+# Next three resources are for the stupid key on the assets bucket...
+# TODO: Remove this when we can by moving to the v2 assets bucket. This bucket doesn't have the custom keys.
+/*
+data "aws_iam_policy_document" "update_kms_service_policy" {
+  statement {
+    sid= "AllowUseOfKMSKey"
+    effect= "Allow"
+    actions= [
+        "kms:*"
+    ]
+    resources= ["arn:aws:kms:us-east-1:0000000000:key/51981c0d-892e-4148-f8f-3d2d6b09bae"
+    ,"arn:aws:kms:us-east-1:0000000000:key/eca20459-4116-467-8fdc-4dd9ba166c6"]
+  }
+}
+
+resource "aws_iam_policy" "update_kms_service_policy" {
+  name   = "${var.artifact_prefix}_KMS_Bridge_UpdateServicePolicy"
+  policy = data.aws_iam_policy_document.update_kms_service_policy.json
+}
+
+# Allow the build pipeline to talk to our s3 bucket.
+resource "aws_iam_role_policy_attachment" "update_kms_service_role_policy" {
+  role       = module.codepipeline.pipeline_execution_role.name
+  policy_arn = aws_iam_policy.update_kms_service_policy.arn
+}
+# Allow test block to decrypt.
+resource "aws_iam_role_policy_attachment" "update_kms_for_cloud_formation_role_policy" {
+  role       = module.codepipeline.cloud_formation_execution_role.name
+  policy_arn = aws_iam_policy.update_kms_service_policy.arn
+}
+*/
+
+# This is the s3 trigger. lambda_function_name     = "DataHubS3Trigger"
 data "archive_file" "zip_the_python_code" {
 type        = "zip"
 source_dir  = "../${var.lambda_function_name}/"
 output_path = "../${var.lambda_function_name}.zip"
 }
 
-# This is the deUtils layer (DataHub class etc).
+/*
+# Copies the myapp.conf file to /etc/myapp.conf
+provisioner "file" {
+  source      = "../${var.datahub_function_name}/src/"
+  destination = "../${var.datahub_function_name}/python/"
+}
+*/
+# This is the deUtils layer (DataHub class etc). datahub_function_name    = "src_dh_layer"
 data "archive_file" "zip_DataHub_code" {
 type        = "zip"
 source_dir  = "../${var.datahub_function_name}/"
 output_path = "../${var.datahub_function_name}.zip"
 }
 
+#ToDo make the layer and all references deUtils not de datahub ...
+# check to see if the hash of the file has changed. If so load it up. We are going to rebuild the zip in the build spec yaml. becuase we need to change the folder strucutre.
+
+resource "aws_lambda_layer_version" "python39-dedatahub-layer" {
+  filename            = "../${var.datahub_function_name}.zip"
+  layer_name          = "Python39-deDataHub"
+  source_code_hash    = "${filebase64sha256("../${var.datahub_function_name}.zip")}"
+  compatible_runtimes = ["python3.9"]
+}
+
+/*
 resource "aws_lambda_layer_version" "python39-deutils-layer" {
   filename            = "../${var.datahub_function_name}.zip"
   layer_name          = "Python39-deUtils"
   source_code_hash    = "${filebase64sha256("../${var.datahub_function_name}.zip")}"
   compatible_runtimes = ["python3.9"]
 }
-/*
-module: api_gateway
-*/
-/*
-module "api_gateway" {
-  source = "./modules/api_gateway"
-  env = var.env
-}
-*/
-
-/*
-module: api_gateway
-*/
-/*
-module "sns_topic" {
-  source = "./modules/sns_topic"
-  env = var.env
-}
-*/
-/* 
-sqs
-*/
-/*
-module "sqs_queue" {
-  source = "./modules/sqs"
-
-  name                       = "deDWPostingGroup.fifo"
-  dlq_name                   = "deDWPostingGroupDeadLetter.fifo"
-  fifo                       = true
-  max_receive_count          = 5
-  visibility_timeout_seconds = 300
-}
-*/
-/*
-module: DataHub
-*/
-
-
-/*
-module "DataHub" {
-  source = "./modules/DataHub"
-  env = var.env
-  lambda_function_name_sch = var.lambda_function_name_sch
-  iam_role_arn = "${aws_iam_role.lambda_role.arn}"
-  #layers_list  = ["moneky","${var.pandas_layer}","${var.boto_layer}","${var.mssql_layer}"]
-  layers_list  = ["${aws_lambda_layer_version.python39-deutils-layer.arn}","${var.pandas_layer}","${var.boto_layer}","${var.mssql_layer}"]
-  subnet_ids         = var.subnet_ids # ["subnet-809a4bda"]
-  security_group_ids = var.security_group_ids # ["sg-cef0c8b0","sg-0219e0118e42120c5","sg-068e4856d4a4e7811"]
-  datalake_bucket          = "${var.env}-${var.datalake_bucket}"
-  region                  = var.region
-  db_dw                   = var.db_dw
-  data_hub_connection_secret = var.secret
-  
-  # We want to make sure all our roles and policies are ready before creating lambdas.
-  #This will not be passed down to the sub modules.
-  depends_on = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
- 
-}
 */
 /*
 Generic definition for the code pipeline and the associated pipeline needed to deploy them.
 */
 
-
-
 module "codepipeline" {
-  source = "git@github.com:..."
-
+  source = "git@github.com:MyProject/terraform-codepipeline.git?ref=MySha"
   region                  = var.region
   account_id              = var.account_id
   artifact_bucket         = var.artifact_bucket
@@ -195,35 +188,54 @@ module "codepipeline" {
   repo_name               = var.repo_name
   branch                  = var.branch
   parameter_store         = var.parameter_store
-
-  unit_test_buildspec = "pipeline/buildspec_unit_test.yml"
-  deploy_buildspec    = "pipeline/buildspec_deploy.yml"
-
-  environment_variables = [
+  
+  stages = [
     {
-      name  = "SOURCE_BUCKET_NAME"
-      value = var.source_bucket_name
-      type  = "PLAINTEXT"
+      stage_name = "Test"
+      actions = [
+        {
+          project_name          = "${var.repo_name}_Test"
+          buildspec             = "pipeline/buildspec_unit_test.yml"
+          environment_variables = []
+        }
+      ]
     },
     {
-      name  = "PANDAS_LAYER"
-      value = var.pandas_layer
-      type  = "PLAINTEXT"
-    },
-    {
-      name  = "MSSQL_LAYER"
-      value = var.mssql_layer
-      type  = "PLAINTEXT"
-    },
-    {
-      name  = "BOTO_LAYER"
-      value = var.boto_layer
-      type  = "PLAINTEXT"
-    },
-    {
-      name  = "DEUTILS_LAYER"
-      value = var.deutils_layer
-      type  = "PLAINTEXT"
+      stage_name = "Deploy"
+      # Stages can have multiple actions which will run in parallel
+      actions = [
+        {
+          project_name          = var.repo_name
+          buildspec             = "pipeline/buildspec_deploy.yml"
+          environment_variables = [
+            {
+              name  = "ENV"
+              value = var.env
+              type  = "PLAINTEXT"
+            },
+            {
+              name  = "SOURCE_BUCKET_NAME"
+              value = var.source_bucket_name
+              type  = "PLAINTEXT"
+            },
+            {
+              name  = "MSSQL_LAYER"
+              value = var.mssql_layer
+              type  = "PLAINTEXT"
+            },
+            {
+              name  = "BOTO_LAYER"
+              value = var.boto_layer
+              type  = "PLAINTEXT"
+            },
+            {
+              name  = "DATAHUB_LAYER"
+              value = var.datahub_layer
+              type  = "PLAINTEXT"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

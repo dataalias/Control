@@ -18,14 +18,14 @@ output "deDataHubScheduleName"{
 output "deDataHubAPIGatewayName"{
   value = aws_api_gateway_rest_api.deDataHubAPI.name
 }
-
+/*
 output "PostingGroupTopicarn"{
   value = module.sns.topic_arn # aws_sqs_queue.posting_group_queue_dw.arn
 }
 output "PostingGroupSQSarn"{
 value = module.sqs.queue_arn # aws_sqs_queue.posting_group_deadletter_queue.arn
 }
-
+*/
 output "SchedulerLayers"{
 value = aws_lambda_function.terraform_DataHubScheduler.layers # aws_sqs_queue.posting_group_deadletter_queue.arn
 }
