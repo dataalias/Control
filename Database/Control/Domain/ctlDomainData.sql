@@ -32,14 +32,12 @@ Date		Author		Description
 20210312	ffortunato	reffileformat added.
 20220809	ffortunato	cleaning up issue statuses.
 20230615	ffortunato	+ TrigerType reference values
+20240520	ffortunato	+ Trigger Type and Passphrse
 
 ******************************************************************************/
 
 
 print 'Start DataHub Reference data inserts'
-
-use [$(DatabaseName)]
-go
 
 -- Column and table definitions
 /*
@@ -59,6 +57,8 @@ WHERE
    and clmns.name='sno'
    and p.name='SNO'
 */
+
+
 
 
 --------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ END
 -- select * from ctl.refstatus
 
 -- unknown contact./
-if not exists (select top 1 1 from ctl.Contact where @pContactName = 'Unknown')
+if not exists (select top 1 1 from ctl.Contact where ContactName = 'Unknown')
 EXEC [ctl].usp_InsertNewContact 
 		 @pCompanyName				= 'Unknown'
 		,@pContactName				= 'Unknown'
@@ -555,6 +555,56 @@ EXEC [ctl].usp_InsertNewContact
 		,@pState					= ''
 		,@pZipCode					= 'Unknown'
 
+
+
+declare
+	 @DbName				varchar(50)			= 'Control'
+	,@SchemaName			nvarchar(256)		= 'ctl'
+	,@PassphraseTableName	nvarchar(256)		= 'Publisher'
+
+	
+
+IF not exists (select top 1 1 from ctl.PassPhrase where [DatabaseName] = @DbName and SchemaName = @SchemaName and [TableName] = @PassphraseTableName)
+	insert into ctl.PassPhrase (
+		 [DatabaseName]
+		,[SchemaName]
+		,[TableName]
+		,[Passphrase]
+		,[CreatedBy]
+		,[CreatedDtm]
+		,[ModifiedBy]
+		,[ModifiedDtm]) 
+	values (
+		 @DbName				
+		,@SchemaName		
+		,@PassphraseTableName
+		,'SomeExcitingPassphraseForTheDatabase'
+		,'ffortunato'
+		,getdate()
+		,'ffortunato'
+		,getdate())
+
+
+select @PassphraseTableName = 'Subscriber'
+IF not exists (select top 1 1 from ctl.PassPhrase where [DatabaseName] = @DbName and SchemaName = @SchemaName and TableName = @PassphraseTableName)
+	insert into ctl.PassPhrase (
+		 [DatabaseName]
+		,[SchemaName]
+		,[TableName]
+		,[Passphrase]
+		,[CreatedBy]
+		,[CreatedDtm]
+		,[ModifiedBy]
+		,[ModifiedDtm]) 
+	values (
+		 @DbName				
+		,@SchemaName		
+		,@PassphraseTableName
+		,'SomeExcitingPassphraseForTheDatabase'
+		,'ffortunato'
+		,getdate()
+		,'ffortunato'
+		,getdate())
 
 print 'Complete DataHub Reference data inserts'
 
