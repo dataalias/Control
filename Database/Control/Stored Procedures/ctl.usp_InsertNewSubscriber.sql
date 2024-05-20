@@ -125,6 +125,7 @@ select	 @ErrNum				= -1
       '     @pSubscriberCode = ''' + isnull(@pSubscriberCode ,'NULL') + '''' + @CRLF + 
       '    ,@pContactName = ''' + isnull(@pContactName ,'NULL') + '''' + @CRLF + 
       '    ,@pSubscriberName = ''' + isnull(@pSubscriberName ,'NULL') + '''' + @CRLF + 
+	  '    ,@pSubscriberDesc = ''' + isnull(@pSubscriberDesc ,'NULL') + '''' + @CRLF + 
       '    ,@pInterfaceCode = ''' + isnull(@pInterfaceCode ,'NULL') + '''' + @CRLF + 
 	  '	   ,@pSiteURL = ''' + isnull(@pSiteURL ,'NULL') + '''' + @CRLF + 
 	  '	   ,@pSiteUser = ''' + isnull(@pSiteUser ,'NULL') + '''' + @CRLF + 
@@ -180,8 +181,8 @@ begin try
 				,@ErrMsg		= 'CustomErrorMessage'
 				,@JSONSnippet	= '{' + @CRLF +
 							'		"Variables": {' + @CRLF +
-							  '			"Contact":"' + cast(@ContactId as varchar(100)) + '",' + @CRLF +
-							  '			"Passphrase":"' +@Passphrase + '"' + @CRLF +
+							  '			"Contact":"' + isnull(cast(@ContactId as varchar(100)),'<NULL> Contact Id') + '",' + @CRLF +
+							  '			"Passphrase":"' + isnull (@Passphrase, '<NULL> Passphrase>') + '"' + @CRLF +
 							'		}'+ @CRLF +'	 }' + @CRLF
 
 		; throw @ErrNum, @ErrMsg, 1  -- This is thrown to the catch block below.
