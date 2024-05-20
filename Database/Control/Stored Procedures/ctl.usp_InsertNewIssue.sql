@@ -3,7 +3,7 @@
 	,@pDataLakePath				varchar(1000)	= 'Unknown'
 	,@pIssueName				varchar(255)	= 'Unknown'
 	,@pSrcIssueName				nvarchar(255)	= 'Unknown'
-	,@pStatusCode				varchar(20)		= null
+	,@pStatusCode				varchar(20)		= 'IP'
 	-- TODO: These variables are missing their DF.
 	,@pSrcPublisherId			varchar(40)		= 'UNK'
 	,@pSrcPublicationId			varchar(40)		= 'UNK'
@@ -311,7 +311,7 @@ INSERT INTO ctl.Issue (
 		,PeriodEndTime
 		,PeriodEndTimeUTC
 		,RecordCount
-		,ETLExecutionID
+		,ETLExecutionId
 		,CreatedDtm
 		,CreatedBy
 		,ModifiedDtm
@@ -339,7 +339,7 @@ INSERT INTO ctl.Issue (
 		,@pPeriodEndTime
 		,isnull(@pPeriodEndTimeUTC, SWITCHOFFSET (@pPeriodEndTime , DATEPART(TZOFFSET, SYSDATETIMEOFFSET())))
 		,@pRecordCount 
-		,@pETLExecutionID
+		,@pETLExecutionId
 		,@CreatedDate
 		,@pCreateBy
 		,@CreatedDate
@@ -473,4 +473,5 @@ Date		Author			Description
 20211005    ffortunato		Building out a better Data Lake Path on default.
 20211202    ffortunato		Fixing up execution in header.
 20220414    ffortunato		o ETLExecutionId --> nvarchar(1000).
+20230315    ffortunato		o defulat status code is now IP
 ******************************************************************************/

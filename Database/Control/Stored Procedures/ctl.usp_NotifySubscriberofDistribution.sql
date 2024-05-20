@@ -377,9 +377,9 @@ begin try
 		-- can be used to notify the subscribing system that processing can commense
 		-------------------------------------------------------------------------------
 		select	 @PostingGroupStatusId	= isnull(StatusId,-2)
-		from	 pg.RefStatus		  rs
-		where	 rs.StatusCode		= @PostingGroupStatusCode
-		and	 rs.StatusType			= 'PostingGroup'
+		from	 pg.RefStatus			  rs
+		where	 rs.StatusCode			= @PostingGroupStatusCode
+		and		 rs.StatusType			= 'PostingGroup'
 
 		select	 @StepName			= 'Insert Distribution Information'
 				,@StepNumber		= @StepNumber + 0
@@ -402,7 +402,7 @@ begin try
 				,[RetryCount]			--[int] NOT NULL,
 				,IssueId			--[bigint]	null,
 				,DistributionId			--[bigint]	null,
-				,[ETLExecutionID]		--[int] NULL,
+				,[ETLExecutionId]		--[int] NULL,
 				,[CreatedBy]			--[varchar](50) NOT NULL,
 				,[CreatedDtm]			--[datetime] NOT NULL,
 		)
@@ -643,4 +643,6 @@ Date		Author			Description
 							ISOLATION LEVEL SERIALIZABLE
 
 20220809	ffortunato		formatting
+
+20230530	ffortunato		oETLExecutionId <-- *ID
 ******************************************************************************/

@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - ls
+      #- cd DataHubS3Trigger
+      #- zip -r DataHubS3Trigger.zip .
+      - cd deUtils
+      # copy to the python folder so we can play with layers nicely.
+      # - mv src python
+      - zip -r deUtils.zip .
+  build:
+    commands:
+      - echo "Updating lambda Function..."
+      - echo "$ENV"
+      #- aws lambda update-function-code --function-name DataHubS3Trigger --zip-file fileb://DataHubS3Trigger.zip
+      - aws s3 cp deUtils.zip s3://$ENV-ascent-de-assets/deDataHub/dist/
+      - echo "DONE!!"

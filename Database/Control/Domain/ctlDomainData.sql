@@ -31,6 +31,7 @@ Date		Author		Description
 20210105	ffortunato	more if statements
 20210312	ffortunato	reffileformat added.
 20220809	ffortunato	cleaning up issue statuses.
+20230615	ffortunato	+ TrigerType reference values
 
 ******************************************************************************/
 
@@ -60,6 +61,35 @@ WHERE
 */
 
 
+--------------------------------------------------------------------------------
+-- Domain data for RefTriggerType
+-- Ref Table manages the different file types that are inbound or stored in the lake.
+print 'Insert domain data for RefTriggerType'
+--------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefTriggerType] WHERE [TriggerTypeCode] IN ('N/A'))
+BEGIN
+
+	INSERT INTO [ctl].[RefTriggerType]     ([TriggerTypeCode]           ,[TriggerTypeName]          ,[TriggerTypeDesc],[CreatedBy]  ,[CreatedDtm] )
+	VALUES ('N/A','Not Applicable','A trigger type is not expected for this specific record.',system_user,getdate())
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefTriggerType] WHERE [TriggerTypeCode] IN ('UNK'))
+BEGIN
+
+	INSERT INTO [ctl].[RefTriggerType]     ([TriggerTypeCode]           ,[TriggerTypeName]          ,[TriggerTypeDesc], [CreatedBy]  ,[CreatedDtm] )
+	VALUES ('UNK','Unknown','The trigger type is unknown.',system_user,getdate())
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefTriggerType] WHERE [TriggerTypeCode] IN ('S3'))
+BEGIN
+
+	INSERT INTO [ctl].[RefTriggerType]     ([TriggerTypeCode]           ,[TriggerTypeName]          ,[TriggerTypeDesc], [CreatedBy]  ,[CreatedDtm] )
+	VALUES ('S3','S3 File Put','A file arrived in a S3 bucket that will trigger a datahub load.',system_user,getdate())
+END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefTriggerType] WHERE [TriggerTypeCode] IN ('SCH'))
+BEGIN
+
+	INSERT INTO [ctl].[RefTriggerType]     ([TriggerTypeCode]           ,[TriggerTypeName]          ,[TriggerTypeDesc], [CreatedBy]  ,[CreatedDtm] )
+	VALUES ('SCH','Scheduled','Publication will be pulled by DataHub based on the interval and next execution for the feed.',system_user,getdate())
+END
 
 --------------------------------------------------------------------------------
 -- Domain data for RefFileFormat
@@ -345,6 +375,13 @@ BEGIN
 	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
 			   ('SFTP','Secure File Transfer Protocol','',system_user,getdate())
 END
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('S3'))
+BEGIN
+
+	INSERT INTO [ctl].[RefInterface]([InterfaceCode],[InterfaceName],[InterfaceDesc],[CreatedBy],[CreatedDtm])  VALUES
+			   ('S3','S3 Bucket','The system will connect with an S3 bucket to faclitate data transfer.',system_user,getdate())
+END
+
 /*
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.[RefInterface] WHERE [InterfaceCode] IN ('CANVAS'))
 BEGIN
@@ -374,6 +411,17 @@ print 'Complete Ref Interface Inserts'
 -- ISSUE STATUSES
 print 'Start Ref Status Inserts'
 print 'Loading Issue Statuses'
+
+IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IX'))
+BEGIN
+	
+	INSERT INTO ctl.RefStatus ([STATUSCODE],[STATUSNAME]
+	,[STATUSDESC],[STATUSTYPE]
+	,CreatedDtm,CREATEDBY)
+	VALUES ('IX','Issue External'
+	,'Issue is ready on an external system. The data set can be retrieved based on scheduler.' ,'Issue'
+	,GETDATE(),'ffortunato')
+END
 
 IF NOT EXISTS (SELECT TOP 1 1 FROM ctl.RefStatus WHERE StatusCode IN ('IP'))
 BEGIN

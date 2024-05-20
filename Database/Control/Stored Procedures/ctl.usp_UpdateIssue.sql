@@ -307,8 +307,8 @@ set      StatusId				= case  @StatusId when -1 then StatusId -- Keep the value i
 		,PeriodEndTime			= isnull(@pPeriodEndTime,PeriodEndTime)
 		,IssueConsumedDate		= isnull(@pIssueConsumedDate,IssueConsumedDate)
 		,RecordCount			= isnull(@pRecordCount,RecordCount)
-		,ETLExecutionID			= case
-									when	(@pEtlExecutionId is null) then ISS.ETLExecutionID
+		,ETLExecutionId			= case
+									when	(@pEtlExecutionId is null) then ISS.ETLExecutionId
 									else    @pEtlExecutionId
 								  end
 		,ModifiedBy				= isnull(@pModifiedBy,@ModifiedBy)
