@@ -50,7 +50,7 @@ import secrets.aws_secrets as dh_secret
 
 class DataHub:
     """
-    This class is used to interact with the dh/dh database objects.
+    This class is used to interact with Data Hub's database objects.
     """
 
     def __init__(self, secret_key):
@@ -105,7 +105,7 @@ class DataHub:
 
     def set_publication_code(self, publication_code):
         """
-        We are going to set the publication code and get the index from the publication list too.
+        Set the publication code and get the index from the publication list too.
         :param publication_code: The code for the publication the calling program is interacting with currently.
         :return:
         """
@@ -120,7 +120,7 @@ class DataHub:
 
     def get_publication_idx(self):
         """
-        Simple setter method for the publication_code
+        Simple get method to retrieve the publication_index
         :return:
         """
         return self.publication_idx
@@ -138,7 +138,7 @@ class DataHub:
 
     def set_issue_val(self, issue_updates):
         """
-        Simple setter method for the publication_code
+        Simple setter method for the publication_code.
         :param issue_updates :: A dictionary list of issue attributes and values that need to be modified for the
             currently active publication.
         :return:
@@ -190,9 +190,9 @@ class DataHub:
 
     def insert_new_issue(self):  # , issue):
         """
-        Create a record given a set of parameters needed to create an issue. The newly issued
-        IssueId will be updated in the parameter set for use when updating later.
-        :param issue: This dictionary object includes each of the parameters needs to insert a new issue.
+        Create an issue record given a set of parameters describing the issue. The returned IssueId  will be updated
+         in the parameter set for use later.
+        :param
         :return: success or failure.
         """
         response = {'Status': 'Failure'}
@@ -252,13 +252,16 @@ class DataHub:
 
     def notify_subscriber_of_distribution(self):
         """
-        :param params:
+        This procedure is used to kick off any down stream processes that are dependent on the current
+        publication / issue being processed.
+        :params:
         :return:
         """
         response = {'Status': 'Failure'}
         success = {'Status': 'Success'}
         try:
-            # print('DataHub.notify_subscriber_of_distribution About to notify: ', self.issue_list[self.publication_idx]['IssueId'])
+            # print('DataHub.notify_subscriber_of_distribution About to notify: ',
+            #       self.issue_list[self.publication_idx]['IssueId'])
             response = dh_connect.notify_subscriber_of_distribution(self.db_connection,
                                                                     self.issue_list[self.publication_idx])
             response.update(success)
@@ -282,5 +285,6 @@ ffortunato  04/22/2022  + multiple new methods for the class.
                         + issue_list to maintain issue data along with the class
 ffortunato  07/29/2022  + Improving exception messages but still more to do.
 ffortunato  08/05/2022  + notify_subscriber_of_distribution
+ffortunato  02/16/2023  o modifying some method descriptions.
 *******************************************************************************
 """

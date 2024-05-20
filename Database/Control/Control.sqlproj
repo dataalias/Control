@@ -87,6 +87,8 @@
     <None Include="DataHub_To_DEV_profile.publish.xml" />
     <None Include="DataHub_To_Prod.publish.xml" />
     <None Include="DataHub_To_STG_profile.publish.xml" />
+    <None Include="DEV_RAGE.xml" />
+    <None Include="DEV-profile.xml" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
@@ -185,7 +187,7 @@
     <None Include="Domain\pgDomainData.sql" />
     <Build Include="Tables\ctl.RefFileFormat.sql" />
     <Build Include="Tables\ctl.RefStorageMethod.sql" />
-    <Build Include="Tables\ctl.RefTransferMethod.sql" />
+    <Build Include="Tables\ctl.RefTriggerType.sql" />
     <Build Include="Stored Procedures\pg.usp_ExecuteStoredProcedure.sql" />
     <Build Include="Stored Procedures\pg.usp_ExecuteProcess.sql" />
     <Build Include="Stored Procedures\pg.usp_ExecuteDataFactory.sql" />
@@ -201,6 +203,7 @@
     <Build Include="Stored Procedures\ctl.usp_GetLoadedIssueDetails.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetPublicationListSSIS.sql" />
     <Build Include="Stored Procedures\ctl.usp_GetPublicationRecord.sql" />
+    <Build Include="Tables\ctl.RefTransferMethod.sql" />
   </ItemGroup>
   <ItemGroup>
     <ArtifactReference Include="$(DacPacRootPath)\Extensions\Microsoft\SQLDB\Extensions\SqlServer\150\SqlSchemas\master.dacpac">
