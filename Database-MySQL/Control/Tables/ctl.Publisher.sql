@@ -1,4 +1,4 @@
-﻿/* SQLINES DEMO *** ***********************************************************
+﻿/****************************************************************************
 file:           Publisher.sql
 name:           Publisher
 
@@ -12,14 +12,14 @@ date:           20181011
 
 ******************************************************************************/
 
--- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE TABLE `ctl`.`Publisher`(
 	`PublisherId` int AUTO_INCREMENT NOT NULL,
 	`ContactId` int NOT NULL,
 	`PublisherCode` varchar(20) NOT NULL,
 	`PublisherName` varchar(50) NOT NULL,
 	`PublisherDesc` varchar(1000) NULL,
-	`InterfaceCode` varchar(20) NOT NULL DEFAULT 'N/A',
+	`InterfaceCode` varchar(20) NOT NULL ,
+    /*
 	`SiteURL` varchar(256) NULL,
 	`SiteUser` varchar(256) NULL,
 	`SitePassword` varbinary(8000) NULL,
@@ -28,7 +28,8 @@ CREATE TABLE `ctl`.`Publisher`(
 	`SiteProtocol` varchar(100) NULL,
 	`PrivateKeyPassPhrase` varbinary(8000) NULL,
 	`PrivateKeyFile` varbinary(8000) NULL,
-	`CreatedBy` varchar(50) NOT NULL,
+	*/
+    `CreatedBy` varchar(50) NOT NULL,
 	`CreatedDtm` datetime(3) NOT NULL,
 	`ModifiedBy` varchar(50) NULL,
 	`ModifiedDtm` datetime(3) NULL,
@@ -41,34 +42,18 @@ CREATE TABLE `ctl`.`Publisher`(
 	`PublisherCode` ASC
 ) 
 );
-
---  SQLINES DEMO *** [Publisher] ADD  DEFAULT ('N/A') FOR [InterfaceCode]
--- GO
-
-/* Moved to CREATE TABLE
-ALTER TABLE `ctl`.`Publisher` ADD  CONSTRAINT `DF__Publisher__InterfaceCode__NA`  DEFAULT (('N/A')) FOR `InterfaceCode`
-GO */
-
-ALTER TABLE `ctl`.`Publisher`   ADD  CONSTRAINT `FK_Publisher_RefInterface__InterfaceCode` FOREIGN KEY(`InterfaceCode`)
-REFERENCES `ctl`.`RefInterface` (`InterfaceCode`);
- 
-
---  SQLINES DEMO *** [Publisher] CHECK CONSTRAINT [FK_Publisher_RefInterface__InterfaceCode]
--- GO
+/*
+-- ALTER TABLE `ctl`.`Publisher` ADD  CONSTRAINT `DF__Publisher__InterfaceCode__NA`  SET DEFAULT (('N/A')) FOR `InterfaceCode`;
+ALTER TABLE `ctl`.`Publisher`  ALTER COLUMN  InterfaceCode SET DEFAULT 'N/A';
 
 ALTER TABLE `ctl`.`Publisher`   ADD  CONSTRAINT `FK_RefContact__ContactId` FOREIGN KEY(`ContactId`)
 REFERENCES `ctl`.`Contact` (`ContactId`);
  
-
---  SQLINES DEMO *** [Publisher] CHECK CONSTRAINT [FK_RefContact__ContactId]
--- GO
-
--- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE INDEX `IDX_Publisher__InterfaceCode`
     ON `ctl`.`Publisher`(`InterfaceCode` ASC) ;
- 
+ */
 
-/* SQLINES DEMO *** ***********************************************************
+/******************************************************************************
        change history
 *******************************************************************************
 date		author			description
@@ -79,4 +64,5 @@ date		author			description
 							+ PublicationDesc
 							o DataHube int --> bit
 							- MethodCode
+20240724	ffortunato		o Convert to MySQL
 ******************************************************************************/

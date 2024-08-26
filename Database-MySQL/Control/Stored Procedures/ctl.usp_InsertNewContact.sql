@@ -1,20 +1,22 @@
-﻿CREATE PROCEDURE ctl.usp_InsertNewContact (
-		 @pCompanyName				[varchar](250)	= 'Unknown'
-		,@pContactName				[varchar](250)	= 'Unknown'
-		,@pTier						[varchar](20)	= 1
-		,@pEmail					[varchar](100)	= 'Unknown'
-		,@pPhone					[varchar](20)	= 'Unknown'
-		,@pSupportURL				[varchar](250)	= 'Unknown'
-		,@pAddress01				[varchar](100)	= 'Unknown'
-		,@pAddress02				[varchar](100)	= 'Unknown'
-		,@pCity						[varchar](30)	= 'Unknown'
-		,@pState					[varchar](10)	= 'Unknown'
-		,@pZipCode					[varchar](10)	= 'Unknown'
-		,@pETLExecutionId			INT				= -1
-		,@pPathId					INT				= -1
-		,@pVerbose					BIT				= 0)
-AS
-/*****************************************************************************
+DELIMITER //
+-- DROP PROCEDURE ctl.usp_InsertNewContact
+CREATE PROCEDURE ctl.usp_InsertNewContact (
+		 p_pCompanyName				varchar(250)	/* = 'Unknown' */         
+		,p_pContactName				varchar(250)	/* = 'Unknown' */
+		,p_pTier						varchar(20)	/* = 1 */
+		,p_pEmail					varchar(100)	/* = 'Unknown' */
+		,p_pPhone					varchar(20)	/* = 'Unknown' */
+		,p_pSupportURL				varchar(250)	/* = 'Unknown' */
+		,p_pAddress01				varchar(100)	/* = 'Unknown' */
+		,p_pAddress02				varchar(100)	/* = 'Unknown' */
+		,p_pCity						varchar(30)	/* = 'Unknown' */
+		,p_pState					varchar(10)	/* = 'Unknown' */
+		,p_pZipCode					varchar(10)	/* = 'Unknown' */
+		,p_pETLExecutionId			INT				/* = -1 */
+		,p_pPathId					INT				/* = -1 */
+		,p_pVerbose					TINYINT				/* = 0 */)
+BEGIN
+/* SQLINES DEMO *** **********************************************************
 File:		ctl.usp_InsertNewContact.sql
 Name:		ctl.usp_InsertNewContact
 Purpose:	
@@ -53,83 +55,84 @@ Date		Author			Description
 
 ******************************************************************************/
 
--------------------------------------------------------------------------------
---  Declarations
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  D... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-DECLARE  @Rows				  int				= 0
-		,@ErrNum			  int				= -1
-		,@ErrMsg			  nvarchar(max)		= 'N/A'
-		,@ParametersPassedChar  varchar(1000)	= 'N/A'
-		,@CRLF				  varchar(10)		= char(13) + char(10)
-		,@ProcName			  varchar(256)		= OBJECT_NAME(@@PROCID) 
-		,@ParentStepLogId	  int				= -1
-		,@PrevStepLog		  int				= -2
-		,@ProcessStartDtm	  datetime			= getdate()
-		,@CurrentDtm		  datetime			= getdate()
-		,@PreviousDtm		  datetime			= getdate()
-		,@DbName			  varchar(50)		= DB_NAME()
-		,@CurrentUser		  varchar(50)		= CURRENT_USER
-		,@ProcessType		  varchar(10)		= 'Proc'
-		,@StepName			  varchar(256)		= 'Start'
-		,@StepOperation		  varchar(50)		= 'N/A' 
-		,@MessageType		  varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc			  nvarchar(2048)	= 'Procedure started' 
-		,@StepStatus		  varchar(10)		= 'Success'
-		,@StepNumber		  varchar(10)		= 0
-		,@Duration			  varchar(10)		= 0
-		,@JSONSnippet		  nvarchar(max)		= NULL
-		,@ContactId			  int				= -1
-		,@CreateDate		  datetime			= getdate()
+DECLARE  v_Rows				  int				DEFAULT 0
+		; DECLARE v_ErrNum			  int				DEFAULT -1
+		; DECLARE v_ErrMsg			  longtext		DEFAULT 'N/A'
+		; DECLARE v_ParametersPassedChar  varchar(1000)	DEFAULT 'N/A'
+		; DECLARE v_CRLF				  varchar(10)		DEFAULT cast(char(13) as char) + cast(char(10) as char)
+		; DECLARE v_ProcName			  varchar(256)		DEFAULT 'usp_InsertNewContact'
+		; DECLARE v_ParentStepLogId	  int				DEFAULT -1
+		; DECLARE v_PrevStepLog		  int				DEFAULT -2
+		; DECLARE v_ProcessStartDtm	  datetime(3)			DEFAULT now(3)
+		; DECLARE v_CurrentDtm		  datetime(3)			DEFAULT now(3)
+		; DECLARE v_PreviousDtm		  datetime(3)			DEFAULT now(3)
+		; DECLARE v_DbName			  varchar(50)		DEFAULT DATABASE()
+		; DECLARE v_CurrentUser		  varchar(50)		DEFAULT CURRENT_USER
+		; DECLARE v_ProcessType		  varchar(10)		DEFAULT 'Proc'
+		; DECLARE v_StepName			  varchar(256)		DEFAULT 'Start'
+		; DECLARE v_StepOperation		  varchar(50)		DEFAULT 'N/A' 
+		; DECLARE v_MessageType		  varchar(20)		DEFAULT 'Info' -- SQLINES DEMO *** Info, Warn
+		; DECLARE v_StepDesc			  varchar(2048)	DEFAULT 'Procedure started' 
+		; DECLARE v_StepStatus		  varchar(10)		DEFAULT 'Success'
+		; DECLARE v_StepNumber		  varchar(10)		DEFAULT 0
+		; DECLARE v_Duration			  varchar(10)		DEFAULT 0
+		; DECLARE v_JSONSnippet		  longtext		DEFAULT NULL
+		; DECLARE v_ContactId			  int				DEFAULT -1
+		; DECLARE v_CreateDate		  datetime(3)			DEFAULT now(3);
 
-exec [audit].usp_InsertStepLog
-		 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@ParentStepLogId output	
-		,@pVerbose
+call `audit`.usp_InsertStepLog(v_MessageType		,v_CurrentDtm		,v_PreviousDtm	,v_StepNumber		,v_StepOperation		,v_JSONSnippet		,v_ErrNum
+		,v_ParametersPassedChar					,v_ErrMsg 	,v_ParentStepLogId	,v_ProcName			,v_ProcessType		,v_StepName
+		,v_StepDesc 	,v_StepStatus		,v_DbName		,v_Rows				,v_pETLExecutionId	,v_pPathId			,v_ParentStepLogId 	
+		,v_pVerbose);
 
--------------------------------------------------------------------------------
---  Initializations
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  I... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-SELECT	 @ParametersPassedChar	= 
-      '***** Parameters Passed to exec ctl.usp_insertnewcontact' + @CRLF +
-      '     @pCompanyName = ''' + isnull(@pCompanyName ,'NULL') + '''' + @CRLF + 
-	  '     @pContactName = ''' + isnull(@pContactName ,'NULL') + '''' + @CRLF + 
-      '    ,@pTier = ''' + isnull(@pTier ,'NULL') + '''' + @CRLF + 
-      '    ,@pEmail = ''' + isnull(@pEmail ,'NULL') + '''' + @CRLF + 
-      '    ,@pPhone = ''' + isnull(@pPhone ,'NULL') + '''' + @CRLF + 
-	  '    ,@pSupportURL = ''' + isnull(@pSupportURL ,'NULL') + '''' + @CRLF + 
-      '    ,@pAddress01 = ''' + isnull(@pAddress01 ,'NULL') + '''' + @CRLF + 
-      '    ,@pAddress02 = ''' + isnull(@pAddress02 ,'NULL') + '''' + @CRLF + 
-      '    ,@pCity = ''' + isnull(@pCity ,'NULL') + '''' + @CRLF + 
-      '    ,@pState = ''' + isnull(@pState ,'NULL') + '''' + @CRLF + 
-      '    ,@pZipCode = ''' + isnull(@pZipCode ,'NULL') + '''' + @CRLF + 
-      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-      '***** End of Parameters' + @CRLF 
+SET	 v_ParametersPassedChar	= 
+      CONCAT('***** Parameters Passed to exec ctl.usp_insertnewcontact' , v_CRLF ,
+      '     @pCompanyName = ''' , ifnull(p_pCompanyName ,'NULL') , '''' , v_CRLF , 
+	  '     @pContactName = ''' , ifnull(p_pContactName ,'NULL') , '''' , v_CRLF , 
+      '    ,@pTier = ''' , ifnull(p_pTier ,'NULL') , '''' , v_CRLF , 
+      '    ,@pEmail = ''' , ifnull(p_pEmail ,'NULL') , '''' , v_CRLF , 
+      '    ,@pPhone = ''' , ifnull(p_pPhone ,'NULL') , '''' , v_CRLF , 
+	  '    ,@pSupportURL = ''' , ifnull(p_pSupportURL ,'NULL') , '''' , v_CRLF , 
+      '    ,@pAddress01 = ''' , ifnull(p_pAddress01 ,'NULL') , '''' , v_CRLF , 
+      '    ,@pAddress02 = ''' , ifnull(p_pAddress02 ,'NULL') , '''' , v_CRLF , 
+      '    ,@pCity = ''' , ifnull(p_pCity ,'NULL') , '''' , v_CRLF , 
+      '    ,@pState = ''' , ifnull(p_pState ,'NULL') , '''' , v_CRLF , 
+      '    ,@pZipCode = ''' , ifnull(p_pZipCode ,'NULL') , '''' , v_CRLF , 
+      '    ,@pETLExecutionId = ' , ifnull(cast(p_pETLExecutionId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pPathId = ' , ifnull(cast(p_pPathId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pVerbose = ' , ifnull(cast(p_pVerbose as char(100)),'NULL') , v_CRLF , 
+      '***** End of Parameters' , v_CRLF); 
 
-if @pVerbose					= 1
-	begin 
-		print @ParametersPassedChar
-	end
+if p_pVerbose					= 1
+	then 
+		/* print v_ParametersPassedChar */
+        select 1 from dual;
+	end if;
 
--------------------------------------------------------------------------------
---  Main
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  M... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-BEGIN TRY
 
-	-------------------------------------------------------------------------------
-	--  Step Comment - Start
-	-------------------------------------------------------------------------------
-	select	 @StepName			= 'Insert into contact values'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'Insert'
-			,@StepDesc			= 'Insert to ctl.contact'
-	-------------------------------------------------------------------------------
 
+	--  SQLINES DEMO *** -----------------------------------------------------------
+	-- SQLINES DEMO *** tart
+	--  SQLINES DEMO *** -----------------------------------------------------------
+	set	 v_StepName			= 'Insert into contact values'
+			,v_StepNumber		= v_StepNumber + 1
+			,v_StepOperation		= 'Insert'
+			,v_StepDesc			= 'Insert to ctl.contact';
+	--  SQLINES DEMO *** -----------------------------------------------------------
+
+	-- SQLINES LICENSE FOR EVALUATION USE ONLY
 	INSERT INTO ctl.Contact(
 		 CompanyName
 		,ContactName
@@ -140,7 +143,7 @@ BEGIN TRY
 		,Address01
 		,Address02
 		,City		
-		,[State]
+		,`State`
 		,ZipCode
 		,CreatedBy
 		,CreatedDtm
@@ -148,87 +151,60 @@ BEGIN TRY
 		,ModifiedDtm
 		)
 	VALUES(
-		 @pCompanyName		
-		,@pContactName
-		,@pTier		
-		,@pEmail	
-		,@pPhone	
-		,@pSupportURL
-		,@pAddress01
-		,@pAddress02
-		,@pCity		
-		,@pState	
-		,@pZipCode	
-		,@CurrentUser
-		,@CurrentDtm
-		,@CurrentUser
-		,@CurrentDtm
+		 p_pCompanyName		
+		,p_pContactName
+		,p_pTier		
+		,p_pEmail	
+		,p_pPhone	
+		,p_pSupportURL
+		,p_pAddress01
+		,p_pAddress02
+		,p_pCity		
+		,p_pState	
+		,p_pZipCode	
+		,v_CurrentUser
+		,v_CurrentDtm
+		,v_CurrentUser
+		,v_CurrentDtm
 	);
 
-	-------------------------------------------------------------------------------
-	--  Step Comment - End
-	-------------------------------------------------------------------------------
-	select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
-	select	 @CurrentDtm		= getdate()
+	--  SQLINES DEMO *** -----------------------------------------------------------
+	--  S... SQLINES DEMO ***
+	--  SQLINES DEMO *** -----------------------------------------------------------
+	set	 v_PreviousDtm		= v_CurrentDtm
+			,v_Rows				= FOUND_ROWS(); 
+	set	 v_CurrentDtm		= now(3);
 
-	exec [audit].usp_InsertStepLog
-			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		
-			,@JSONSnippet		,@ErrNum			,@ParametersPassedChar					
-			,@ErrMsg output	,@ParentStepLogId		,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				
-			,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
+	call `audit`.usp_InsertStepLog(v_MessageType		,v_CurrentDtm		,v_PreviousDtm	,v_StepNumber		,v_StepOperation		
+			,v_JSONSnippet		,v_ErrNum			,v_ParametersPassedChar					
+			,v_ErrMsg 	,v_ParentStepLogId		,v_ProcName			,v_ProcessType		,v_StepName
+			,v_StepDesc 	,v_StepStatus		,v_DbName		,v_Rows				
+			,v_pETLExecutionId	,v_pPathId			,v_PrevStepLog
+			,v_pVerbose);
 
-end try
+end;
 
 
--------------------------------------------------------------------------------
---  Error Handling
--------------------------------------------------------------------------------
-begin catch
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  P... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-	select 	 @PreviousDtm		= @CurrentDtm
-			,@ErrNum			= @@ERROR
-			,@ErrMsg			= ERROR_MESSAGE()
-			,@Rows				= 0
+set 	 v_PreviousDtm			= v_CurrentDtm;
+set	 v_CurrentDtm			= now(3)
+		,v_StepNumber			= v_StepNumber + 1
+		,v_StepName				= 'End'
+		,v_StepDesc				= 'Procedure completed'
+		,v_Rows					= 0
+		,v_StepOperation			= 'N/A';
 
-	select	 @StepStatus		= 'Failure'
-			,@CurrentDtm		= getdate()
+-- SQLINES DEMO *** tartDtm so the total duration for the procedure is added.
+-- SQLINES DEMO *** (if you want total duration) 
+-- SQLINES DEMO *** you want 0)
+call `audit`.usp_InsertStepLog(v_MessageType		,v_CurrentDtm	,v_ProcessStartDtm	,v_StepNumber		,v_StepOperation		,v_JSONSnippet		,v_ErrNum
+		,v_ParametersPassedChar					,v_ErrMsg 	,v_ParentStepLogId	,v_ProcName			,v_ProcessType		,v_StepName
+		,v_StepDesc 	,v_StepStatus		,v_DbName		,v_Rows				,v_pETLExecutionId	,v_pPathId			,v_PrevStepLog
+		,v_pVerbose);
+END;
+//
 
-	if		 @MessageType		<> 'ErrCust'
-		select   @MessageType	= 'ErrSQL'
 
-	exec [audit].usp_InsertStepLog
-			 @MessageType		,@CurrentDtm		,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-			,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
-
-	if 	@ErrNum < 50000	
-		select	 @ErrNum	= @ErrNum + 100000000 -- Need to increase number to throw message.
-
-	;throw	 @ErrNum, @ErrMsg, 1
-	
-end catch
-
--------------------------------------------------------------------------------
---  Procedure End
--------------------------------------------------------------------------------
-
-select 	 @PreviousDtm			= @CurrentDtm
-select	 @CurrentDtm			= getdate()
-		,@StepNumber			= @StepNumber + 1
-		,@StepName				= 'End'
-		,@StepDesc				= 'Procedure completed'
-		,@Rows					= 0
-		,@StepOperation			= 'N/A'
-
--- Passing @ProcessStartDtm so the total duration for the procedure is added.
--- @ProcessStartDtm (if you want total duration) 
--- @PreviousDtm (if you want 0)
-exec [audit].usp_InsertStepLog
-		 @MessageType		,@CurrentDtm	,@ProcessStartDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar					,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus		,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-		,@pVerbose

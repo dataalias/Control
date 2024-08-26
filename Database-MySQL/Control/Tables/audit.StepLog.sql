@@ -1,4 +1,3 @@
-﻿-- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE TABLE `audit`.`StepLog`(
 	`StepLogId` int AUTO_INCREMENT NOT NULL,
 	`ParentLogId` int NOT NULL DEFAULT 0,
@@ -7,11 +6,11 @@ CREATE TABLE `audit`.`StepLog`(
 	`StepName` varchar(256) NULL,
 	`StepDesc` Longtext NULL,
 	`StepStatus` varchar(10) NULL,
-	`StartDtm` datetime(3) NOT NULL,
+	`StartDtm` datetime NOT NULL,
 	`DurationInSeconds` int NULL,
 	`DbName` varchar(50) NULL,
 	`RecordCount` int NULL,
-	`ETLExecutionId` int NOT NULL,
+	`ETLExecutionId` varchar(250) NOT NULL,
 	`PathId` int NOT NULL,
  CONSTRAINT `Pk_StepLog__LogId` PRIMARY KEY 
 (

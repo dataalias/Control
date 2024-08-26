@@ -1,7 +1,7 @@
-﻿-- SQLINES LICENSE FOR EVALUATION USE ONLY
+
 CREATE TABLE `ctl`.`Contact`(
 	`ContactId` int AUTO_INCREMENT NOT NULL,
-	`CompanyName` varchar(250) NOT NULL,
+	`CompanyName` varchar(250) NOT NULL DEFAULT 'N/A',
 	`ContactName` varchar(250) NOT NULL,
 	`Tier` varchar(20) NULL,
 	`Email` varchar(100) NULL,
@@ -27,4 +27,4 @@ CREATE UNIQUE INDEX `UNQ_Contact__Name` ON ctl.Contact(`ContactName`)
  ;
  
 
-ALTER TABLE `ctl`.`Contact` ADD  CONSTRAINT `DF__Contact__Name__NA`  DEFAULT ('N/A') FOR `ContactName`;
+-- ALTER TABLE `dh`.`Contact` ADD  CONSTRAINT `DF__Contact__Name__NA`  DEFAULT ('N/A') FOR `ContactName`;

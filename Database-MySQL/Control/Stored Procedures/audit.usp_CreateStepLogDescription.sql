@@ -1,23 +1,26 @@
-﻿CREATE PROCEDURE [audit].[usp_CreateStepLogDescription] (
-		 @pMessageType			varchar(20)		= 'INFO'
-		,@pStartDtm				datetime		= NULL
-		,@pEndDtm				datetime		= NULL
-		,@pStepNumber			varchar(23)		= '0'
-		,@pOperation			nvarchar(50)	= 'Unknown'
-		,@pStepDescription		nvarchar(max)	= 'N/A'
-		,@pJSONSnippet			nvarchar(max)	= 'N/A'
-		,@pErrNum				int				= 0
-		,@pErrMsg				nvarchar(max)	= 'N/A'
-		,@pParametersPassedChar nvarchar(max)	= 'N/A'
-		,@pStepLogId			int				= -1 
-		,@pJSONMsg				nvarchar(max)	= '{}'	output
-		,@pFormatErrorMsg		nvarchar(max)	= '{}'	output
-		,@pDuration				int				= -1	output	 
-		,@pETLExecutionId		int				= -1
-		,@pPathId				int				= -1
-		,@pVerbose				bit				= 0)
-AS
-/*****************************************************************************
+-- DROP PROCEDURE `audit`.`usp_CreateStepLogDescription`
+
+DELIMITER //
+CREATE PROCEDURE `audit`.`usp_CreateStepLogDescription` (
+		 p_pMessageType			varchar(20)		/* = 'INFO' */
+		,p_pStartDtm				datetime(3)		/* = NULL */
+		,p_pEndDtm				datetime(3)		/* = NULL */
+		,p_pStepNumber			varchar(23)		/* = '0' */
+		,p_pOperation			varchar(50)	/* = 'Unknown' */
+		,p_pStepDescription		longtext	/* = 'N/A' */
+		,p_pJSONSnippet			longtext	/* = 'N/A' */
+		,p_pErrNum				int				/* = 0 */
+		,p_pErrMsg				longtext	/* = 'N/A' */
+		,p_pParametersPassedChar longtext	/* = 'N/A' */
+		,p_pStepLogId			int				/* = -1 */ 
+		,out p_pJSONMsg				longtext	/* = '{}' */
+		,out p_pFormatErrorMsg		longtext	/* = '{}' */
+		,out p_pDuration				int				/* = -1 */		 
+		,p_pETLExecutionId		int				/* = -1 */
+		,p_pPathId				int				/* = -1 */
+		,p_pVerbose				tinyint				/* = 0 */)
+BEGIN
+/***********************************************************************
 File:		usp_CreateStepLogDescription.sql
 Name:		usp_CreateStepLogDescription
 Purpose:	
@@ -90,212 +93,172 @@ Date		Author			Description
 							header / execute updates. better unit testing.
 ******************************************************************************/
 
--------------------------------------------------------------------------------
---  Declarations
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  D... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-DECLARE	 @Rows					int				= 0
-        ,@ErrNum				int				= -1
-		,@ErrMsg				nvarchar(max)	= 'N/A'
-		,@FailedProcedure		varchar(1000)	= 'N/A'
-		,@ParametersPassedChar	varchar(1000)	= 'N/A'
-		,@CRLF					varchar(10)		= char(13) + char(10)
-		,@Tab					varchar(10)		= char(9)
-		,@2Tab					varchar(10)		= char(9) + char(9)
-		,@ProcName				varchar(256)	= OBJECT_NAME(@@PROCID) 
-		,@ParentStepLogId       int				= -1
-		,@PrevStepLog			int				= -1
-		,@CurrentDtm			datetime		= getdate()
-		,@DbName				varchar(256)	= DB_NAME()
-		,@ProcessType			varchar(10)		= 'Proc'
-		,@StepName				varchar(256)	= 'Start'
-		,@StepDesc				nvarchar(max)	= '{"Description":"Procedure started"}' 
-		,@StepStatus			varchar(10)		= 'Success'
-		,@StepNumber			varchar(10)		= 0
+DECLARE	 v_Rows					int				DEFAULT 0
+        ; DECLARE v_ErrNum				int				DEFAULT -1
+		; DECLARE v_ErrMsg				longtext	DEFAULT 'N/A'
+		; DECLARE v_FailedProcedure		varchar(1000)	DEFAULT 'N/A'
+		; DECLARE v_ParametersPassedChar	varchar(1000)	DEFAULT 'N/A'
+		; DECLARE v_CRLF					varchar(10)		DEFAULT cast(char(13) as char) + cast(char(10) as char)
+		; DECLARE v_Tab					varchar(10)		DEFAULT cast(char(9) as char)
+		; DECLARE v_2Tab					varchar(10)		DEFAULT cast(char(9) as char) + cast(char(9) as char)
+		; DECLARE v_ProcName				varchar(256)	DEFAULT 'StepLogDescription' 
+		; DECLARE v_ParentStepLogId       int				DEFAULT -1
+		; DECLARE v_PrevStepLog			int				DEFAULT -1
+		; DECLARE v_CurrentDtm			datetime(3)		DEFAULT now(3)
+		; DECLARE v_DbName				varchar(256)	DEFAULT DATABASE()
+		; DECLARE v_ProcessType			varchar(10)		DEFAULT 'Proc'
+		; DECLARE v_StepName				varchar(256)	DEFAULT 'Start'
+		; DECLARE v_StepDesc				longtext	DEFAULT '{"Description":"Procedure started"}' 
+		; DECLARE v_StepStatus			varchar(10)		DEFAULT 'Success'
+		; DECLARE v_StepNumber			varchar(10)		DEFAULT 0;
 
--------------------------------------------------------------------------------
---  Initializations
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  I... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-SELECT	 @FailedProcedure		= 'Stored Procedure : ' + @ProcName + ' failed.'
-		,@ParametersPassedChar	= @CRLF +
-      '***** Parameters Passed to exec <schema>.usp_CreateStepLogDescription' + @CRLF +
-      '     @pMessageType = ''' + isnull(@pMessageType ,'NULL') + '''' + @CRLF + 
-      '    ,@pStartDtm = ''' + isnull(convert(varchar(100),@pStartDtm ,13) ,'NULL') + '''' + @CRLF + 
-      '    ,@pEndDtm = ''' + isnull(convert(varchar(100),@pEndDtm ,13) ,'NULL') + '''' + @CRLF + 
-      '    ,@pStepNumber = ''' + isnull(@pStepNumber ,'NULL') + '''' + @CRLF + 
-      '    ,@pOperation = ''' + isnull(@pOperation ,'NULL') + '''' + @CRLF + 
-      '    ,@pStepDescription = ''' + isnull(@pStepDescription ,'NULL') + '''' + @CRLF + 
-      '    ,@pJSONSnippet = ''' + isnull(@pJSONSnippet ,'NULL') + '''' + @CRLF + 
-      '    ,@pErrNum = ''' + isnull(cast(@pErrNum as varchar(100)) ,'NULL') + '''' + @CRLF + 
-      '    ,@pErrMsg = ''' + isnull(@pErrMsg ,'NULL') + '''' + @CRLF + 
-      '    ,@pParametersPassedChar = ''' + isnull(@pParametersPassedChar ,'NULL') + '''' + @CRLF + 
-      '    ,@pStepLogId = ' + isnull(cast(@pStepLogId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pJSONMsg = @pJSONMsg --output ' + @CRLF +
-      '    ,@pFormatErrorMsg = @pFormatErrorMsg --output ' + @CRLF +
-      '    ,@pDuration = @pDuration --output ' + @CRLF +
-      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-      '***** End of Parameters' + @CRLF 
+SET	 v_FailedProcedure		= CONCAT('Stored Procedure : ' , v_ProcName , ' failed.')
+		,v_ParametersPassedChar	= CONCAT(v_CRLF ,
+      '***** Parameters Passed to exec <schema>.usp_CreateStepLogDescription' , v_CRLF ,
+      '     @pMessageType = ''' , ifnull(p_pMessageType ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStartDtm = ''' , ifnull(date_format(p_pStartDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
+      '    ,@pEndDtm = ''' , ifnull(date_format(p_pEndDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepNumber = ''' , ifnull(p_pStepNumber ,'NULL') , '''' , v_CRLF , 
+      '    ,@pOperation = ''' , ifnull(p_pOperation ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepDescription = ''' , ifnull(p_pStepDescription ,'NULL') , '''' , v_CRLF , 
+      '    ,@pJSONSnippet = ''' , ifnull(p_pJSONSnippet ,'NULL') , '''' , v_CRLF , 
+      '    ,@pErrNum = ''' , ifnull(cast(p_pErrNum as char(100)) ,'NULL') , '''' , v_CRLF , 
+      '    ,@pErrMsg = ''' , ifnull(p_pErrMsg ,'NULL') , '''' , v_CRLF , 
+      '    ,@pParametersPassedChar = ''' , ifnull(p_pParametersPassedChar ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepLogId = ' , ifnull(cast(p_pStepLogId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pJSONMsg = @pJSONMsg --output ' , v_CRLF ,
+      '    ,@pFormatErrorMsg = @pFormatErrorMsg --output ' , v_CRLF ,
+      '    ,@pDuration = @pDuration --output ' , v_CRLF ,
+      '    ,@pETLExecutionId = ' , ifnull(cast(p_pETLExecutionId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pPathId = ' , ifnull(cast(p_pPathId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pVerbose = ' , ifnull(cast(p_pVerbose as char(100)),'NULL') , v_CRLF , 
+      '***** End of Parameters' , v_CRLF); 
 
 
-select	 @pJSONMsg				= isnull(@pJSONMsg,'{}')
-		,@pFormatErrorMsg		= isnull(@pFormatErrorMsg,'{}')
-		,@pDuration				= isnull(@pDuration,-1) 
+set	 p_pJSONMsg				= ifnull(p_pJSONMsg,'{}')
+	,p_pFormatErrorMsg		= ifnull(p_pFormatErrorMsg,'{}')
+	,p_pDuration			= ifnull(p_pDuration,-1); 
 
-select	 @pStartDtm	= isnull(@pStartDtm		,	cast( '1900-01-01' as datetime))
-select	 @pEndDtm	= isnull(@pEndDtm		,	cast( '1900-01-01' as datetime))
+set	 p_pStartDtm	= ifnull(p_pStartDtm		,	cast( '1900-01-01' as datetime(3)));
+set	 p_pEndDtm	= ifnull(p_pEndDtm		,	cast( '1900-01-01' as datetime(3)));
 		
 
-if @pVerbose					= 1
-	begin 
-		print @ParametersPassedChar
-	end
+if p_pVerbose					= 1
+	then 
+		/* print v_ParametersPassedChar */
+        select v_FailedProcedure;
+end if;
 
--------------------------------------------------------------------------------
---  Main
--------------------------------------------------------------------------------
+--  SQLINES DEMO *** -----------------------------------------------------------
+--  M... SQLINES DEMO ***
+--  SQLINES DEMO *** -----------------------------------------------------------
 
-begin try
+set	 p_pDuration				= TIMESTAMPDIFF(second, p_pStartDtm, p_pEndDtm);
 
-select	 @pDuration				= DATEDIFF(second, @pStartDtm, @pEndDtm)
+if p_pMessageType				in ('ErrSQL','ErrCust')
+then
 
-if @pMessageType				in ('ErrSQL','ErrCust')
-begin
+	if	p_pJSONSnippet			= 'N/A'  or
+		p_pJSONSnippet			  is null  or
+		p_pJSONSnippet			= '' 
+	then
+		set   p_pFormatErrorMsg = Concat('{' , v_CRLF ,
+								  v_Tab , '"MessageType":"' ,p_pMessageType, '",' , v_CRLF ,
+								  v_Tab , '"Error" : {' , v_CRLF ,
+								  v_2Tab , '"ErrorNumber":',cast(p_pErrNum as char(10)),',' , v_CRLF ,
+								  v_2Tab , '"ErrorMessage":"', replace(p_pErrMsg,'"','''') ,'",' , v_CRLF ,
+								  v_2Tab , '"ErrorTime":"', date_format(v_CurrentDtm ,120 ) ,'",' , v_CRLF ,
+								  v_2Tab , '"StepLogId":', ifnull(cast(p_pStepLogId as char(10)),-1) ,',' , v_CRLF ,
+								  v_2Tab , '"ParamentersPassed":"', p_pParametersPassedChar , '"' , v_CRLF ,
+								  v_Tab , '},' , v_CRLF ,
+								  v_Tab , '"ProcessStepNumber":', p_pStepNumber ,',' , v_CRLF ,
+								  v_Tab , '"Description":"',ifnull(p_pStepDescription, CONCAT(p_pMessageType , ' thrown from process.')),'"' ,v_CRLF ,
+								  '}');
 
-	if	@pJSONSnippet			= 'N/A'  or
-		@pJSONSnippet			  is null  or
-		@pJSONSnippet			= '' 
-begin
-		select   @pFormatErrorMsg = '{' + @CRLF +
-								  @Tab + '"MessageType":"' +@pMessageType+ '",' + @CRLF +
-								  @Tab + '"Error" : {' + @CRLF +
-								  @2Tab + '"ErrorNumber":'+cast(@pErrNum as varchar(10))+',' + @CRLF +
-								  @2Tab + '"ErrorMessage":"'+ replace(@pErrMsg,'"','''') +'",' + @CRLF +
-								  @2Tab + '"ErrorTime":"'+ convert(varchar(30),@CurrentDtm ,120 ) +'",' + @CRLF +
-								  @2Tab + '"StepLogId":'+ isnull(cast(@pStepLogId as varchar(10)),-1) +',' + @CRLF +
-								  @2Tab + '"ParamentersPassed":"'+ @pParametersPassedChar + '"' + @CRLF +
-								  @Tab + '},' + @CRLF +
-								  @Tab + '"ProcessStepNumber":'+ @pStepNumber +',' + @CRLF +
-								  @Tab + '"Description":"'+isnull(@pStepDescription, @pMessageType + ' thrown from process.')+'"' +@CRLF +
-								  '}'
+		set	 p_pJSONMsg	= CONCAT('{"MessageType":"' ,p_pMessageType, '",' ,
+								  '"Error" : {' ,
+								  '"ErrorNumber":',cast(p_pErrNum as char(10)),',' ,
+								  '"ErrorMessage":"', replace(p_pErrMsg,'"','''') ,'",' ,
+								  '"ErrorTime":"', date_format(v_CurrentDtm ,120 ) ,'",' ,
+								  '"StepLogId":', ifnull(cast(p_pStepLogId as char(10)),-1) ,',' ,
+								  '"ParamentersPassed":"', replace(p_pParametersPassedChar,v_CRLF,''),'"},' ,
+								  '"ProcessStepNumber":', p_pStepNumber ,',' ,
+								  '"Description":"',ifnull(p_pStepDescription, CONCAT(p_pMessageType , ' thrown from process.')),'"}');
+	else
 
-		select	 @pJSONMsg	= '{"MessageType":"' +@pMessageType+ '",' +
-								  '"Error" : {' +
-								  '"ErrorNumber":'+cast(@pErrNum as varchar(10))+',' +
-								  '"ErrorMessage":"'+ replace(@pErrMsg,'"','''') +'",' +
-								  '"ErrorTime":"'+ convert(varchar(30),@CurrentDtm ,120 ) +'",' +
-								  '"StepLogId":'+ isnull(cast(@pStepLogId as varchar(10)),-1) +',' +
-								  '"ParamentersPassed":"'+ replace(@pParametersPassedChar,@CRLF,'')+'"},' +
-								  '"ProcessStepNumber":'+ @pStepNumber +',' +
-								  '"Description":"'+isnull(@pStepDescription, @pMessageType + ' thrown from process.')+'"}'
-end
-else
-	begin
+		set   p_pFormatErrorMsg = Concat('{' , v_CRLF ,
+								  v_Tab , '"MessageType":"' ,p_pMessageType, '",' , v_CRLF ,
+								  v_Tab , '"Error" : {' , v_CRLF ,
+								  v_2Tab , '"ErrorNumber":',cast(p_pErrNum as char(10)),',' , v_CRLF ,
+								  v_2Tab , '"ErrorMessage":"', replace(p_pErrMsg,'"','''') ,'",' , v_CRLF ,
+								  v_2Tab , '"ErrorTime":"', date_format(v_CurrentDtm ,120 ) ,'",' , v_CRLF ,
+								  v_2Tab , '"StepLogId":', ifnull(cast(p_pStepLogId as char(10)),-1) ,',' , v_CRLF ,
+								  v_2Tab , '"ParamentersPassed":"', p_pParametersPassedChar , '"' , v_CRLF ,
+								  v_Tab , '},' , v_CRLF ,
+								  v_Tab , '"ProcessStepNumber":', p_pStepNumber ,',' , v_CRLF ,
+								  v_Tab , '"Description":"',ifnull(p_pStepDescription, CONCAT(p_pMessageType , ' thrown from process.')),
+								  '}');
 
-		select   @pFormatErrorMsg = '{' + @CRLF +
-								  @Tab + '"MessageType":"' +@pMessageType+ '",' + @CRLF +
-								  @Tab + '"Error" : {' + @CRLF +
-								  @2Tab + '"ErrorNumber":'+cast(@pErrNum as varchar(10))+',' + @CRLF +
-								  @2Tab + '"ErrorMessage":"'+ replace(@pErrMsg,'"','''') +'",' + @CRLF +
-								  @2Tab + '"ErrorTime":"'+ convert(varchar(30),@CurrentDtm ,120 ) +'",' + @CRLF +
-								  @2Tab + '"StepLogId":'+ isnull(cast(@pStepLogId as varchar(10)),-1) +',' + @CRLF +
-								  @2Tab + '"ParamentersPassed":"'+ @pParametersPassedChar + '"' + @CRLF +
-								  @Tab + '},' + @CRLF +
-								  @Tab + '"ProcessStepNumber":'+ @pStepNumber +',' + @CRLF +
-								  @Tab + '"Description":"'+isnull(@pStepDescription, @pMessageType + ' thrown from process.')++'",'+@CRLF +
-								  @Tab + '"Custom":' + @pJSONSnippet + @CRLF +
-								  '}'
+		set	 p_pJSONMsg	= CONCAT('{"MessageType":"' ,p_pMessageType, '",' ,
+								  '"Error" : {' ,
+								  '"ErrorNumber":',cast(p_pErrNum as char(10)),',' ,
+								  '"ErrorMessage":"', replace(p_pErrMsg,'"','''') ,'",' ,
+								  '"ErrorTime":"', date_format(v_CurrentDtm ,120 ) ,'",' ,
+								  '"StepLogId":', ifnull(cast(p_pStepLogId as char(10)),-1) ,',' ,
+								  '"ParamentersPassed":"',p_pParametersPassedChar,'"},' ,
+								  '"ProcessStepNumber":', p_pStepNumber ,',' ,
+								  '"Description":"',ifnull(p_pStepDescription, CONCAT(p_pMessageType , ' thrown from process.')),'",',
+								  '"Custom":' , p_pJSONSnippet ,
+								  '}');
+	end if; -- Error Cust Err
 
-		select	 @pJSONMsg	= '{"MessageType":"' +@pMessageType+ '",' +
-								  '"Error" : {' +
-								  '"ErrorNumber":'+cast(@pErrNum as varchar(10))+',' +
-								  '"ErrorMessage":"'+ replace(@pErrMsg,'"','''') +'",' +
-								  '"ErrorTime":"'+ convert(varchar(30),@CurrentDtm ,120 ) +'",' +
-								  '"StepLogId":'+ isnull(cast(@pStepLogId as varchar(10)),-1) +',' +
-								  '"ParamentersPassed":"'+@pParametersPassedChar+'"},' +
-								  '"ProcessStepNumber":'+ @pStepNumber +',' +
-								  '"Description":"'+isnull(@pStepDescription, @pMessageType + ' thrown from process.')+'",'+
-								  '"Custom":' + @pJSONSnippet +
-								  '}'
-	end
-end -- ErrCust, ErrSQL
+elseif p_pMessageType			in ('Info','Warn')
+then
 
-else if @pMessageType			in ('Info','Warn')
-begin
+	if	p_pJSONSnippet			= 'N/A'  or
+		p_pJSONSnippet			  is null or
+		p_pJSONSnippet			= '' 
+	then 
 
-	if	@pJSONSnippet			= 'N/A'  or
-		@pJSONSnippet			  is null or
-		@pJSONSnippet			= '' 
+		set	 p_pJSONMsg	= CONCAT('{"MessageType":"' ,p_pMessageType, '",' ,
+									'"StepNumber":',p_pStepNumber,',' ,
+									'"Operation":"',p_pOperation,'",',
+									'"Description":"', ifnull(p_pStepDescription,'Step Completed'),'"}');
 
-		select	 @pJSONMsg	= '{"MessageType":"' +@pMessageType+ '",' +
-									'"StepNumber":'+@pStepNumber+',' +
-									'"Operation":"'+@pOperation+'",'+
-									'"Description":"'+ isnull(@pStepDescription,'Step Completed')+'"}'
+	else -- A snippet was provided.
 
-	else -- A Snippet was provided.
+		set	 p_pJSONMsg	= CONCAT('{"MessageType":"' ,p_pMessageType, '",' ,
+									'"StepNumber":',p_pStepNumber,',' ,
+									'"Operation":"',p_pOperation,'",',
+									'"Description":"', ifnull(p_pStepDescription,'Step Completed'),'",',
+									'"Custom":' , p_pJSONSnippet ,
+									'}');
+	end if;  -- Info and warn
 
-		select	 @pJSONMsg	= '{"MessageType":"' +@pMessageType+ '",' +
-									'"StepNumber":'+@pStepNumber+',' +
-									'"Operation":"'+@pOperation+'",'+
-									'"Description":"'+ isnull(@pStepDescription,'Step Completed')+'",'+
-									'"Custom":' + @pJSONSnippet +
-									'}'
-
-end -- Info / Warn
-
-else -- Take all other message types and try.
+else -- All other message types and try.
  
-begin
-		select	 @pJSONMsg	= '{"MessageType":"' + isnull(@pMessageType,'Unknown') + '",' +
-									'"StepNumber":'+isnull(@pStepNumber,-1)+',' +
-									'"Operation":"'+isnull(@pOperation,'Unknown')+'",'+
-									'"Description":"'+ isnull(@pStepDescription,'Unknown')+'"}'
-end
+		set	 p_pJSONMsg	= CONCAT('{"MessageType":"' , ifnull(p_pMessageType,'Unknown') , '",' ,
+									'"StepNumber":',ifnull(p_pStepNumber,-1),',' ,
+									'"Operation":"',ifnull(p_pOperation,'Unknown'),'",',
+									'"Description":"', ifnull(p_pStepDescription,'Unknown'),'"}');
+end if;
 
 
-if charindex('%',@pFormatErrorMsg,1)  > 0
-	select @pFormatErrorMsg = replace(@pFormatErrorMsg,'%','%%')
+if locate('%',p_pFormatErrorMsg,1)  > 0 then
+	set p_pFormatErrorMsg = replace(p_pFormatErrorMsg,'%','%%');
+end if;
 
-if len(@pFormatErrorMsg) > 2047
-	select @pFormatErrorMsg = substring(@pFormatErrorMsg,1,2030) + '<Truncated>'
+if char_length(rtrim(p_pFormatErrorMsg)) > 2047 then
+	set p_pFormatErrorMsg = concat(substring(p_pFormatErrorMsg,1,2030) , '<Truncated>');
+end if;
 
-end try
-
--------------------------------------------------------------------------------
---  Error Handling
--------------------------------------------------------------------------------
-begin catch
-
-	select	 @ErrNum			= @@ERROR
-			,@StepStatus		= 'Failure'
-			,@ErrMsg			= 'Error Number: ' 
-								+ CAST (@ErrNum as varchar(10)) + @CRLF
-								+ @FailedProcedure				+ @CRLF 
-								+ 'Step Name: ' + @StepName     + @CRLF
-								+ 'SQL Server Error: '			+ @CRLF
-								+ ERROR_MESSAGE ()				+ @CRLF
-								+ isnull(@ParametersPassedChar, 'Parmeter was NULL')
-			,@CurrentDtm		= getdate()
-			,@Rows				= @@ROWCOUNT
-
-	if @ErrNum < 50000  
-		begin	-- SQL Server Error do no need to add all of the extra information...
-			select	  @StepDesc	= '{"Error" : {	' +
-								  '"ErrorNumber":'+cast(@ErrNum as varchar(10))+',' +
-								  '"ErrorType":"SQL Server Error",' +
-								  '"ErrorMessage":"'+ replace(ERROR_MESSAGE(),'"','''') +'",' +
-								  '"ParamentersPassed":"'+@ParametersPassedChar+'"},' +
-								  '"StepNumber":'+ @StepNumber +',' +
-								  '"Description":"Failure in stored procedure"}'
-			select	 @ErrNum	= @ErrNum + 100000000 -- Need to increase number to throw message.
-		end
-
-	;throw	 @ErrNum, @ErrMsg, 1	-- Sql Server Error
-	
-end catch
-
--------------------------------------------------------------------------------
---  Procedure End
--------------------------------------------------------------------------------
+end;
+//
