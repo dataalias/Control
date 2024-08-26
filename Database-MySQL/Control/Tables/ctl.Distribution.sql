@@ -21,23 +21,39 @@ date		author			description
 ******************************************************************************/
 
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
-CREATE TABLE `ctl`.`Distribution`(
-	`IssueId` int NOT NULL,
-	`SubscriptionId` int NOT NULL,
-	`DistributionId` bigint AUTO_INCREMENT NOT NULL,
-	`StatusId` int NOT NULL,
-	`RetryCount` int NOT NULL,
-	`CreatedBy` varchar(50) NOT NULL,
-	`CreatedDtm` datetime(3) NULL,
-	`ModifiedBy` varchar(50) NULL,
-	`ModifiedDtm` datetime(3) NULL,
- CONSTRAINT `PK_Dist__IssueId_SubnId` PRIMARY KEY 
-(
-	`IssueId` ASC,
-	`SubscriptionId` ASC
-) 
-);
 
+-- ----------------------------------------------------------------------------
+-- Table ctl.Distribution
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Distribution` (
+  `IssueId` INT NOT NULL,
+  `SubscriptionId` INT NOT NULL,
+  `DistributionId` BIGINT NOT NULL,
+  `StatusId` INT NOT NULL,
+  `RetryCount` INT NOT NULL DEFAULT 1,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`IssueId`, `SubscriptionId`),
+  UNIQUE INDEX `UNQ_Dist_DistributionId` (`DistributionId` ASC) VISIBLE,
+  CONSTRAINT `FK_Dist__SubscriptionId`
+    FOREIGN KEY (`SubscriptionId`)
+    REFERENCES `ctl`.`Subscription` (`SubscriptionId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Dist__StatusId`
+    FOREIGN KEY (`StatusId`)
+    REFERENCES `ctl`.`RefStatus` (`StatusId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Dist__IssueId`
+    FOREIGN KEY (`IssueId`)
+    REFERENCES `ctl`.`Issue` (`IssueId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+/*
 ALTER TABLE `ctl`.`Distribution` ADD  CONSTRAINT `DF__Distribution__RetryCount__1`  DEFAULT ((1)) FOR `RetryCount`;
 
 
@@ -52,7 +68,7 @@ REFERENCES `ctl`.`RefStatus` (`StatusId`);
 
 ALTER TABLE `ctl`.`Distribution`  ADD  CONSTRAINT `FK_Dist__SubscriptionId` FOREIGN KEY(`SubscriptionId`)
 REFERENCES `ctl`.`Subscription` (`SubscriptionId`);
- 
+ */
 
 
 CREATE TRIGGER ctl.`trg_DistributionStatusIssueStatusUpdate` ON `ctl`.`Distribution` FOR  UPDATE AS

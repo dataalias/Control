@@ -1,20 +1,19 @@
-﻿CREATE TABLE [ctl].[Passphrase](
-	[PassPhraseID]		 [int]			 IDENTITY(1,1) NOT NULL,
-	[DatabaseName]		 [varchar](255)	 NOT NULL,
-	[SchemaName]		 [varchar](255)	 NOT NULL,
-	[TableName]			 [varchar](255)	 NOT NULL,
-	[Passphrase]		 [varchar](100)	 NOT NULL,
-	CreatedBy			 [varchar](100)	 NOT NULL,
-	CreatedDtm			 datetime		 NOT NULL,
-	ModifiedBy			 [varchar](100)	 NULL,
-	ModifiedDtm			 datetime		 NULL,
- CONSTRAINT [PK_BIConfigPhrase_PhraseID] PRIMARY KEY CLUSTERED 
-(
-	[PassPhraseID] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
+﻿-- ----------------------------------------------------------------------------
+-- Table ctl.Passphrase
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Passphrase` (
+  `PassPhraseID` INT NOT NULL,
+  `DatabaseName` VARCHAR(255) NOT NULL,
+  `SchemaName` VARCHAR(255) NOT NULL,
+  `TableName` VARCHAR(255) NOT NULL,
+  `Passphrase` VARCHAR(100) NOT NULL,
+  `CreatedBy` VARCHAR(100) NOT NULL,
+  `CreatedDtm` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ModifiedBy` VARCHAR(100) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`PassPhraseID`),
+  UNIQUE INDEX `UNQ_PassPhrase__SchemaName_TableName_Passphrase` (`SchemaName` ASC, `TableName` ASC, `Passphrase` ASC) VISIBLE);
+/*
 CREATE UNIQUE NONCLUSTERED INDEX [UNQ_PassPhrase__SchemaName_TableName_Passphrase]
     ON [ctl].[Passphrase]([SchemaName],[TableName],[Passphrase]) WITH (FILLFACTOR = 90);
 GO
@@ -24,3 +23,4 @@ GO
 
 ALTER TABLE ctl.[Passphrase] ADD  CONSTRAINT [DF__Passphrase__CreatedDtm__getdate]  DEFAULT ((getdate())) FOR [CreatedDtm]
 GO
+*/

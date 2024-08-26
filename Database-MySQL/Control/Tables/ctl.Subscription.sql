@@ -12,35 +12,45 @@ date:           20181011
 
 ******************************************************************************/
 
-CREATE TABLE [ctl].[Subscription](
-	[SubscriptionId] [int] IDENTITY(1,1) NOT NULL,
-	[PublicationId] [int] NOT NULL,
-	[SubscriberId] [int] NOT NULL,
-	[SubscriptionCode] [varchar](100) NOT NULL,
-	[SubscriptionName] [varchar](250) NOT NULL,
-	[SubscriptionDesc] [varchar](1000) NULL,
-	[InterfaceCode] [varchar](20) NOT NULL,
-	[IsActive] [int] NOT NULL,
-	[SubscriptionFilePath] [varchar](255) NULL,
-	[SubscriptionArchivePath] [varchar](255) NULL,
-	[SrcFilePath] [varchar](256) NULL,
-	[DestTableName] [varchar](255) NULL,
-	[DestFileFormatCode] [varchar](20) NULL,
-	[CreatedBy] [varchar](50) NOT NULL,
-	[CreatedDtm] [datetime] NOT NULL,
-	[ModifiedBy] [varchar](50) NULL,
-	[ModifiedDtm] [datetime] NULL,
- CONSTRAINT [PK_Subscription__SubscriptionId] PRIMARY KEY CLUSTERED 
-(
-	[SubscriptionId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY],
- CONSTRAINT [UNQ_Subscription__SubscriptionCode] UNIQUE NONCLUSTERED 
-(
-	[SubscriptionCode] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
+-- ----------------------------------------------------------------------------
+-- Table ctl.Subscription
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Subscription` (
+  `SubscriptionId` INT NOT NULL,
+  `PublicationId` INT NOT NULL,
+  `SubscriberId` INT NOT NULL,
+  `SubscriptionCode` VARCHAR(100) NOT NULL,
+  `SubscriptionName` VARCHAR(250) NOT NULL,
+  `SubscriptionDesc` VARCHAR(1000) NULL,
+  `InterfaceCode` VARCHAR(20) NOT NULL,
+  `IsActive` INT NOT NULL DEFAULT 1,
+  `SubscriptionFilePath` VARCHAR(255) NULL,
+  `SubscriptionArchivePath` VARCHAR(255) NULL,
+  `SrcFilePath` VARCHAR(256) NULL,
+  `DestTableName` VARCHAR(255) NULL,
+  `DestFileFormatCode` VARCHAR(20) NULL,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`SubscriptionId`),
+  UNIQUE INDEX `UNQ_Subscription__SubscriptionCode` (`SubscriptionCode` ASC) VISIBLE,
+  CONSTRAINT `FK_FileFormat_Subscription__FileFormatCode`
+    FOREIGN KEY (`DestFileFormatCode`)
+    REFERENCES `ctl`.`RefFileFormat` (`FileFormatCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Subscriber_Subscription__SubscriberId`
+    FOREIGN KEY (`SubscriberId`)
+    REFERENCES `ctl`.`Subscriber` (`SubscriberId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Interface_Subscription__InterfaceCode`
+    FOREIGN KEY (`InterfaceCode`)
+    REFERENCES `ctl`.`RefInterface` (`InterfaceCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+/*
 ALTER TABLE [ctl].[Subscription] ADD  CONSTRAINT [DF__Subscription__IsActive__1]  DEFAULT ((1)) FOR [IsActive]
 GO
 
@@ -55,7 +65,7 @@ GO
 ALTER TABLE [ctl].[Subscription]  ADD  CONSTRAINT [FK_Subscriber_Subscription__SubscriberId] FOREIGN KEY([SubscriberId])
 REFERENCES [ctl].[Subscriber] ([SubscriberId])
 GO
-
+*/
 /******************************************************************************
        change history
 *******************************************************************************

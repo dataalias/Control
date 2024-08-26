@@ -13,64 +13,105 @@ author:         ffortunato
 date:           20181011
 
 ******************************************************************************/
+-- ----------------------------------------------------------------------------
+-- Table ctl.Publication
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Publication` (
+  `PublicationId` INT NOT NULL,
+  `PublisherId` INT NOT NULL,
+  `PublicationCode` VARCHAR(50) NOT NULL,
+  `PublicationName` VARCHAR(255) NOT NULL,
+  `PublicationDesc` VARCHAR(1000) NOT NULL,
+  `SrcPublicationCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `SrcPublicationName` VARCHAR(255) NULL,
+  `PublicationEntity` VARCHAR(255) NOT NULL,
+  `PublicationFilePath` VARCHAR(255) NULL,
+  `PublicationArchivePath` VARCHAR(255) NULL,
+  `SrcFilePath` VARCHAR(255) NULL,
+  `SrcFileRegEx` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `SrcDeltaAttributes` VARCHAR(2000) NOT NULL DEFAULT 'N/A',
+  `DestTableName` VARCHAR(255) NULL,
+  `SrcFileFormatCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `StandardFileRegEx` VARCHAR(255) NOT NULL DEFAULT 'UNK',
+  `StandardFileFormatCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `ProcessingMethodCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `TransferMethodCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `StorageMethodCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `StageJobName` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `SSISFolder` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `SSISProject` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `SSISPackage` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `DataFactoryName` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `DataFactoryPipeline` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `GlueWorkflow` VARCHAR(255) NOT NULL DEFAULT 'N/A',
+  `IntervalCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `IntervalLength` INT NOT NULL DEFAULT 0,
+  `SLATime` VARCHAR(20) NULL,
+  `SLAEndTimeInMinutes` INT NULL,
+  `NextExecutionDtm` DATETIME(6) NOT NULL DEFAULT '1900-01-01',
+  `TriggerTypeCode` VARCHAR(20) NOT NULL DEFAULT 'N/A',
+  `IsActive` TINYINT(1) NOT NULL DEFAULT 1,
+  `IsDataHub` TINYINT(1) NOT NULL DEFAULT 1,
+  `Bound` VARCHAR(10) NOT NULL DEFAULT 'In',
+  `RetryMax` INT NOT NULL DEFAULT 0,
+  `RetryIntervalCode` VARCHAR(20) NOT NULL DEFAULT 'UNK',
+  `RetryIntervalLength` INT NOT NULL DEFAULT 0,
+  `PublicationGroupSequence` INT NOT NULL DEFAULT 1,
+  `PublicationGroupDesc` VARCHAR(1000) NOT NULL DEFAULT 'Default',
+  `KeyStoreName` VARCHAR(1000) NOT NULL DEFAULT 'N/A',
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`PublicationId`),
+  UNIQUE INDEX `UNQ_Publication__PublicationCode` (`PublicationCode` ASC) VISIBLE,
+  CONSTRAINT `FK_Method_Publication__TransferMethodCode`
+    FOREIGN KEY (`TransferMethodCode`)
+    REFERENCES `ctl`.`RefTransferMethod` (`TransferMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_FeedFormat_Publication__FeedFormatCode`
+    FOREIGN KEY (`SrcFileFormatCode`)
+    REFERENCES `ctl`.`RefFileFormat` (`FileFormatCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Method_Publication__StorageMethodCode`
+    FOREIGN KEY (`StorageMethodCode`)
+    REFERENCES `ctl`.`RefStorageMethod` (`StorageMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_StandardizedFileFormat_Publication__FeedFormatCode`
+    FOREIGN KEY (`StandardFileFormatCode`)
+    REFERENCES `ctl`.`RefFileFormat` (`FileFormatCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_RefProcessingMethod_Publication__ProcessingMethodCode`
+    FOREIGN KEY (`ProcessingMethodCode`)
+    REFERENCES `pg`.`RefProcessingMethod` (`ProcessingMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Interval_Publication__RetryIntervalCode`
+    FOREIGN KEY (`RetryIntervalCode`)
+    REFERENCES `ctl`.`RefInterval` (`IntervalCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Interval_Publication__IntervalCode`
+    FOREIGN KEY (`IntervalCode`)
+    REFERENCES `ctl`.`RefInterval` (`IntervalCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_PubnPublisherId`
+    FOREIGN KEY (`PublisherId`)
+    REFERENCES `ctl`.`Publisher` (`PublisherId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_TriggerType_Publication__TriggerTypeCode`
+    FOREIGN KEY (`TriggerTypeCode`)
+    REFERENCES `ctl`.`RefTriggerType` (`TriggerTypeCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 
-CREATE TABLE [ctl].[Publication](
-	[PublicationId] [int] IDENTITY(1,1) NOT NULL,
-	[PublisherId] [int] NOT NULL,
-	[PublicationCode] [varchar](50) NOT NULL,
-	[PublicationName] [varchar](255) NOT NULL,
-	[PublicationDesc] [varchar](1000) NOT NULL,
-	[SrcPublicationCode] [varchar](20) NOT NULL,
-	[SrcPublicationName] [varchar](255) NULL,
-	[PublicationEntity] [varchar](255) NOT NULL,
-	[PublicationFilePath] [varchar](255) NULL,
-	[PublicationArchivePath] [varchar](255) NULL,
-	[SrcFilePath] [varchar](255) NULL,
-	[SrcFileRegEx] [varchar](255)  NOT NULL,
-	[SrcDeltaAttributes] varchar(2000) not null, -- Pipe delimited list of attributes that can be used in the merge.
-	[DestTableName] [varchar](255) NULL,
-	[SrcFileFormatCode] [varchar](20) NOT NULL,
-	[StandardFileRegEx] varchar(255) NOT NULL,
-	[StandardFileFormatCode] varchar(20) NOT NULL,
-	[ProcessingMethodCode] [varchar](20) NOT NULL, -- Talks about the system that will run the code :Data Factory, Integration Services ... FK to pg.RefProcessingMethod
---	[MethodCode]	[varchar](20),  -- This field is deprecated in its place will be Transfer and Storage Method Code.
-	[TransferMethodCode] [varchar](20) NOT NULL,
-	[StorageMethodCode] [varchar](20) NOT NULL,
-	[StageJobName] [varchar](255) NOT NULL,
-	[SSISFolder] [varchar](255) NOT NULL,
-	[SSISProject] [varchar](255) NOT NULL,
-	[SSISPackage] [varchar](255) NOT NULL,
-	[DataFactoryName] [varchar](255) NOT NULL,
-	[DataFactoryPipeline] [varchar](255) NOT NULL,
-	[GlueWorkflow] [varchar](255) NOT NULL,
-	[IntervalCode] [varchar](20) NOT NULL,
-	[IntervalLength] [int] NOT NULL,
-	[SLATime] [varchar](20) NULL,
-	[SLAEndTimeInMinutes] [int] NULL,
-	[NextExecutionDtm] [datetime] NOT NULL,
-	TriggerTypeCode varchar(20) NOT NULL,
-	[IsActive] [bit] NOT NULL,
-	[IsDataHub] BIT NOT NULL, -- this needs to be changed to a bit. I'm mad at you omkar.
-	[Bound] [varchar](10) NOT NULL,
-	[RetryMax] [int] NOT NULL,
-	[RetryIntervalCode] [varchar](20) NOT NULL,
-	[RetryIntervalLength] [int] NOT NULL,
-	--[SLAIntervalCode] [varchar](20) NULL,
-	--[SLAIntervalLength] [int] NULL,
-	[PublicationGroupSequence] int not null, -- This atribute allows us to group publication pulls for publishers that have lots of publications. It also allows us to enforce and order to publication loads or use different pipelines.
-	[PublicationGroupDesc] varchar(1000) not null,
-	[KeyStoreName] varchar(1000) not null,
-	[CreatedBy] [varchar](50) NOT NULL,
-	[CreatedDtm] [datetime] NOT NULL,
-	[ModifiedBy] [varchar](50) NULL,
-	[ModifiedDtm] [datetime] NULL,
- CONSTRAINT [PK_PubnPublisherId] PRIMARY KEY CLUSTERED 
-(
-	[PublicationId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY]
-)
-GO
-
+/*
 ALTER TABLE [ctl].[Publication] ADD  CONSTRAINT [DF__Publication__SrcPublicationCode__UNK]  DEFAULT 'UNK' FOR [SrcPublicationCode]
 GO
 
@@ -204,6 +245,7 @@ GO
 CREATE UNIQUE NONCLUSTERED INDEX [UNQ_Publication__PublicationCode]
 	ON [ctl].[Publication]([PublicationCode] ASC) WITH (FILLFACTOR = 90);
 GO
+*/
 
 /******************************************************************************
 	   change history

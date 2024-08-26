@@ -12,36 +12,43 @@ date:           20181011
 
 ******************************************************************************/
 
-CREATE TABLE `ctl`.`Publisher`(
-	`PublisherId` int AUTO_INCREMENT NOT NULL,
-	`ContactId` int NOT NULL,
-	`PublisherCode` varchar(20) NOT NULL,
-	`PublisherName` varchar(50) NOT NULL,
-	`PublisherDesc` varchar(1000) NULL,
-	`InterfaceCode` varchar(20) NOT NULL ,
-    /*
-	`SiteURL` varchar(256) NULL,
-	`SiteUser` varchar(256) NULL,
-	`SitePassword` varbinary(8000) NULL,
-	`SiteHostKeyFingerprint` varbinary(8000) NULL,
-	`SitePort` varchar(10) NULL,
-	`SiteProtocol` varchar(100) NULL,
-	`PrivateKeyPassPhrase` varbinary(8000) NULL,
-	`PrivateKeyFile` varbinary(8000) NULL,
-	*/
-    `CreatedBy` varchar(50) NOT NULL,
-	`CreatedDtm` datetime(3) NOT NULL,
-	`ModifiedBy` varchar(50) NULL,
-	`ModifiedDtm` datetime(3) NULL,
- CONSTRAINT `PK_PubrPublisherId` PRIMARY KEY 
-(
-	`PublisherId` ASC
-) ,
- CONSTRAINT `UNQ_Publisher__PublisherCode` UNIQUE 
-(
-	`PublisherCode` ASC
-) 
-);
+-- ----------------------------------------------------------------------------
+-- Table ctl.Publisher
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Publisher` (
+  `PublisherId` INT NOT NULL,
+  `ContactId` INT NOT NULL,
+  `PublisherCode` VARCHAR(20) NOT NULL,
+  `PublisherName` VARCHAR(50) NOT NULL,
+  `PublisherDesc` VARCHAR(1000) NULL,
+  `InterfaceCode` VARCHAR(20) NOT NULL DEFAULT 'N/A',
+  /*
+  `SiteURL` VARCHAR(256) NULL,
+  `SiteUser` VARCHAR(256) NULL,
+  `SitePassword` VARBINARY(8000) NULL,
+  `SiteHostKeyFingerprint` VARBINARY(8000) NULL,
+  `SitePort` VARCHAR(10) NULL,
+  `SiteProtocol` VARCHAR(100) NULL,
+  `PrivateKeyPassPhrase` VARBINARY(8000) NULL,
+  `PrivateKeyFile` VARBINARY(8000) NULL,
+  */
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`PublisherId`),
+  UNIQUE INDEX `UNQ_Publisher__PublisherCode` (`PublisherCode` ASC) VISIBLE,
+  INDEX `IDX_Publisher__InterfaceCode` (`InterfaceCode` ASC) VISIBLE,
+  CONSTRAINT `FK_Publisher_RefInterface__InterfaceCode`
+    FOREIGN KEY (`InterfaceCode`)
+    REFERENCES `ctl`.`RefInterface` (`InterfaceCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_RefContact__ContactId`
+    FOREIGN KEY (`ContactId`)
+    REFERENCES `ctl`.`Contact` (`ContactId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 /*
 -- ALTER TABLE `ctl`.`Publisher` ADD  CONSTRAINT `DF__Publisher__InterfaceCode__NA`  SET DEFAULT (('N/A')) FOR `InterfaceCode`;
 ALTER TABLE `ctl`.`Publisher`  ALTER COLUMN  InterfaceCode SET DEFAULT 'N/A';

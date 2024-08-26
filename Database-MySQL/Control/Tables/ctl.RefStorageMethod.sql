@@ -14,18 +14,20 @@ Date:		20181002
 
 ******************************************************************************/
 
-CREATE TABLE [ctl].RefStorageMethod(
-    [StorageMethodId]     int              IDENTITY(1,1),
-	[StorageMethodCode]   varchar(20)      NOT NULL,
-    [StorageMethodName]   varchar(250)     NOT NULL,
-    [StorageMethodDesc]   varchar(1000)    NOT NULL,
-    [CreatedBy]           varchar(50)      NOT NULL,
-    [CreatedDtm]          datetime         NOT NULL,
-    [ModifiedBy]          varchar(50)      NULL,
-    [ModifiedDtm]         datetime         NULL,
-    CONSTRAINT [PK_RefStorageMethod__MethodCode] PRIMARY KEY CLUSTERED ([StorageMethodCode])
-)
-go
+-- ----------------------------------------------------------------------------
+-- Table ctl.RefStorageMethod
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`RefStorageMethod` (
+  `StorageMethodId` INT NOT NULL,
+  `StorageMethodCode` VARCHAR(20) NOT NULL,
+  `StorageMethodName` VARCHAR(250) NOT NULL,
+  `StorageMethodDesc` VARCHAR(1000) NOT NULL,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`StorageMethodCode`));
+
 
 
 /******************************************************************************

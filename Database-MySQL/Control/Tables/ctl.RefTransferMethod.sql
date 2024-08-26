@@ -12,18 +12,19 @@ Date:		20181002
 
 ******************************************************************************/
 
-CREATE TABLE [ctl].[RefTransferMethod](
-    [TransferMethodId]     int              IDENTITY(1,1),
-	[TransferMethodCode]   varchar(20)      NOT NULL,
-    [TransferMethodName]   varchar(250)     NOT NULL,
-    [TransferMethodDesc]   varchar(1000)    NOT NULL,
-    [CreatedBy]    varchar(50)      NOT NULL,
-    [CreatedDtm]   datetime         NOT NULL,
-    [ModifiedBy]   varchar(50)      NULL,
-    [ModifiedDtm]  datetime         NULL,
-    CONSTRAINT [PK_RefTransferMethod__MethodCode] PRIMARY KEY CLUSTERED ([TransferMethodCode])
-)
-go
+-- ----------------------------------------------------------------------------
+-- Table ctl.RefTransferMethod
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`RefTransferMethod` (
+  `TransferMethodId` INT NOT NULL,
+  `TransferMethodCode` VARCHAR(20) NOT NULL,
+  `TransferMethodName` VARCHAR(250) NOT NULL,
+  `TransferMethodDesc` VARCHAR(1000) NOT NULL,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`TransferMethodCode`));
 
 
 /******************************************************************************

@@ -14,23 +14,21 @@ date:           20210312
 
 ******************************************************************************/
 
-CREATE TABLE [ctl].[RefFileFormat](
-	[FileFormatCode] [varchar](20) NOT NULL,
-	[FileFormatId] [int] IDENTITY(1,1) NOT NULL,
-	[FileFormatName] [varchar](250) NOT NULL,
-	[FileFormatDesc] [varchar](1000) NOT NULL,
-	[FileExtension] varchar(20) NOT NULL,
-	[DotFileExtension] varchar(20) NOT NULL,
-	[CreatedBy] [varchar](50) NOT NULL,
-	[CreatedDtm] [datetime] NOT NULL,
-	[ModifiedBy] [varchar](50) NULL,
-	[ModifiedDtm] [datetime] NULL,
- CONSTRAINT [PK_RefFileFormat_FileFormatCode] PRIMARY KEY CLUSTERED 
-(
-	[FileFormatCode] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY]
-) ON [PRIMARY]
-GO
+-- ----------------------------------------------------------------------------
+-- Table ctl.RefFileFormat
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`RefFileFormat` (
+  `FileFormatCode` VARCHAR(20) NOT NULL,
+  `FileFormatId` INT NOT NULL,
+  `FileFormatName` VARCHAR(250) NOT NULL,
+  `FileFormatDesc` VARCHAR(1000) NOT NULL,
+  `FileExtension` VARCHAR(20) NOT NULL,
+  `DotFileExtension` VARCHAR(20) NOT NULL,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`FileFormatCode`));
 
 
 

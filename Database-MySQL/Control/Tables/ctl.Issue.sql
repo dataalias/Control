@@ -23,44 +23,58 @@ date		author			description
 20210316	ffortunato		PeriodEndTime Can be NULL during initial insert.
 ******************************************************************************/
 
--- SQLINES LICENSE FOR EVALUATION USE ONLY
-CREATE TABLE `ctl`.`Issue`(
-	`IssueId` int AUTO_INCREMENT NOT NULL,
-	`PublicationId` int NOT NULL,
-	`StatusId` int NOT NULL,
-	`ReportDate` datetime(3) NOT NULL,
-	`SrcDFPublisherId` varchar(40) NULL,
-	`SrcDFPublicationId` varchar(40) NULL,
-	`SrcDFIssueId` varchar(100) NULL,
-	`SrcIssueName` nvarchar(255) NULL,
-	`SrcDFCreatedDate` datetime(3) NULL,
-	DataLakePath varchar(1000) NOT NULL,
-	`IssueName` varchar(255) NOT NULL,
-	`PublicationSeq` int NOT NULL ,
-	`DailyPublicationSeq` int NOT NULL ,
-	`FirstRecordSeq` int NULL,
-	`LastRecordSeq` int NULL,
-	`FirstRecordChecksum` varchar(2048) NULL,
-	`LastRecordChecksum` varchar(2048) NULL,
-	`PeriodStartTime` datetime(3) NOT NULL,
-	`PeriodEndTime` datetime(3) NULL,
-	`PeriodStartTimeUTC` Datetime(6)  NULL,
-	`PeriodEndTimeUTC` Datetime(6)  NULL,
-	`IssueConsumedDate` datetime(3) NULL,
-	`RecordCount` int NOT NULL,
-	`RetryCount` int NOT NULL ,
-	`ETLExecutionId` nvarchar(1000) NULL,
-	`CreatedBy` varchar(50) NOT NULL,
-	`CreatedDtm` datetime(3) NOT NULL,
-	`ModifiedBy` varchar(50) NULL,
-	`ModifiedDtm` datetime(3) NULL,
- CONSTRAINT `Pk_IssueIssueId` PRIMARY KEY 
-(
-	`IssueId` ASC
-) 
-);
+
+-- ----------------------------------------------------------------------------
+-- Table ctl.Issue
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ctl`.`Issue` (
+  `IssueId` INT NOT NULL,
+  `PublicationId` INT NOT NULL,
+  `StatusId` INT NOT NULL,
+  `ReportDate` DATETIME(6) NOT NULL,
+  `SrcDFPublisherId` VARCHAR(40) NULL,
+  `SrcDFPublicationId` VARCHAR(40) NULL,
+  `SrcDFIssueId` VARCHAR(100) NULL,
+  `SrcIssueName` VARCHAR(255) CHARACTER SET 'utf8mb4' NULL,
+  `SrcDFCreatedDate` DATETIME(6) NULL,
+  `DataLakePath` VARCHAR(1000) NOT NULL DEFAULT '/Raw Data Zone/...',
+  `IssueName` VARCHAR(255) NOT NULL,
+  `PublicationSeq` INT NOT NULL DEFAULT -1,
+  `DailyPublicationSeq` INT NOT NULL DEFAULT -1,
+  `FirstRecordSeq` INT NULL,
+  `LastRecordSeq` INT NULL,
+  `FirstRecordChecksum` VARCHAR(2048) NULL,
+  `LastRecordChecksum` VARCHAR(2048) NULL,
+  `PeriodStartTime` DATETIME(6) NOT NULL,
+  `PeriodEndTime` DATETIME(6) NULL,
+  `PeriodStartTimeUTC` DATETIME(6) NULL,
+  `PeriodEndTimeUTC` DATETIME(6) NULL,
+  `IssueConsumedDate` DATETIME(6) NULL,
+  `RecordCount` INT NOT NULL,
+  `RetryCount` INT NOT NULL DEFAULT 0,
+  `ETLExecutionId` VARCHAR(1000) CHARACTER SET 'utf8mb4' NULL,
+  `CreatedBy` VARCHAR(50) NOT NULL,
+  `CreatedDtm` DATETIME(6) NOT NULL,
+  `ModifiedBy` VARCHAR(50) NULL,
+  `ModifiedDtm` DATETIME(6) NULL,
+  PRIMARY KEY (`IssueId`),
+  INDEX `IDX_Issue__IssueName` (`IssueName` ASC) VISIBLE,
+  INDEX `IDX_Issue__ReportDate` (`ReportDate` ASC, `PublicationId` ASC, `RecordCount` ASC) VISIBLE,
+  INDEX `IDX_Issue__StatusId` (`StatusId` ASC) VISIBLE,
+  INDEX `IDX_Issue__PublicationId_StatusId` (`PublicationId` ASC, `PublicationSeq` ASC, `StatusId` ASC) VISIBLE,
+  CONSTRAINT `FK_Issue__RefStatus__StatusId`
+    FOREIGN KEY (`StatusId`)
+    REFERENCES `ctl`.`RefStatus` (`StatusId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_Issue__Publication__PublicationId`
+    FOREIGN KEY (`PublicationId`)
+    REFERENCES `ctl`.`Publication` (`PublicationId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 
 
+/*
 ALTER TABLE `ctl`.`Issue` ADD  CONSTRAINT `DF__Issue__PublicationSeq_-1`  DEFAULT -1 FOR `PublicationSeq`
 GO
 
@@ -100,7 +114,7 @@ CREATE INDEX `IDX_Issue__PublicationId_StatusId`
     ON `ctl`.`Issue`(`PublicationId` ASC)
     /* INCLUDE(`PublicationSeq`, `StatusId`) */ ;
  
-
+*/
 
 create trigger ctl.trg_InsertIssueDistribution on ctl.Issue for -- SQLINES LICENSE FOR EVALUATION USE ONLY
  insert as
