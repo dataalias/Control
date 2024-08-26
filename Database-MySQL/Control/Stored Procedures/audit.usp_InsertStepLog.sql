@@ -24,7 +24,7 @@ CREATE PROCEDURE `audit`.`usp_InsertStepLog` (
 		,out p_pStepLogId		int				/* = -1 */
 		,p_pVerbose				tinyint				/* = 0 */)
 BEGIN
-/* SQLINES DEMO *** **********************************************************
+/**********************************************************************************************************************
 File:		usp_InsertStepLog.sql
 Name:		usp_InsertStepLog
 Purpose:	
