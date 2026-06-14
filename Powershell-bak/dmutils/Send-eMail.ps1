@@ -43,7 +43,7 @@ This function sends an e-mail based on the parameters passed.
 Desc...
 
 .EXAMPLE
-send-email 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-reply@bpiedu.com' 'Some Subject' 'Some Body' $null #no attachment.
+send-email '<MY_SMTP_SERVER>' '<MY_EMAIL_ADDRESS>' '<MY_NOTIFICATION_EMAIL>' 'Some Subject' 'Some Body' $null #no attachment.
 
 #>
 
@@ -68,7 +68,7 @@ send-email 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-reply@bpie
 		HelpMessage=’From e-mail address’
 		)]
 	[alias("f")]
-	[string[]]$from='no-reply@bpiedu.com',
+	[string[]]$from='<MY_NOTIFICATION_EMAIL>',
 	
 	[parameter(Mandatory=$true,
 		Position = 3,

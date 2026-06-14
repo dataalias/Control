@@ -37,7 +37,7 @@ Manages the python DataHub class for programiatc management of Data Hub meta dat
 see /src_dh_layer/python/READ.md for more detail.
 ## deControl
 Each of these packages have a dependency on the DataHub / Control database. The source code can be found in the deControl repository and will one day lande here.
-https://github.com/Ascent-Funding/deControl (forked from: https://github.com/dataalias/Control)
+https://github.com/<MY_ORGANIZATION>/deControl (forked from: https://github.com/dataalias/Control)
 # Infastructure
 All AWS components are managed through terraform and can be found in /infra. *.tf files include everything needed to setup the data hub infrastructure with the one exception of the MS SQL database objects.
 

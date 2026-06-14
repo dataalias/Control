@@ -9,7 +9,7 @@ Purpose:	This script is responsible for several activities.
 			3) start the SSIS package execution
 
 Invoke-StagingPackage `
--SQLInstance  'DEDTEDLSQL01' `
+-SQLInstance  '<MY_SQL_SERVER>' `
 -Folder 'ETLFolder' `
 -Project 'OIE' `
 -Package 'shrug.dtsx' `

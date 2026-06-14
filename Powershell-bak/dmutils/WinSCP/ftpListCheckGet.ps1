@@ -137,7 +137,7 @@ Invoke-ftpListCheckGet `
     -protocol  'sftp' `
     -userName  "qa_bi_workday" `
     -password  "@ctive123" `
-    -hostName  "sftp.bridgepointeducation.com" `
+    -hostName  "<MY_SFTP_HOST>" `
     -fp  "ssh-rsa 2048 65:89:b0:57:24:cf:ea:8f:da:b8:b5:36:f0:4f:20:8c" `
     -remoteDir "/home/qa_bi_workday/Roster/Inbound/" `
     -port "22" `
@@ -156,9 +156,9 @@ $dbServer
 Invoke-ftpListCheckGet `
     -sqlCon $sqlCon `
     -protocol  'ftp' `
-    -userName  "review.sharefileftp.com/jeffery.drummond@bpiedu.com" `
+    -userName  "<MY_FILE_TRANSFER_HOST>/<MY_EMAIL_ADDRESS>" `
     -password  "aqX3ZfMuUCfDcq9Y" `
-    -hostName  "review.sharefileftp.com"`
+    -hostName  "<MY_FILE_TRANSFER_HOST>"`
     -fp  ""  `
     -remoteDir "/Reports/Bridgepoint/"`
     -port "990"  `
@@ -177,28 +177,28 @@ Invoke-ftpListCheckGet `
 <#
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Db to cehck files with’
+		HelpMessage=Db to cehck files with
 		)]
 		[alias("dbs")]
 		[string]$dbServer
 #>		
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Acctive connection to the database being queried’
+		HelpMessage=Acctive connection to the database being queried
 		)]
 		[alias("sc")]
 		$sqlCon
 
 		,[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’The protocol used for the transfer: ftp, sftp’
+		HelpMessage=The protocol used for the transfer: ftp, sftp
 		)]
 		[alias("p")]
 		[string]$protocol
         
 		,[parameter(Mandatory=$true,
 		Position = 1,
-		HelpMessage=’User name to be authenticated to the site’
+		HelpMessage=User name to be authenticated to the site
 		)]
 		[alias("usr")]
 		[string]$userName

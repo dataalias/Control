@@ -19,7 +19,7 @@ Purpose:
 
 exec 		exec ctl.usp_UpdatePublisherFTP
 				 @pPublisherCode ='SK',
-                 @pSiteURL = 'vendorsftp.bridgepointeducation.com', --ftp
+                 @pSiteURL = '<MY_FTP_HOST>', --ftp
 				 @pUserSite = 'chatstaff' ,
 				 @pSitePassword = NULL,
 				 @pSiteKey  = 'gKZu-Thd[oJqiH4Q',

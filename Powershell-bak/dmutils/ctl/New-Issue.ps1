@@ -9,7 +9,7 @@ Test Execution:
 
 
 
-$dbServer = 'dedtedlsql01'
+$dbServer = '<MY_SQL_SERVER>'
 $IssueId = -1
 $sqlConSSISDB = New-Object System.Data.SqlClient.SqlConnection
 $sqlConSSISDB.ConnectionString = "Server=$($dbServer);Database=BPI_DW_STAGE;Integrated Security=SSPI" 
@@ -17,7 +17,7 @@ $sqlConSSISDB.Open()
 $sqlConSSISDB
 $IssueId = 0
 $IssueId = New-Issue  -sqlCon $sqlConSSISDB -pubn 'ACCOUNTDIM-AU' -dfn 'account_ZOOM_dim_20070112.txt' -s 'IP' -sId 0 -sDt '1/2/2017' -fid 1 -lid 100 -fchk 'ABC' -lchk 'DEF' -psd '1/1/2017' `
-        -ped '1/1/2017' -rc 100 -ETLId 99 -usr 'ffortunato' -iss ([ref]$IssueId)
+        -ped '1/1/2017' -rc 100 -ETLId 99 -usr '<MY_USERNAME>' -iss ([ref]$IssueId)
 "Error: " + $_.Exception.Message
 "Issue: " + $IssueId
 $sqlConSSISDB.Close()
@@ -89,7 +89,7 @@ by the function to the caller.
 
 .EXAMPLE
 $IssueId = 0
-$IssueId = New-Issue  -dbsn 'dedtedlsql01' -pubn 'ACCOUNTDIM-AU' -dfn 'account_dim_20070112.txt' -s 'IP' -sId 0 -sDt '1/2/2017' -fid 1 -lid 100 -fchk 'ABC' -lchk 'DEF' -psd '1/1/2017' -ped '1/1/2017' -rc 100 -ETLId 99 -usr 'ffortunato'
+$IssueId = New-Issue  -dbsn '<MY_SQL_SERVER>' -pubn 'ACCOUNTDIM-AU' -dfn 'account_dim_20070112.txt' -s 'IP' -sId 0 -sDt '1/2/2017' -fid 1 -lid 100 -fchk 'ABC' -lchk 'DEF' -psd '1/1/2017' -ped '1/1/2017' -rc 100 -ETLId 99 -usr '<MY_USERNAME>'
 $_.Exception.Message
 $IssueId
 #>

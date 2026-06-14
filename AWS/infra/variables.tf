@@ -85,7 +85,7 @@ variable "prod_branch" {
 variable "prod_event_bus" {
   description = "The ARN of the default EventBridge event bus on the production AWS account."
   type        = string
-  default     = "arn:aws:events:us-east-1:582033825934:event-bus/default"
+  default     = "arn:aws:events:us-east-1:<MY_ACCOUNT_ID>:event-bus/default"
 }
 
 variable "code_commit_access_role_arn" {
@@ -203,7 +203,7 @@ variable "max_receive_count" {
 variable "ftp_domain" {
   description = "This is the URL / doin for the ftp site eternal facing."
   type        = string
-  default     = "transfer.ascentfunding.com"
+  default     = "<MY_FTP_DOMAIN>"
 }
 /*
 variable "iam_role_arn" {

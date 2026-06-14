@@ -40,7 +40,7 @@ Date		Author			Description
 This script will download new data extracts based on a scheduled task 
 call.
 
-Example: \\bpe-aesd-cifs\powershellrepo\DM\DME1\DataHub\Get-Canvas.ps1 "\\bpe-aesd-cifs\powershellrepo\DM\DME1\DataHub\config\DataHubConfig.json" "UoR" "OMKAR"
+Example: \\<MY_FILE_SHARE_SERVER>\powershellrepo\DM\DME1\DataHub\Get-Canvas.ps1 "\\bpe-aesd-cifs\powershellrepo\DM\DME1\DataHub\config\DataHubConfig.json" "UoR" "OMKAR"
 
 #>
 $ConfigFile = $args[0] # This should be the path for the config file.

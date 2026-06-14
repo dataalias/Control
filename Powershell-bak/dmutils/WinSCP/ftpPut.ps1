@@ -83,12 +83,12 @@ Invoke-ftpPut `
 	-IssueName 'ChatTrafficExp_20190306095445.csv' `
     -userName  "nettutor_qa" `
     -password  "saMNDtUjAC9-Z45w" `
-    -hostName  "qme1ampsft01.bridgepoint.local" `
+    -hostName  "<MY_HOST_NAME>" `
     -fp  "ssh-rsa 2048 22:42:69:3e:34:98:b7:cd:3f:6b:47:bf:be:5f:18:55" `
     -remoteDir "\\bpe-aesd-cifs\BI_Admin_dev\DME3\FileShare\ChatTraffic\outbound\" `
     -port "22" `
     -destDir   "/nettutor_qa/Inbound" `
-    -LogFile   "\\bpe-aesd-cifs\powershellrepo\DM\DME3\DataHub\logs\ftplog.log"
+    -LogFile   "\\<MY_FILE_SHARE_SERVER>\powershellrepo\DM\DME3\DataHub\logs\ftplog.log"
 #>
 
     [CmdletBinding(
@@ -97,28 +97,28 @@ Invoke-ftpPut `
     param (
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Server used’
+		HelpMessage=Server used
 		)]
 		[alias("ser")]
 		[string]$dbServer
 
 		,[parameter(Mandatory=$true,
 		Position = 1,
-		HelpMessage=’The protocol used for the transfer: ftp, sftp’
+		HelpMessage=The protocol used for the transfer: ftp, sftp
 		)]
 		[alias("p")]
 		[string]$protocol
 
 		,[parameter(Mandatory=$true,
 		Position = 2,
-		HelpMessage=’Issue that is being transferred’
+		HelpMessage=Issue that is being transferred
 		)]
 		[alias("i")]
 		[string]$IssueName
         
 		,[parameter(Mandatory=$true,
 		Position = 3,
-		HelpMessage=’User name to be authenticated to the site’
+		HelpMessage=User name to be authenticated to the site
 		)]
 		[alias("usr")]
 		[string]$userName

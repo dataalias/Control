@@ -64,7 +64,7 @@ Get-QualtricsExport -url $URL -apiToken $token -format 'csv' -surveyId $survey -
 		Position = 1,
 		HelpMessage=’The Site URL provided by Qualtrics’
 		)]
-	[string]$url='https://bridgepoint.co1.qualtrics.com/API/v3/responseexports',
+	[string]$url='<MY_QUALTRICS_API_URL>',
 	[parameter(Mandatory=$true,
 		Position = 2,
 		HelpMessage=’Token (for authentication) provided by Qualtrics’

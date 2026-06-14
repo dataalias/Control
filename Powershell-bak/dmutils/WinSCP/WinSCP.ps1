@@ -78,9 +78,9 @@ Name of the file to be transfered. This can include wildcards
 .EXAMPLE
 Invoke-WinSCPGet `
     -protocol  'ftp' `
-    -userName   'review.sharefileftp.com/jeffery.drummond@bpiedu.com' `
+    -userName  '<MY_FILE_TRANSFER_HOST>/<MY_EMAIL_ADDRESS>' `
     -password  "aqX3ZfMuUCfDcq9Y" `
-    -hostName  "review.sharefileftp.com" `
+    -hostName  "<MY_FILE_TRANSFER_HOST>" `
     -fileName   "*" `
     -remoteDir  "/Reports/Bridgepoint" `
     -destDir   "c:\\tmp\\" `
@@ -91,7 +91,7 @@ Invoke-WinSCPGet `
     -protocol  'sftp' `
     -userName  "nettutor" `
     -password  "0BXATWbr}y8K]Y6j2-Gj" `
-    -hostName  "vendorsftp.bridgepointeducation.com" `
+    -hostName  "<MY_FILE_TRANSFER_HOST>" `
     -sshKey  "ssh-rsa 2048 22:42:69:3e:34:98:b7:cd:3f:6b:47:bf:be:5f:18:55" `
     -remoteDir "/nettutor/" `
     -destDir   "c:\\tmp\\" `
@@ -105,14 +105,14 @@ Invoke-WinSCPGet `
     param (
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’The protocol used for the transfer: ftp, sftp’
+		HelpMessage=The protocol used for the transfer: ftp, sftp
 		)]
 		[alias("p")]
 		[string]$protocol,
         
 		[parameter(Mandatory=$true,
 		Position = 1,
-		HelpMessage=’User name to be authenticated to the site’
+		HelpMessage=User name to be authenticated to the site
 		)]
 		[alias("usr")]
 		[string]$userName,
@@ -278,7 +278,7 @@ Invoke-WinSCP-Put `
     param (
         [parameter(Mandatory=$true,
             Position = 0,
-            HelpMessage=’The protocol used for the transfer: ftp, sftp’
+            HelpMessage=The protocol used for the transfer: ftp, sftp
             )]
         [alias("p")]
         [string]$protocol)

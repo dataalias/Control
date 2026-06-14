@@ -267,7 +267,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject					= 'PostingGroup'
 	,@pSSISFolder					= 'ETLFolder'
 	,@pSSISPackage					= 'TSTPUBN01-ACCT.dtsx'
-	,@pSrcFilePath					= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath					= '' -- '\\<MY_FILE_SHARE_SERVER>\Share'
 	,@pDataFactoryName				= 'N/A'
 	,@pDataFactoryPipeline			= 'N/A'
 --	,@pInterfaceCode				= 'FILE' -- varchar(20) 
@@ -307,7 +307,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'TSTPUBN02-ASSG.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\<MY_FILE_SHARE_SERVER>\Share'
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
@@ -344,7 +344,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'TSTPUBN03-COUR.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\<MY_FILE_SHARE_SERVER>\Share'
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 

@@ -27,7 +27,7 @@
         DTS:Name="ConnectionString">@[$Project::prj_conn_SMTP]</DTS:PropertyExpression>
       <DTS:ObjectData>
         <SmtpConnectionManager
-          ConnectionString="SmtpServer=Barracuda.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;" />
+          ConnectionString="SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;" />
       </DTS:ObjectData>
     </DTS:ConnectionManager>
   </DTS:ConnectionManagers>
@@ -1869,7 +1869,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</BinaryItem>
               <DTS:ObjectData>
                 <SendMailTask:SendMailTaskData
                   SendMailTask:SMTPServer="{5C4DE7E2-1296-49D7-B436-4DEC3C5D4F2B}"
-                  SendMailTask:From="bi-admin@bpiedu.com"
+                  SendMailTask:From="<MY_NOTIFICATION_EMAIL>"
                   SendMailTask:To="harsh.bangad@zovio.com"
                   SendMailTask:Subject="Staging package: AzureFunction_CallDataFactory Failed on LBPCA-89KV2X2"
                   SendMailTask:MessageSource="Additional information on this error can be found  in the project catalog report for IssueId: 500258 for  package: AzureFunction_CallDataFactory on LBPCA-89KV2X2" xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />
@@ -2039,7 +2039,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</BinaryItem>
           <DTS:ObjectData>
             <SendMailTask:SendMailTaskData
               SendMailTask:SMTPServer="{5C4DE7E2-1296-49D7-B436-4DEC3C5D4F2B}"
-              SendMailTask:From="bi-admin@bpiedu.com"
+              SendMailTask:From="<MY_NOTIFICATION_EMAIL>"
               SendMailTask:To="harsh.bangad@zovio.com"
               SendMailTask:Subject="Staging package: AzureFunction_CallDataFactory Failed on LBPCA-89KV2X2"
               SendMailTask:MessageSource="Additional information on this error can be found  in the project catalog report for IssueId: 500258 for  package: AzureFunction_CallDataFactory on LBPCA-89KV2X2" xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />

@@ -49,12 +49,12 @@ paramaters.
 
 .EXAMPLE
 Set an issue to failed.
-:> Edit-Issue  -dbsn 'dedtedlsql01' -iss 1 -stat 'IF'
+:> Edit-Issue  -dbsn '<MY_SQL_SERVER>' -iss 1 -stat 'IF'
 
 #>
 
     [CmdletBinding(
-        DefaultParameterSetName=”Folder”,
+        DefaultParameterSetName=Folder,
         SupportsShouldProcess=$True
     )]
     param (

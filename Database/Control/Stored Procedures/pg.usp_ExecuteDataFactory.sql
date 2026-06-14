@@ -84,9 +84,9 @@ DECLARE	 @Rows					int				= 0
 		,@HTTPResponseText		varchar(8000)	= 'N/A'
 		,@HTTPBody				varchar(8000)	= 'N/A'
 		,@HTTPURL				varchar(8000)	
-		,@DevHTTPURL			varchar(8000)	= 'https://execdatafactorypipeline-dev.azurewebsites.net/api/ExecutePipeline?'
-		,@QAHTTPURL				varchar(8000)	= 'https://execdatafactorypipeline-qa.azurewebsites.net/api/ExecutePipeline?'
-		,@PRODHTTPURL			varchar(8000)	= 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline?'
+		,@DevHTTPURL			varchar(8000)	= '<MY_AZURE_FUNCTION_URL_DEV>?'
+		,@QAHTTPURL				varchar(8000)	= '<MY_AZURE_FUNCTION_URL_QA>?'
+		,@PRODHTTPURL			varchar(8000)	= '<MY_AZURE_FUNCTION_URL_PROD>?'
 		,@AzureSubscriptionId	varchar(200)	= '********'
 		,@DevResourceGroup		varchar(100)	= '********'
 		,@QAResourceGroup		varchar(100)	= '********'

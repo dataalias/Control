@@ -36,7 +36,7 @@ Date		Author			Description
 20180322	ffortunato		more expressive error handling.
 20180326	ffortunato		bringing in additional logging to support QA.
 20180706	ffortunato		Doing more to preserve the order of the files.
-							https://bridgepoint.atlassian.net/browse/DW-2234
+							<MY_ISSUE_TRACKER_URL>
 
 20180827	ffortunato		Using the file mask now.
 20181012	ffortunato		using calling procedure sql connection.
@@ -82,14 +82,14 @@ Invoke-FileShareListCheckGet `
 <#
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Db to cehck files with’
+		HelpMessage=Db to cehck files with
 		)]
 		[alias("dbs")]
 		[string]$dbServer
 #>		
 		[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Acctive connection to the database being queried’
+		HelpMessage=Acctive connection to the database being queried
 		)]
 		[alias("sc")]
 		$sqlCon

@@ -84,7 +84,7 @@ process
     #>
 
 
-    #[string]$dbServer = 'DEDTEDLSQL01' #$configFileContent.BPIServer.DatabaseServer
+    #[string]$dbServer = '<MY_SQL_SERVER>' #$configFileContent.BPIServer.DatabaseServer
     #$SqlCon = New-Object System.Data.SqlClient.SqlConnection
     #$SqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
     #$SqlCon.Open()
