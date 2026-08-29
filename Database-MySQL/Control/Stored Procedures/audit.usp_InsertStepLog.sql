@@ -2,27 +2,27 @@
 DELIMITER //
 
 CREATE PROCEDURE `audit`.`usp_InsertStepLog` (
-		 p_pMessageType			varchar(20)		/* = 'INFO' */
-		,p_pCurrentDtm			datetime(3)		/* = NULL */
-		,p_pPreviousDtm			datetime(3)		/* = NULL */
-		,p_pStepNumber			varchar(23)		/* = '0' */
-		,p_pStepOperation		varchar(50)	/* = 'Unknown' */
-		,p_pJSONSnippet			longtext	/* = 'N/A' */
-		,p_pErrNum				int				/* = 0 */
-		,p_pParametersPassedChar longtext	/* = 'N/A' */
-		,out p_pErrMsg			longtext	/* = 'N/A' */
-		,p_pParentLogId			int				/* = -1 */
-		,p_pProcessName			varchar(256)	/* = 'N/A' */
-		,p_pProcessType			varchar(256)	/* = 'N/A' */
-		,p_pStepName			varchar(256)	/* = 'N/A' */
-		,out p_pStepDesc		varchar(2048)	/* = 'N/A' */
-		,p_pStepStatus			varchar(10)		/* = 'N/A' */
-		,p_pDBName				varchar(50)		/* = 'N/A' */
-		,p_pRecordCount			int				/* = -1 */
-		,p_pETLExecutionId		int				/* = -1 */
-		,p_pPathId				int				/* = -1 */
-		,out p_pStepLogId		int				/* = -1 */
-		,p_pVerbose				tinyint				/* = 0 */)
+		 p_MessageType			varchar(20)		/* = 'INFO' */
+		,p_CurrentDtm			datetime(3)		/* = NULL */
+		,p_PreviousDtm			datetime(3)		/* = NULL */
+		,p_StepNumber			varchar(23)		/* = '0' */
+		,p_StepOperation		varchar(50)	/* = 'Unknown' */
+		,p_JSONSnippet			longtext	/* = 'N/A' */
+		,p_ErrNum				int				/* = 0 */
+		,p_ParametersPassedChar longtext	/* = 'N/A' */
+		,out p_ErrMsg			longtext	/* = 'N/A' */
+		,p_ParentLogId			int				/* = -1 */
+		,p_ProcessName			varchar(256)	/* = 'N/A' */
+		,p_ProcessType			varchar(256)	/* = 'N/A' */
+		,p_StepName			varchar(256)	/* = 'N/A' */
+		,out p_StepDesc		varchar(2048)	/* = 'N/A' */
+		,p_StepStatus			varchar(10)		/* = 'N/A' */
+		,p_DBName				varchar(50)		/* = 'N/A' */
+		,p_RecordCount			int				/* = -1 */
+		,p_ETLExecutionId		int				/* = -1 */
+		,p_PathId				int				/* = -1 */
+		,out p_StepLogId		int				/* = -1 */
+		,p_Verbose				tinyint				/* = 0 */)
 BEGIN
 /**********************************************************************************************************************
 File:		usp_InsertStepLog.sql
@@ -108,36 +108,36 @@ DECLARE	 v_Rows					int				DEFAULT 0
 
 SET	 v_ParametersPassedChar	= CONCAT(v_CRLF ,
       '***** Parameters Passed to exec audit.usp_InsertStepLog' , v_CRLF ,
-      '     @pMessageType = ''' , ifnull(p_pMessageType ,'NULL') , '''' , v_CRLF , 
-      '    ,@pCurrentDtm = ''' , ifnull(date_format(p_pCurrentDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
-      '    ,@pPreviousDtm = ''' , ifnull(date_format(p_pPreviousDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
-      '    ,@pStepNumber = ''' , ifnull(p_pStepNumber ,'NULL') , '''' , v_CRLF , 
-      '    ,@pStepOperation = ''' , ifnull(p_pStepOperation ,'NULL') , '''' , v_CRLF , 
-      '    ,@pJSONSnippet = ''' , ifnull(p_pJSONSnippet ,'NULL') , '''' , v_CRLF , 
-      '    ,@pErrNum = ' , ifnull(cast(p_pErrNum as char(100)),'NULL') , v_CRLF , 
-      '    ,@pParametersPassedChar = ''' , ifnull(p_pParametersPassedChar ,'NULL') , '''' , v_CRLF , 
+      '     @pMessageType = ''' , ifnull(p_MessageType ,'NULL') , '''' , v_CRLF , 
+      '    ,@pCurrentDtm = ''' , ifnull(date_format(p_CurrentDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
+      '    ,@pPreviousDtm = ''' , ifnull(date_format(p_PreviousDtm ,'%d %b %Y %T.%f') ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepNumber = ''' , ifnull(p_StepNumber ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepOperation = ''' , ifnull(p_StepOperation ,'NULL') , '''' , v_CRLF , 
+      '    ,@pJSONSnippet = ''' , ifnull(p_JSONSnippet ,'NULL') , '''' , v_CRLF , 
+      '    ,@pErrNum = ' , ifnull(cast(p_ErrNum as char(100)),'NULL') , v_CRLF , 
+      '    ,@pParametersPassedChar = ''' , ifnull(p_ParametersPassedChar ,'NULL') , '''' , v_CRLF , 
       '    ,@pErrMsg = @pErrMsg --output ' , v_CRLF ,
-      '    ,@pParentLogId = ' , ifnull(cast(p_pParentLogId as char(100)),'NULL') , v_CRLF , 
-      '    ,@pProcessName = ''' , ifnull(p_pProcessName ,'NULL') , '''' , v_CRLF , 
-      '    ,@pProcessType = ''' , ifnull(p_pProcessType ,'NULL') , '''' , v_CRLF , 
-      '    ,@pStepName = ''' , ifnull(p_pStepName ,'NULL') , '''' , v_CRLF , 
+      '    ,@pParentLogId = ' , ifnull(cast(p_ParentLogId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pProcessName = ''' , ifnull(p_ProcessName ,'NULL') , '''' , v_CRLF , 
+      '    ,@pProcessType = ''' , ifnull(p_ProcessType ,'NULL') , '''' , v_CRLF , 
+      '    ,@pStepName = ''' , ifnull(p_StepName ,'NULL') , '''' , v_CRLF , 
       '    ,@pStepDesc = @pStepDesc --output ' , v_CRLF ,
-      '    ,@pStepStatus = ''' , ifnull(p_pStepStatus ,'NULL') , '''' , v_CRLF , 
-      '    ,@pDBName = ''' , ifnull(p_pDBName ,'NULL') , '''' , v_CRLF , 
-      '    ,@pRecordCount = ' , ifnull(cast(p_pRecordCount as char(100)),'NULL') , v_CRLF , 
-      '    ,@pETLExecutionId = ' , ifnull(cast(p_pETLExecutionId as char(100)),'NULL') , v_CRLF , 
-      '    ,@pPathId = ' , ifnull(cast(p_pPathId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pStepStatus = ''' , ifnull(p_StepStatus ,'NULL') , '''' , v_CRLF , 
+      '    ,@pDBName = ''' , ifnull(p_DBName ,'NULL') , '''' , v_CRLF , 
+      '    ,@pRecordCount = ' , ifnull(cast(p_RecordCount as char(100)),'NULL') , v_CRLF , 
+      '    ,@pETLExecutionId = ' , ifnull(cast(p_ETLExecutionId as char(100)),'NULL') , v_CRLF , 
+      '    ,@pPathId = ' , ifnull(cast(p_PathId as char(100)),'NULL') , v_CRLF , 
       '    ,@pStepLogId = @pStepLogId --output ' , v_CRLF ,
-      '    ,@pVerbose = ' , ifnull(cast(p_pVerbose as char(100)),'NULL') , v_CRLF , 
+      '    ,@pVerbose = ' , ifnull(cast(p_Verbose as char(100)),'NULL') , v_CRLF , 
       '***** End of Parameters' , v_CRLF); 
 
-set	 p_pStepDesc				= ifnull(p_pStepDesc,'No Step Description Provided...');
-set	 p_pStepLogId			= ifnull(p_pStepLogId,-1);
+set	 p_StepDesc				= ifnull(p_StepDesc,'No Step Description Provided...');
+set	 p_StepLogId			= ifnull(p_StepLogId,-1);
 
-set	 p_pCurrentDtm			= ifnull(p_pCurrentDtm,cast('1900-01-01' as datetime(3)));
-set	 p_pPreviousDtm			= ifnull(p_pPreviousDtm,cast('1900-01-01' as datetime(3)));
+set	 p_CurrentDtm			= ifnull(p_CurrentDtm,cast('1900-01-01' as datetime(3)));
+set	 p_PreviousDtm			= ifnull(p_PreviousDtm,cast('1900-01-01' as datetime(3)));
 
-if p_pVerbose					= 1
+if p_Verbose					= 1
 	then 
 		/* print v_ParametersPassedChar */
         select 1 from dual;
@@ -155,28 +155,28 @@ if p_pVerbose					= 1
 select ifnull(max(StepLogId) + 1 ,1) into v_SteplogId
 	from	`audit`.StepLog;
 
-	call	`audit`.`usp_CreateStepLogDescription`(p_pMessageType			= v_pMessageType
-			,p_pStartDtm				= v_pPreviousDtm
-			,p_pEndDtm				= v_pCurrentDtm
-			,p_pStepNumber			= v_pStepNumber
-			,p_pOperation			= v_pStepOperation
-			,p_pStepDescription		= v_pStepDesc
-			,p_pJSONSnippet			= v_pJSONSnippet
-			,p_pErrNum				= v_pErrNum
-			,p_pErrMsg				= v_pErrMsg
-			,p_pParametersPassedChar = v_pParametersPassedChar
-			,p_pStepLogId			= v_SteplogId
-			,p_pJSONMsg				= v_pStepDesc		
-			,p_pFormatErrorMsg		= v_pErrMsg			
-			,p_pDuration				= v_DurationInSeconds		 
-			,p_pETLExecutionId		= v_pETLExecutionId
-			,p_pPathId				= v_pPathId
-			,p_pVerbose				= v_pVerbose);
+	call	`audit`.`usp_CreateStepLogDescription`(p_MessageType			= v_pMessageType
+			,p_StartDtm				= v_pPreviousDtm
+			,p_EndDtm				= v_pCurrentDtm
+			,p_StepNumber			= v_pStepNumber
+			,p_Operation			= v_pStepOperation
+			,p_StepDescription		= v_pStepDesc
+			,p_JSONSnippet			= v_pJSONSnippet
+			,p_ErrNum				= v_pErrNum
+			,p_ErrMsg				= v_pErrMsg
+			,p_ParametersPassedChar = v_pParametersPassedChar
+			,p_StepLogId			= v_SteplogId
+			,p_JSONMsg				= v_pStepDesc		
+			,p_FormatErrorMsg		= v_pErrMsg			
+			,p_Duration				= v_DurationInSeconds		 
+			,p_ETLExecutionId		= v_pETLExecutionId
+			,p_PathId				= v_pPathId
+			,p_Verbose				= v_pVerbose);
 
 -- SQLINES DEMO *** sn't passed the next insert will be the parent.
 
-if  p_pParentLogId				= -1 then
-	set	p_pParentLogId		= v_SteplogId;
+if  p_ParentLogId				= -1 then
+	set	p_ParentLogId		= v_SteplogId;
 end if;	
 	
 
@@ -195,23 +195,23 @@ insert into `audit`.StepLog (
 		,ETLExecutionId
 		,PathId
 ) values (
-		 p_pParentLogId
-		,p_pProcessName
-		,p_pProcessType
-		,p_pStepName
-		,p_pStepDesc
-		,p_pStepStatus
-		,p_pPreviousDtm -- SQLINES DEMO *** e previous! It has to do with the timing of exec in the calling procedure.
+		 p_ParentLogId
+		,p_ProcessName
+		,p_ProcessType
+		,p_StepName
+		,p_StepDesc
+		,p_StepStatus
+		,p_PreviousDtm -- SQLINES DEMO *** e previous! It has to do with the timing of exec in the calling procedure.
 		,v_DurationInSeconds
-		,p_pDBName
-		,p_pRecordCount
-		,p_pETLExecutionId
-		,p_pPathId
+		,p_DBName
+		,p_RecordCount
+		,p_ETLExecutionId
+		,p_PathId
 );
 
 -- SQLINES DEMO *** Id just inserted. 
 
-set  p_pStepLogId				= ifnull(LAST_INSERT_ID(),-1);
+set  p_StepLogId				= ifnull(LAST_INSERT_ID(),-1);
 
 --  SQLINES DEMO ***  StepLogInsert
 
@@ -227,7 +227,7 @@ set  p_pStepLogId				= ifnull(LAST_INSERT_ID(),-1);
 
 -- SQLINES DEMO *** n @pStepLogId is -1 we have a problem.
 
-if p_pStepLogId					= -1
+if p_StepLogId					= -1
 then
     set   v_ErrNum			= 50001
 			,v_ErrMsg			= CONCAT('ErrorNumber: ' , CAST(v_ErrNum as char(10)) + v_CRLF

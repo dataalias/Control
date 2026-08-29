@@ -226,6 +226,10 @@ def insert_new_issue(connection, issue):
                f",@pIssueId = N'-1'"
                f",@pVerbose = N'0'"
                )
+        
+
+
+
         #print("\r\n This is the SQL to execute :: {sql}, \r\n")
 
         cursor = connection.cursor(as_dict=True)

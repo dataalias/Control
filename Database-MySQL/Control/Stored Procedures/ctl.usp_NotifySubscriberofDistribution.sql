@@ -1,324 +1,74 @@
-﻿CREATE procedure [ctl].[usp_NotifySubscriberOfDistribution] (
-		 @pIssueId			int			= -1
-		,@pStageStart		datetime	= NULL
-		,@pStageEnd			datetime	= NULL
-		,@pETLExecutionId	int			= -1
-		,@pPathId			int			= -1
-		,@pVerbose			bit			= 0)
-AS
-/*****************************************************************************
-File:		usp_NotifySubscriberOfDistribution.sql
-Name:		usp_NotifySubscriberOfDistribution
+﻿DELIMITER //
 
-Purpose:	This procedure determines if a process that has just completed 
-			has downstream (parent) processes that should be executed.
-			This code executes that parent process. This process is used 
-			specifically for staging ETL jobs.
-
-Sample Execution:
-		exec ctl.usp_NotifySubscriberOfDistribution
-			 @pIssueId							= 9532
-			,@pStageStart						= NULL
-			,@pStageEnd							= NULL
-			,@pETLExecutionId					= -1
-			,@pPathId							= -1
-			,@pVerbose							= 0
-
-Parameters:  @pIssueId		Issue that has just completed staging.
-			,@pStageStart	Start time of staging process		
-			,@pStageEnd		End time of staging process	
-			,@pETLExecutionId	SSIS execution Id	
-			,@pPathId		SSIS PathID
-			,@pVerbose		Determines if the procedure will run in verbose mode (additional logging)
-
-
-Called by:	Called at the completion of an (child) ETL process that needs 
-			to fire a downstream (parent) process.
-
-Calls:      pg.ExecutePostingGroupProcess    
-
-Errors:		Logged to audit table.
-
-Author:		ffortunato
-Date:		20180413
-
-******************************************************************************/
-
--------------------------------------------------------------------------------
---  Declarations
--------------------------------------------------------------------------------
-
-DECLARE	 @Rows					int				= 0
-        ,@ErrNum				int				= -1
-		,@ErrMsg				nvarchar(max)	= 'N/A'
-		,@ParametersPassedChar	varchar(1000)   = 'N/A'
-		,@CRLF					varchar(10)		= char(13) + char(10)
-		,@ProcName				varchar(256)	= OBJECT_NAME(@@PROCID) 
-		,@ParentStepLogId       int				= -1
-		,@PrevStepLog			int				= -1
-		,@ProcessStartDtm		datetime		= getdate()
-		,@CurrentDtm			datetime		= getdate()
-		,@PreviousDtm			datetime		= getdate()
-		,@DbName				varchar(50)		= DB_NAME()
-		,@CurrentUser			varchar(50)		= CURRENT_USER
-		,@ProcessType			varchar(10)		= 'Proc'
-		,@StepName				varchar(256)	= 'Start'
-		,@StepOperation			varchar(50)		= 'N/A' 
-		,@MessageType			varchar(20)		= 'Info' -- ErrCust, ErrSQL, Info, Warn
-		,@StepDesc				nvarchar(2048)	= 'Procedure started' 
-		,@StepStatus			varchar(10)		= 'Success'
-		,@StepNumber			varchar(10)		= 0
-		,@SubStepNumber			varchar(23)		= 0
-		,@Duration				varchar(10)		= 0
-		,@JSONSnippet			nvarchar(max)	= NULL
-
-		,@SubscriptionCode		varchar(100)	= 'N/A'
-		,@PostingGroupBatchId	int				= -1
-		,@PostingGroupId		int				= -1
-		,@PostingGroupStatusId	int				= -1
-		,@PostingGroupStatusCode	varchar(20)	= 'PC' -- If we made it to this point the feed is staged.
-		,@DistStatusId			int				= -1
-		,@DistStatusCode		varchar(10)		= 'DN'
-		,@DateId				int				= -1
-		,@ETLExecutionId		int				= -1 --This is the SSIS that will be invoked.
-		,@DistributionId		bigint			= -1
-		,@Folder				varchar(100)	= 'N/A'
-		,@Project				varchar(100)	= 'N/A'
-		,@Package				varchar(100)	= 'N/A'
-		,@PGPSeq				int				= -1
-		,@SubscriberCode		varchar(100)	= 'EDL'
-		,@IssueStatusCodeLoaded	varchar(100)	= 'IL'
-		,@DistributionStatusCodeAwait	varchar(100)		= 'DN'
-		,@DistributionStatusCodeNotify	varchar(100)		= 'DT'
-		,@LoopMax				int			= -1
-		,@LoopCount				int			=  1
-
-
-declare	 @NotificationList table (
-		 NotificationListId		int identity (1,1)	not null
-		,IssueId				int				not null
-		,DistributionId			bigint			not null
-		,DistributionStatusCode	varchar(20)		not null
-		,SubscriberCode			varchar(20)		not null
-		,SubscriptionCode		varchar(100)	not null
-		,DailyPublicationSeq	int				not null
+CREATE PROCEDURE usp_NotifySubscriberOfDistribution (
+    IN pIssueId INT DEFAULT -1,
+    IN pStageStart DATETIME DEFAULT NULL,
+    IN pStageEnd DATETIME DEFAULT NULL,
+    IN pETLExecutionId INT DEFAULT -1,
+    IN pPathId INT DEFAULT -1,
+    IN pVerbose BOOLEAN DEFAULT 0
 )
+BEGIN
+    DECLARE Rows INT DEFAULT 0;
+    DECLARE ErrNum INT DEFAULT -1;
+    DECLARE ErrMsg VARCHAR(65535) DEFAULT 'N/A';
+    DECLARE ParametersPassedChar VARCHAR(1000) DEFAULT 'N/A';
+    DECLARE CRLF VARCHAR(10) DEFAULT CHAR(13) + CHAR(10);
+    DECLARE ProcName VARCHAR(256) DEFAULT 'usp_NotifySubscriberOfDistribution';
+    DECLARE ParentStepLogId INT DEFAULT -1;
+    DECLARE PrevStepLog INT DEFAULT -1;
+    DECLARE ProcessStartDtm DATETIME DEFAULT NOW();
+    DECLARE CurrentDtm DATETIME DEFAULT NOW();
+    DECLARE PreviousDtm DATETIME DEFAULT NOW();
+    DECLARE DbName VARCHAR(50) DEFAULT DATABASE();
+    DECLARE CurrentUser VARCHAR(50) DEFAULT USER();
+    DECLARE ProcessType VARCHAR(10) DEFAULT 'Proc';
+    DECLARE StepName VARCHAR(256) DEFAULT 'Start';
+    DECLARE StepOperation VARCHAR(50) DEFAULT 'N/A';
+    DECLARE MessageType VARCHAR(20) DEFAULT 'Info';
+    DECLARE StepDesc VARCHAR(2048) DEFAULT 'Procedure started';
+    DECLARE StepStatus VARCHAR(10) DEFAULT 'Success';
+    DECLARE StepNumber VARCHAR(10) DEFAULT '0';
+    DECLARE SubStepNumber VARCHAR(23) DEFAULT '0';
+    DECLARE Duration VARCHAR(10) DEFAULT '0';
+    DECLARE JSONSnippet VARCHAR(65535) DEFAULT NULL;
 
-exec [audit].usp_InsertStepLog
-		 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-		,@ParametersPassedChar				,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-		,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@ParentStepLogId output	
-		,@pVerbose
+    DECLARE SubscriptionCode VARCHAR(100) DEFAULT 'N/A';
+    DECLARE PostingGroupBatchId INT DEFAULT -1;
+    DECLARE PostingGroupId INT DEFAULT -1;
+    DECLARE PostingGroupStatusId INT DEFAULT -1;
+    DECLARE PostingGroupStatusCode VARCHAR(20) DEFAULT 'PC';
+    DECLARE DistStatusId INT DEFAULT -1;
+    DECLARE DistStatusCode VARCHAR(10) DEFAULT 'DN';
+    DECLARE DateId INT DEFAULT -1;
+    DECLARE ETLExecutionId INT DEFAULT -1;
+    DECLARE DistributionId BIGINT DEFAULT -1;
+    DECLARE Folder VARCHAR(100) DEFAULT 'N/A';
+    DECLARE Project VARCHAR(100) DEFAULT 'N/A';
+    DECLARE Package VARCHAR(100) DEFAULT 'N/A';
+    DECLARE PGPSeq INT DEFAULT -1;
+    DECLARE SubscriberCode VARCHAR(100) DEFAULT 'EDL';
+    DECLARE IssueStatusCodeLoaded VARCHAR(100) DEFAULT 'IL';
+    DECLARE DistributionStatusCodeAwait VARCHAR(100) DEFAULT 'DN';
+    DECLARE DistributionStatusCodeNotify VARCHAR(100) DEFAULT 'DT';
+    DECLARE LoopMax INT DEFAULT -1;
+    DECLARE LoopCount INT DEFAULT 1;
 
--------------------------------------------------------------------------------
---  Initializations
--------------------------------------------------------------------------------
+    DECLARE NotificationList CURSOR FOR
+        SELECT 
+            IssueId,
+            DistributionId,
+            DistributionStatusCode,
+            SubscriberCode,
+            SubscriptionCode,
+            DailyPublicationSeq
+        FROM NotificationList;
 
-select	 @ParametersPassedChar	= 
-      '***** Parameters Passed to exec ctl.usp_NotifySubscriberOfDistribution' + @CRLF +
-      '     @pIssueId = ' + isnull(cast(@pIssueId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pStageStart = ''' + isnull(convert(varchar(100),@pStageStart ,13) ,'NULL') + '''' + @CRLF + 
-      '    ,@pStageEnd = ''' + isnull(convert(varchar(100),@pStageEnd ,13) ,'NULL') + '''' + @CRLF + 
-      '    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
-      '    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
-      '***** End of Parameters' + @CRLF 
-
-if @pVerbose					= 1
-	begin 
-		print @ParametersPassedChar
-	end
-
-SELECT @DateId = COALESCE(cast(convert(VARCHAR(20), ReportDate, 112) AS INT), cast(convert(VARCHAR(20), @CurrentDtm, 112) AS INT))
-FROM ctl.Issue
-WHERE IssueId = @pIssueId
-
--------------------------------------------------------------------------------
---  Main
--------------------------------------------------------------------------------
-
-begin try
-
--------------------------------------------------------------------------------
--- Get the batch Id, The Distribution StatusId and posting group id.
----------------------------------------------------------------------------------
-	select	 @StepName			= 'Get all associated distributions'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'insert'
-			,@StepDesc		= 'Loading the primer table to prepare notifications.'
-
-
-	insert into @NotificationList (
-			 IssueId			
-			,DistributionId
-			,DistributionStatusCode
-			,SubscriberCode		
-			,SubscriptionCode
-			,DailyPublicationSeq)
-	select		 
-			 IssueId			
-			,DistributionId
-			,DistributionStatusCode
-			,SubscriberCode		
-			,SubscriptionCode
-			,DailyPublicationSeq
-	from	 ctl.vw_DistributionStatus ds
-	where	 ds.IssueId			= @pIssueId
-	and	 ds.IssueStatusCode		= @IssueStatusCodeLoaded
-	and	 ds.DistributionStatusCode	= @DistributionStatusCodeAwait
-
-
---	select * from @NotificationList
-
-	-- Upon completion of the step, log it!
-	select	 @PreviousDtm		= @CurrentDtm
-			,@Rows				= @@ROWCOUNT 
-	select	 @CurrentDtm		= getdate()
-			,@JSONSnippet		= '{"@IssueStatusCodeLoaded":"'	+ @IssueStatusCodeLoaded +
-									  '","@DistributionStatusCodeAwait":"'	+ cast(@DistributionStatusCodeAwait as varchar(20)) +
-									  '","@pIssueId":"'	+ cast(@pIssueId as varchar(20)) + '"}'
-
-	exec [audit].usp_InsertStepLog
-			 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-			,@ParametersPassedChar	,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
-
-
-	select	 @StepName			= 'Loop through Distribution Records'
-			,@StepNumber		= @StepNumber + 1
-			,@StepOperation		= 'loop'
-			,@StepDesc			= 'Attempt to send notification to all subscribers of a specific publication.'
-
-	select  @LoopMax			= isnull(max(NotificationListId),-1)
-	from    @NotificationList
-
---select * from @NotificationList
-
-		-- Upon completion of the step, log it!
-	select	 @PreviousDtm		= @CurrentDtm
-		,@Rows					= @@ROWCOUNT 
-	select	 @CurrentDtm		= getdate()
-		,@JSONSnippet			= '{"Loop Count":"' + cast(@LoopMax as varchar(10)) + '"}'
-
-	exec audit.usp_InsertStepLog
-			 @MessageType		,@CurrentDtm	,@PreviousDtm	,@StepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-			,@ParametersPassedChar	,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-			,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-			,@pVerbose
-
-	BEGIN TRY
-		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-		
-		BEGIN TRANSACTION PostingGroupBatch
-
-		IF NOT EXISTS (
-				SELECT TOP 1 1
-				FROM pg.PostingGroupBatch
-				WHERE DateId = @DateId
-				)
-		BEGIN
-			INSERT INTO pg.[PostingGroupBatch] (
-				DateId
-				,CreatedBy
-				,CreatedDtm
-				)
-			VALUES (
-				cast(convert(VARCHAR(20), @DateId, 112) AS INT)
-				,@CurrentUser
-				,@CurrentDtm
-				)
-		END
-
-		COMMIT TRANSACTION PostingGroupBatch
-
-		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
-	END TRY
-
-	BEGIN CATCH
-		IF error_number() IN (2627,2601) -- (primalry key, unique index) violation
-		BEGIN
-			-- Just continue on.
-			RETURN
-		END
-
-		ROLLBACK TRANSACTION
-
-		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
-
-		IF @ErrNum < 50000
-			SELECT @ErrNum = @ErrNum + 100000000 -- Need to increase number to throw message.
-				;
-
-		throw @ErrNum
-			,@ErrMsg
-			,1
-	END CATCH
-
-
-	SELECT @PostingGroupBatchId = isnull(PostingGroupBatchId, - 1)
-		,@DateId = isnull(DateId, - 1)
-	FROM pg.PostingGroupBatch
-	WHERE DateId = @DateId
-
-
-	------------------------------------------------------------------------------
-	-- Loping through each of the distributions for the issue and 
-	-- notifying accordingly.
-	------------------------------------------------------------------------------
-	while	 @LoopCount			<= @LoopMax  
-	begin
-		------------------------------------------------------------------------------
-		-- Get the batch Id, The Distribution StatusId and posting group id.
-		------------------------------------------------------------------------------
-		select	 @StepName			= 'Lookup @NotificationList Information'
-				,@StepNumber		= @StepNumber + 0
-				,@SubStepNumber    	= @StepNumber + '.' + cast(@LoopCount as varchar(10)) + '.1'
-				,@StepOperation		= 'select'
-				,@StepDesc			= 'Priming the data needed to send notification.'
-
-		select	 @DistributionId	= isnull(nl.DistributionId,-1)
-				,@SubscriptionCode	= isnull(nl.SubscriptionCode,'N/A')
-		from	 @NotificationList	  nl
-		where	 NotificationListId	= @LoopCount
-
-	-- Minor HAX. for the staged data subscription and posting group should be the same...
-	-- Make this a trigger on the bpi_dw posting group table to kick off the package...
-		select   @PostingGroupId	= isnull(pg.PostingGroupId,-1)
-				,@Folder			= isnull(pg.SSISFolder, 'N/A')
-				,@Project			= isnull(pg.SSISProject,'N/A')
-				,@Package			= isnull(pg.SSISPackage,'N/A')
-		from	 pg.PostingGroup	  pg
-		where	 PostingGroupCode	= @SubscriptionCode
-
-	-- Posting Group sequence is reset with each new batch id.
-		select	 @PGPSeq			= isnull(max(PGPBatchSeq),0)+1
-		from	 pg.PostingGroupProcessing
-		where	 PostingGroupBatchId= @PostingGroupBatchId
-		and		 PostingGroupId		= @PostingGroupId
-
-		-- Upon completion of the step, log it!
-		select	 @PreviousDtm		= @CurrentDtm
-				,@Rows				= @@ROWCOUNT 
-		select	 @CurrentDtm		= getdate()
-				,@JSONSnippet		= '{"@StatusId":"'		+ cast(@DistStatusId as varchar(20)) + 
-						  '","@SubscriptionCode":"'	+      @SubscriptionCode +
-						  '","@DistStatusId":"'		+ cast(@DistStatusId as varchar(20)) +
-						  '","@DistributionId":"'	+ cast(@DistributionId as varchar(20)) +
-						  '","@IssueId":"'		+ cast(@pIssueId as varchar(20)) +
-						  '","@Folder":"'		+ cast(@Folder as varchar(20)) +
-						  '","@Project":"'		+      @Project +
-						  '","@Package":"'		+      @Package +
-						  '","@PostingGroupId":"'	+ cast(@PostingGroupId as varchar(20)) +
-						  '","@PostingGroupBatchId":"'+ cast(@PostingGroupBatchId as varchar(20)) +
-						  '","@PGPSeq":"'		+ cast(@PGPSeq as varchar(20)) +
-						  '","@DateId":"'		+ cast(@DateId as varchar(20))+'"}'
-
-		exec [audit].usp_InsertStepLog
-				 @MessageType		,@CurrentDtm	,@PreviousDtm	,@SubStepNumber		,@StepOperation		,@JSONSnippet		,@ErrNum
-				,@ParametersPassedChar	,@ErrMsg output	,@ParentStepLogId	,@ProcName			,@ProcessType		,@StepName
-				,@StepDesc output	,@StepStatus	,@DbName		,@Rows				,@pETLExecutionId	,@pPathId			,@PrevStepLog output
-				,@pVerbose
+    -- Insert initial log
+    CALL usp_InsertStepLog(
+        MessageType, CurrentDtm, PreviousDtm, StepNumber, StepOperation, JSONSnippet, ErrNum,
+        ParametersPassedChar, ErrMsg, ParentStepLogId, ProcName
+    );
 
 		select	 @JSONSnippet		= NULL
 
