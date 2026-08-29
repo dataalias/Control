@@ -70,7 +70,6 @@
     <Folder Include="PrePostDeploy" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Control_1_desktop.publish.publish.xml" />
     <None Include="Indexes\README.md" />
     <None Include="Schemas\README.md" />
     <None Include="Stored Procedures\README.md" />
