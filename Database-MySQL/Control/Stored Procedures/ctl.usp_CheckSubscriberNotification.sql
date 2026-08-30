@@ -64,7 +64,7 @@ exec [audit].usp_InsertStepLog
 --  Initializations
 -------------------------------------------------------------------------------
 select	 @ParametersPassedChar	= 
-			'exec BPI_DW_STAGE.ctl.usp_GetLastIssue' + @CRLF +
+			'exec MY_DB_STAGE.ctl.usp_GetLastIssue' + @CRLF +
 			'     @pSubscriptionCode = ' + isnull(cast(@pSubscriptionCode as varchar(100)),'NULL') + @CRLF +
 			'     @pAsOfDate = ' + isnull(cast(@pAsOfDate as varchar(100)),'NULL') + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 

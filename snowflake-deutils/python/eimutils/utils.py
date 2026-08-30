@@ -45,7 +45,7 @@ Parameters:
     env - Snowflake environment, DEV/STAGE/PROD. Required.
     aws_region - Region the secret is stored. e.g. MY_AWS_REGION. Required.
     envlayer - Environment layer, RAW/CURATION/WAREHOUSE.  Required when build 3.1 roles.
-    brand - {ULTRA, MINT, or PLUM} Required when build 3.1 roles.
+    brand - {MY_ORG, MY_BRAND_2, or MY_BRAND_3} Required when build 3.1 roles.
     project - Name of the project that is used within the role. Required when build 3.1 roles.
     spark_session - flag indicating, whether sfOptions for spark dataframe usage should be returned
 

@@ -122,9 +122,9 @@ get - get files from remote; put - put files to remote; list list files on remot
 Invoke-ftpListCheckGet `
     -dbServer 'dedtedlsql01' `
     -protocol  'sftp' `
-    -userName  "bpi_edu" `
-    -password  "Password!" `
-    -hostName  "sftp.civitaslearning.com" `
+    -userName  "MY_USERNAME" `
+    -password  "MY_PASSWORD" `
+    -hostName  "vendor_01" `
     -fp  "ssh-rsa 2048 ee:5e:36:9c:88:94:ca:71:79:f0:14:65:39:d9:11:67" `
     -remoteDir "" `
     -port "2222" `
@@ -136,19 +136,19 @@ Invoke-ftpListCheckGet `
     -dbServer 'dedtedlsql01' `
     -protocol  'sftp' `
     -userName  "qa_bi_workday" `
-    -password  "@ctive123" `
-    -hostName  "sftp.bridgepointeducation.com" `
+    -password  "MY_PASSWORD" `
+    -hostName  "MY_SFTP_HOST" `
     -fp  "ssh-rsa 2048 65:89:b0:57:24:cf:ea:8f:da:b8:b5:36:f0:4f:20:8c" `
     -remoteDir "/home/qa_bi_workday/Roster/Inbound/" `
     -port "22" `
     -destDir   "c:\\tmp\\" `
     -publicationCode "WD_ROSTER" `
-    -KeyPath "\\\\bpe-aesd-cifs\\powershellrepo\\DM\\QME3\\DataHub\\keys\\civitas_private_key.ppk " `
+    -KeyPath "\\\\MY_FILE_SHARE_SERVER\\powershellrepo\\DM\\QME3\\DataHub\\keys\\vendor_01_private_key.ppk " `
     -LogFile   "c:\\tmp\\ftplog.log"
     
 $sqlCon = New-Object System.Data.SqlClient.SqlConnection
 $dbServer = 'dedtedlsql01'
-$sqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Connection Timeout=60;Integrated Security=True;MultipleActiveResultSets=true"
+$sqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Connection Timeout=60;Integrated Security=True;MultipleActiveResultSets=true"
 $sqlCon.Open() 
 
 $dbServer
@@ -156,11 +156,11 @@ $dbServer
 Invoke-ftpListCheckGet `
     -sqlCon $sqlCon `
     -protocol  'ftp' `
-    -userName  "review.sharefileftp.com/jeffery.drummond@bpiedu.com" `
-    -password  "aqX3ZfMuUCfDcq9Y" `
-    -hostName  "review.sharefileftp.com"`
+    -userName  "MY_FILE_TRANSFER_HOST/MY_EMAIL_ADDRESS@example.com" `
+    -password  "MY_PASSWORD" `
+    -hostName  "vendor_02"`
     -fp  ""  `
-    -remoteDir "/Reports/Bridgepoint/"`
+    -remoteDir "/Reports/MY_ORGANIZATION/"`
     -port "990"  `
     -destDir   "c:\temp\"  `
     -publicationCode "TR-SESSION" `

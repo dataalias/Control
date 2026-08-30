@@ -59,7 +59,7 @@ exec [audit].usp_InsertStepLog
 --  Initializations
 -------------------------------------------------------------------------------
 SELECT	 @ParametersPassedChar	= 
-			'exec BPI_DW_Stage.ctl.usp_GetIssueDetails' + @CRLF +
+			'exec MY_Db_Stage.ctl.usp_GetIssueDetails' + @CRLF +
 			'     @pIssueId = ' + isnull(cast(@pIssueId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 

@@ -12,7 +12,7 @@ Test Execution:
 $dbServer = '<MY_SQL_SERVER>'
 $IssueId = -1
 $sqlConSSISDB = New-Object System.Data.SqlClient.SqlConnection
-$sqlConSSISDB.ConnectionString = "Server=$($dbServer);Database=BPI_DW_STAGE;Integrated Security=SSPI" 
+$sqlConSSISDB.ConnectionString = "Server=$($dbServer);Database=MY_DB_STAGE;Integrated Security=SSPI" 
 $sqlConSSISDB.Open()
 $sqlConSSISDB
 $IssueId = 0
@@ -223,7 +223,7 @@ PROCESS
     try 
     {
         $SqlCon = New-Object System.Data.SqlClient.SqlConnection
-        $SqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
+        $SqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Integrated Security=True"
         $SqlCon.Open()
     }
     catch

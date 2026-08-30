@@ -40,7 +40,7 @@ Date		Author			Description
 This script will download new data extracts based on a scheduled task 
 call.
 
-Example: \\<MY_FILE_SHARE_SERVER>\powershellrepo\DM\DME1\DataHub\Get-Canvas.ps1 "\\bpe-aesd-cifs\powershellrepo\DM\DME1\DataHub\config\DataHubConfig.json" "UoR" "OMKAR"
+Example: \\<MY_FILE_SHARE_SERVER>\powershellrepo\DM\DME1\DataHub\Get-Canvas.ps1 "\\MY_FILE_SHARE_SERVER\powershellrepo\DM\DME1\DataHub\config\DataHubConfig.json" "UoR" "OMKAR"
 
 #>
 $ConfigFile = $args[0] # This should be the path for the config file.
@@ -72,8 +72,8 @@ $modulePath         = $configFileContent.Paths.Module
 $ScriptFile         = $configFileContent.Paths.Script + "Get-Canvas.ps1"
 $logLocation        = ($configFileContent.Paths.CanvasLogLocation).Replace("InstCode",$InstCode) # "\\\\dsbxcvsapp01\\CanvasSync\\InstCode\\logs\\"
 $logArchiveLocation = ($configFileContent.Paths.CanvasLogArchiveLocation).Replace("InstCode",$InstCode) # "\\\\dsbxcvsapp01\\CanvasSync\\InstCode\\logs\\"
-$fileShareFolder    = ($configFileContent.Paths.CanvasFileShare).Replace("InstCode",$InstCode) # "\\\\bpe-aesd-cifs\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"
-$fileArchiveFolder  = ($configFileContent.Paths.CanvasArchive).Replace("InstCode",$InstCode) # "\\\\bpe-aesd-cifs\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"
+$fileShareFolder    = ($configFileContent.Paths.CanvasFileShare).Replace("InstCode",$InstCode) # "\\\\MY_FILE_SHARE_SERVER\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"
+$fileArchiveFolder  = ($configFileContent.Paths.CanvasArchive).Replace("InstCode",$InstCode) # "\\\\MY_FILE_SHARE_SERVER\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"
 $ConfigSync         = ($configFileContent.Paths.CanvasSyncConfigLocation).Replace("InstCode",$InstCode) # "C:\\Canvas-Data-Cli-master\\InstCode\\config.js"
 $dataFolder         = ($configFileContent.Paths.CanvasDataFolder).Replace("InstCode",$InstCode) #"\\\\dsbxcvsapp01\\CanvasSync\\InstCode\\dataFiles\\"
 $unpackFolder       = ($configFileContent.Paths.CanvasUnpackLocation).Replace("InstCode",$InstCode) # "\\\\dsbxcvsapp01\\CanvasSync\\InstCode\\unpackedFiles\\"
@@ -104,7 +104,7 @@ $publisherCode = 'CANVAS-' + $InstCode
 $logFile       = $logLocation + "00_" + $InstCode + "_Script_Main.txt"
 
 $SqlCon = New-Object System.Data.SqlClient.SqlConnection
-$SqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
+$SqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Integrated Security=True"
 
 # Set the SMTP Server address
 $smtpserver = $configFileContent.BPIServer.EmailServer

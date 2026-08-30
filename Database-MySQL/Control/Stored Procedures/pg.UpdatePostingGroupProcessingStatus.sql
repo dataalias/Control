@@ -128,7 +128,7 @@ BEGIN
 	AND		 pr.PGPBatchSeq				= @pPostingGroupBatchSeq
 	AND		 p.IsActive					= 1
 	
-	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'DM-Development@bpiedu.com')), ';')
+	SELECT @Recipients = STRING_AGG(CONVERT(NVARCHAR(max), ISNULL(ct.Email, 'MY_NOTIFICATION_EMAIL@example.com')), ';')
 	FROM pg.PostingGroupProcessing AS pgp
 	LEFT JOIN pg.MapContactToPostingGroup AS mctp ON mctp.PostingGroupId = pgp.PostingGroupId
 	LEFT JOIN ctl.Contact AS ct ON ct.ContactId = mctp.ContactId

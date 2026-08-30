@@ -41,7 +41,7 @@ Instructions:
 1) This section should be removed from the procedure.
 2) Set the database, schema and procedure name using the 'Specify Values for Template Parameters' Ctl+Shift+M
 3) After declaring parameters add them to the @ParametersPassedChar variable.
-	a. This can be done by executing the procedure: DEDTEDLSQL01.BPI_DW_STAGE.[ctl].[usp_GetParameterListing]
+	a. This can be done by executing the procedure: MY_SQL_SERVER.MY_DB_STAGE.[ctl].[usp_GetParameterListing]
 4) Make sure all executions are inside of a TRY / CATCH block.
 	a. This can be satisfied by a single block for the entire procedure or several individual blocks within the procedure.
 5) Identify if any custom errors must be raised. 

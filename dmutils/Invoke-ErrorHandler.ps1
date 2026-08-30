@@ -39,7 +39,7 @@ This function ofers a generic method for handleing errors thrown to a catch bloc
 Desc...
 
 .EXAMPLE
-Invoke_ErrorHandler 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-reply@bpiedu.com' 'Some Subject' 'Some Body' $null #no attachment.
+Invoke_ErrorHandler 'MY_SMTP_SERVER' 'MY_EMAIL_ADDRESS@example.com' 'MY_NOTIFICATION_EMAIL@example.com' 'Some Subject' 'Some Body' $null #no attachment.
 
 #>
 
@@ -64,7 +64,7 @@ Invoke_ErrorHandler 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-r
 		HelpMessage=’From e-mail address’
 		)]
 	[alias("f")]
-	[string]$from='no-reply@bpiedu.com',
+	[string]$from='MY_NOTIFICATION_EMAIL@example.com',
 	
 	[parameter(Mandatory=$true,
 		Position = 3,

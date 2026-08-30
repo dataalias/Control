@@ -131,7 +131,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
-			'exec bpi_dw_stage.ctl.GetTablePublicationList' + @CRLF +
+			'exec my_db_stage.ctl.GetTablePublicationList' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')

@@ -113,7 +113,7 @@ call `audit`.usp_InsertStepLog(v_MessageType		,v_CurrentDtm		,v_PreviousDtm	,v_S
 --  SQLINES DEMO *** -----------------------------------------------------------
 
 SET	 v_ParametersPassedChar	= 
-			CONCAT('EXEC BPI_DW_Stage.ctl.usp_InsertNewPublisher' , v_CRLF ,
+			CONCAT('EXEC MY_Db_Stage.ctl.usp_InsertNewPublisher' , v_CRLF ,
 			'    ,@p_PUBLISHER_CODE		= ' , ifnull(cast(p_pPublisherCode as char(100)),'NULL') , v_CRLF ,
 			'    ,@p_CONTACT_NAME		= ' , ifnull(cast(p_pContactName as char(100)),'NULL') , v_CRLF ,
 			'    ,@pPublisherName		= ' , ifnull(cast(p_pPublisherName as char(100)),'NULL') , v_CRLF ,
@@ -165,7 +165,7 @@ if p_pVerbose					= 1
 
 		  SET v_ErrNum = 50001,
 			    v_ErrMsg = CONCAT('Error Number: ',CAST(v_ErrNum AS CHAR(10))+v_CRLF,
-			    'Custom Error: Passphrase for the Publisher table does not exist in the BPI_DW_STAGE.ctl.Passshrase table.',v_CRLF,
+			    'Custom Error: Passphrase for the Publisher table does not exist in the MY_DB_STAGE.ctl.Passshrase table.',v_CRLF,
 			    'Phrase must be created for this table.',v_CRLF,
 			    ifnull(v_ParametersPassedChar, 'Parmeter input resulted in NULL or non-existing output'));
 

@@ -166,7 +166,7 @@ PROCESS
     try 
     {
         $SqlConn = New-Object System.Data.SqlClient.SqlConnection
-        $SqlConn.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
+        $SqlConn.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Integrated Security=True"
         $SqlConn.Open()
     }
     catch

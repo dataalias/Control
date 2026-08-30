@@ -27,7 +27,7 @@
         DTS:Name="ConnectionString">@[$Project::prj_conn_SMTP]</DTS:PropertyExpression>
       <DTS:ObjectData>
         <SmtpConnectionManager
-          ConnectionString="SmtpServer=Barracuda.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;" />
+          ConnectionString="SmtpServer=MY_SMTP_SERVER;UseWindowsAuthentication=False;EnableSsl=False;" />
       </DTS:ObjectData>
     </DTS:ConnectionManager>
   </DTS:ConnectionManagers>
@@ -164,7 +164,7 @@
       DTS:CreationName=""
       DTS:DTSID="{20796F50-6AC6-41F2-AFA9-295AE0538CB8}"
       DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;DECLARE @PostingGroupProcessingId INT  = -1&#xA;&#xA;SELECT @PostingGroupProcessingID = PostingGroupProcessingId&#xA;&#x9;from pg.PostingGroupProcessing &#xA;&#x9;where PostingGroupProcessing.PostingGroupBatchId = ?&#xA;&#x9;and PostingGroupProcessing.PGPBatchSeq = ?&#xA;&#x9;and PostingGroupProcessing.PostingGroupId = ?&#xA;&#xA;UPDATE d&#xA;   SET [DaysSinceLDA_clean] = pred.DaysSinceLDA&#xA;      ,[CurrAttendRate_clean] = pred.CurrAttendRate     &#xA;&#x9;  ,[CurrCourseMARate_clean] = pred.CurrCourseMARate&#xA;      ,[CurrentCourseWeekIn_clean] = pred.CurrentCourseWeekIn&#xA;      ,[AvgCurrentScore_clean] = pred.AvgCurrentScore&#xA;      ,[AvgPrevScore_clean] = pred.AvgPrevScore&#xA;      ,[AvgPrevPrevScore_clean] = pred.AvgPrevPrevScore&#xA;      ,[GPALastCumulative_clean] = pred.GPALastCumulative&#xA;      ,[ARBalance_clean] = pred.ARBalance&#xA;      ,[DaysUntilEstimatedGradDate_clean] = pred.DaysUntilEstimatedGradDate&#xA;      ,[CreditsNeeded_clean] = pred.CreditsNeeded&#xA;      ,[SchoolStatusDecrip_clean] = pred.SchoolStatusDecrip&#xA;&#x9;  ,[OpportunityScore_TwoWeek] = pred.OpportunityScore_TwoWeek&#xA;,&#xA; [OpportunityScore_OneWeek] = pred.OpportunityScore_OneWeek     ,[ETLExecutionID] = ?&#xA;      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM  [BPI_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final] d&#xA; INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction] pred&#xA; on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID&#xA; &#xA; &#xA; &#xA; UPDATE d&#xA;   SET [CurrAttendRate_clean] = pred.CurrAttendRate     &#xA;&#x9;  ,[CurrCourseMARate_clean] = pred.CurrCourseMARate&#xA;      ,[CurrentCourseWeekIn_clean] = pred.CurrentCourseWeekIn&#xA;      ,[AvgCurrentScore_clean] = pred.AvgCurrentScore&#xA;&#x9;  ,[StarScore] = pred.StarScore&#xA;      ,[ETLExecutionID] = ?&#xA;      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM [BPI_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final_CurrentClasses] d&#xA; INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction_CurrentClasses] pred &#xA; on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID&#xA; and pred.adenrollschedid = d.adenrollschedid&quot;"
+      DTS:Expression="&quot;DECLARE @PostingGroupProcessingId INT  = -1&#xA;&#xA;SELECT @PostingGroupProcessingID = PostingGroupProcessingId&#xA;&#x9;from pg.PostingGroupProcessing &#xA;&#x9;where PostingGroupProcessing.PostingGroupBatchId = ?&#xA;&#x9;and PostingGroupProcessing.PGPBatchSeq = ?&#xA;&#x9;and PostingGroupProcessing.PostingGroupId = ?&#xA;&#xA;UPDATE d&#xA;   SET [DaysSinceLDA_clean] = pred.DaysSinceLDA&#xA;      ,[CurrAttendRate_clean] = pred.CurrAttendRate     &#xA;&#x9;  ,[CurrCourseMARate_clean] = pred.CurrCourseMARate&#xA;      ,[CurrentCourseWeekIn_clean] = pred.CurrentCourseWeekIn&#xA;      ,[AvgCurrentScore_clean] = pred.AvgCurrentScore&#xA;      ,[AvgPrevScore_clean] = pred.AvgPrevScore&#xA;      ,[AvgPrevPrevScore_clean] = pred.AvgPrevPrevScore&#xA;      ,[GPALastCumulative_clean] = pred.GPALastCumulative&#xA;      ,[ARBalance_clean] = pred.ARBalance&#xA;      ,[DaysUntilEstimatedGradDate_clean] = pred.DaysUntilEstimatedGradDate&#xA;      ,[CreditsNeeded_clean] = pred.CreditsNeeded&#xA;      ,[SchoolStatusDecrip_clean] = pred.SchoolStatusDecrip&#xA;&#x9;  ,[OpportunityScore_TwoWeek] = pred.OpportunityScore_TwoWeek&#xA;,&#xA; [OpportunityScore_OneWeek] = pred.OpportunityScore_OneWeek     ,[ETLExecutionID] = ?&#xA;      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM  [MY_DB_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final] d&#xA; INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction] pred&#xA; on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID&#xA; &#xA; &#xA; &#xA; UPDATE d&#xA;   SET [CurrAttendRate_clean] = pred.CurrAttendRate     &#xA;&#x9;  ,[CurrCourseMARate_clean] = pred.CurrCourseMARate&#xA;      ,[CurrentCourseWeekIn_clean] = pred.CurrentCourseWeekIn&#xA;      ,[AvgCurrentScore_clean] = pred.AvgCurrentScore&#xA;&#x9;  ,[StarScore] = pred.StarScore&#xA;      ,[ETLExecutionID] = ?&#xA;      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM [MY_DB_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final_CurrentClasses] d&#xA; INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction_CurrentClasses] pred &#xA; on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID&#xA; and pred.adenrollschedid = d.adenrollschedid&quot;"
       DTS:IncludeInDebugDump="2345"
       DTS:Namespace="User"
       DTS:ObjectName="DestinationSQLCommand">
@@ -193,7 +193,7 @@ UPDATE d
 	  ,[OpportunityScore_TwoWeek] = pred.OpportunityScore_TwoWeek
 ,
  [OpportunityScore_OneWeek] = pred.OpportunityScore_OneWeek     ,[ETLExecutionID] = ?
-      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM  [BPI_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final] d
+      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM  [MY_DB_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final] d
  INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction] pred
  on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID
  
@@ -206,7 +206,7 @@ UPDATE d
       ,[AvgCurrentScore_clean] = pred.AvgCurrentScore
 	  ,[StarScore] = pred.StarScore
       ,[ETLExecutionID] = ?
-      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM [BPI_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final_CurrentClasses] d
+      ,[PostingGroupProcessingID] = @PostingGroupProcessingID  FROM [MY_DB_Reporting].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Final_CurrentClasses] d
  INNER JOIN [Control].[OpportunityScore].[FactStudentEnrollmentWeeklySnap_Prediction_CurrentClasses] pred 
  on pred.FactStudentEnrollmentWeeklySnapID = d.FactStudentEnrollmentWeeklySnapID
  and pred.adenrollschedid = d.adenrollschedid</DTS:VariableValue>
@@ -1889,8 +1889,8 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</BinaryItem>
               <DTS:ObjectData>
                 <SendMailTask:SendMailTaskData
                   SendMailTask:SMTPServer="{5C4DE7E2-1296-49D7-B436-4DEC3C5D4F2B}"
-                  SendMailTask:From="bi-admin@bpiedu.com"
-                  SendMailTask:To="harsh.bangad@zovio.com"
+                  SendMailTask:From="MY_NOTIFICATION_EMAIL@example.com"
+                  SendMailTask:To="MY_EMAIL_ADDRESS@example.com"
                   SendMailTask:Subject="Staging package: AzureFunction_CallDataFactory Failed on LBPCA-89KV2X2"
                   SendMailTask:MessageSource="Additional information on this error can be found  in the project catalog report for IssueId: 500258 for  package: AzureFunction_CallDataFactory on LBPCA-89KV2X2" xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />
               </DTS:ObjectData>
@@ -2059,8 +2059,8 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</BinaryItem>
           <DTS:ObjectData>
             <SendMailTask:SendMailTaskData
               SendMailTask:SMTPServer="{5C4DE7E2-1296-49D7-B436-4DEC3C5D4F2B}"
-              SendMailTask:From="bi-admin@bpiedu.com"
-              SendMailTask:To="harsh.bangad@zovio.com"
+              SendMailTask:From="MY_NOTIFICATION_EMAIL@example.com"
+              SendMailTask:To="MY_EMAIL_ADDRESS@example.com"
               SendMailTask:Subject="Staging package: AzureFunction_CallDataFactory Failed on LBPCA-89KV2X2"
               SendMailTask:MessageSource="Additional information on this error can be found  in the project catalog report for IssueId: 500258 for  package: AzureFunction_CallDataFactory on LBPCA-89KV2X2" xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />
           </DTS:ObjectData>

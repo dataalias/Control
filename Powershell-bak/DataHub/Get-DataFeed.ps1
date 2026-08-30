@@ -134,7 +134,7 @@ LogFile:`t`t$logfile
 [System.Data.DataTable] $dtJobToRun = New-Object Data.datatable
 
 $sqlCon = New-Object System.Data.SqlClient.SqlConnection
-$sqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Connection Timeout=60;Integrated Security=True"
+$sqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Connection Timeout=60;Integrated Security=True"
 
 <#
 If (($Version    -ne $configFileContent.__Header.Version) `

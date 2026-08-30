@@ -68,7 +68,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength	= 1	--	int
 	,@pRetryMax				= 3				--	int
 	,@pPublicationEntity		= 'WD_ROSTER_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[BPI_DW_STAGE].[wd].[WorkdayRoster]' -- varchar(255) 
+	,@pDestTableName			= '[MY_DB_STAGE].[wd].[WorkdayRoster]' -- varchar(255) 
 	,@pIsActive					= 1  
 	,@pIsDataHub				= 1
 	,@pBound					= 'In'

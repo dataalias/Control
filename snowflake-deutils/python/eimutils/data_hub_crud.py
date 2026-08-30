@@ -34,7 +34,7 @@ class DataHubCRUD:
         envlayer: str = "",
         brand: str = "",
         project: str = "",
-        database: str = "ULTRA_DEV_RAW",
+        database: str = "MY_ORG_DEV_RAW",
     ):
         """
         Initialize database connection using AWS Secrets Manager
@@ -44,7 +44,7 @@ class DataHubCRUD:
             env: Environment (DEV, STAGE, PROD)
             aws_region: AWS region for secrets manager
             envlayer: Snowflake environment layer (e.g. RAW)
-            brand: Brand segment (e.g. ULTRA)
+            brand: Brand segment (e.g. MY_ORG)
             project: Project segment (e.g. CARE)
             database: Snowflake database name
 

@@ -68,7 +68,7 @@ declare @RetryPublications table (
 -------------------------------------------------------------------------------
 
 select	 @ParametersPassedChar	= 
-			'exec bpi_dw_stage.ctl.usp_GetPublicationList_DataFactory' + @CRLF +
+			'exec my_db_stage.ctl.usp_GetPublicationList_DataFactory' + @CRLF +
 			'     @pPublisherCode = ' + ISNULL(CAST(@pETLExecutionId AS VARCHAR(100)),'NULL') + @CRLF + 
 			'     @pETLExecutionId = ' + ISNULL(CAST(@pETLExecutionId AS VARCHAR(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + ISNULL(CAST(@pPathId AS VARCHAR(100)),'NULL') + @CRLF + 

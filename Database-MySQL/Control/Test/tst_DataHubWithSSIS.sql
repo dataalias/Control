@@ -222,7 +222,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pPublicationFilePath		= '' -- '\PUBR01\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= '' -- '\PUBR01\archive\'-- varchar(255)
 	,@pFeedFormat				= '' -- 'csv'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\MY_FILE_SHARE_SERVER\Share'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'HRLY' -- varchar(20) 
@@ -255,7 +255,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pPublicationFilePath		= ''--'\PUBR01\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= ''--'\PUBR01\archive\'-- varchar(255)
 	,@pFeedFormat				= ''--'csv'
-	,@pSrcFilePath				= ''--'\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= ''--'\\MY_FILE_SHARE_SERVER\Share'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'HRLY' -- varchar(20) 
@@ -287,7 +287,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pPublicationFilePath		= ''--'\PUBR02\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= ''--'\PUBR02\archive\'-- varchar(255)
 	,@pFeedFormat				= ''--'csv'
-	,@pSrcFilePath				= ''--'\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= ''--'\\MY_FILE_SHARE_SERVER\Share'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'HRLY' -- varchar(20) 
@@ -319,7 +319,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pPublicationFilePath		= ''--'\PUBR02\inbound\'-- varchar(255) 
 	,@pPublicationArchivePath	= ''--'\PUBR02\archive\'-- varchar(255)
 	,@pFeedFormat				= ''--'csv'
-	,@pSrcFilePath				= ''--'\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= ''--'\\MY_FILE_SHARE_SERVER\Share'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
 	,@pMethodCode				= 'DLT' -- varchar(20) 
 	,@pIntervalCode				= 'HRLY' -- varchar(20) 

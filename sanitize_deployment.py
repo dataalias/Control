@@ -52,16 +52,16 @@ files_replacements = {
         ('Ascent-Funding', '<MY_ORGANIZATION>'),
     ],
     root / 'AWS' / 'DataHubS3Trigger' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'AWS' / 'PostingGroupTrigger' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'AWS' / 'DataHubScheduler' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'deUtils' / 'main.py': [
-        ("sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'deUtils' / 'python' / 'setup.py': [
         ('url=\'https://git-codecommit.us-east-1.amazonaws.com/v1/repos/deDataHub\'', 'url=\'<MY_REPOSITORY_URL>\''),
@@ -82,7 +82,7 @@ files_replacements = {
         ('zvo-sbx-01-ds-qa-rg', '<MY_RESOURCE_GROUP_QA>'),
         ('zvo-sbx-01-ds-rg', '<MY_RESOURCE_GROUP_PROD>'),
         ('DME1EDLSQL01', '<MY_SQL_SERVER>'),
-        ('DEDTEDLSQL01', '<MY_SQL_SERVER>'),
+        ('MY_SQL_SERVER', '<MY_SQL_SERVER>'),
         ('QME1EDLSQL01', '<MY_SQL_SERVER>'),
         ('QME3EDLSQL01', '<MY_SQL_SERVER>'),
         ('PRODEDLSQL01', '<MY_SQL_SERVER>'),
@@ -93,132 +93,132 @@ files_replacements = {
         ("'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline?'", "'<MY_AZURE_FUNCTION_URL_PROD>?'"),
     ],
     root / 'Database' / 'Control' / 'Stored Procedures' / 'ctl.usp_UpdatePublisherFTP.sql': [
-        ("'vendorsftp.bridgepointeducation.com'", "'<MY_FTP_HOST>'"),
+        ("'MY_FTP_HOST'", "'<MY_FTP_HOST>'"),
     ],
     root / 'Database' / 'Control' / 'Stored Procedures' / 'ctl.usp_InsertNewContact.sql': [
-        ("'DM-Development@bpiedu.com'", "'<MY_NOTIFICATION_EMAIL>'"),
+        ("'MY_NOTIFICATION_EMAIL'", "'<MY_NOTIFICATION_EMAIL>'"),
     ],
 }
 additional_replacements = {
     root / 'Powershell-bak' / 'dmutils' / 'WinSCP' / 'WinSCP.psd1': [
-        ("CompanyName = 'Bridgepoint Education'", "CompanyName = '<MY_ORGANIZATION>'"),
+        ("CompanyName = 'MY_ORGANIZATION'", "CompanyName = '<MY_ORGANIZATION>'"),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'WinSCP' / 'WinSCP.ps1': [
-        ('review.sharefileftp.com', '<MY_FILE_TRANSFER_HOST>'),
-        ('jeffery.drummond@bpiedu.com', '<MY_EMAIL_ADDRESS>'),
-        ('vendorsftp.bridgepointeducation.com', '<MY_FILE_TRANSFER_HOST>'),
+        ('MY_FILE_TRANSFER_HOST', '<MY_FILE_TRANSFER_HOST>'),
+        ('MY_EMAIL_ADDRESS', '<MY_EMAIL_ADDRESS>'),
+        ('MY_FTP_HOST', '<MY_FILE_TRANSFER_HOST>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'WinSCP' / 'ftpPut.ps1': [
-        ('qme1ampsft01.bridgepoint.local', '<MY_HOST_NAME>'),
-        ('\\bpe-aesd-cifs\\BI_Admin_dev\\DME3\\FileShare\\ChatTraffic\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\DME3\\FileShare\\ChatTraffic\\outbound"'),
-        ('\\bpe-aesd-cifs\\powershellrepo\\DM\\DME3\\DataHub\\logs\\ftplog.log"', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\DME3\\DataHub\\logs\\ftplog.log"'),
+        ('MY_HOST_NAME', '<MY_HOST_NAME>'),
+        ('\\MY_FILE_SHARE_SERVER\\BI_Admin_dev\\DME3\\FileShare\\ChatTraffic\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\DME3\\FileShare\\ChatTraffic\\outbound"'),
+        ('\\MY_FILE_SHARE_SERVER\\powershellrepo\\DM\\DME3\\DataHub\\logs\\ftplog.log"', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\DME3\\DataHub\\logs\\ftplog.log"'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'WinSCP' / 'ftpListCheckGet.ps1': [
-        ('sftp.bridgepointeducation.com', '<MY_SFTP_HOST>'),
-        ('review.sharefileftp.com', '<MY_FILE_TRANSFER_HOST>'),
-        ('jeffery.drummond@bpiedu.com', '<MY_EMAIL_ADDRESS>'),
-        ('\\\\bpe-aesd-cifs\\powershellrepo\\DM\\QME3\\DataHub\\keys\\civitas_private_key.ppk', '\\\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\QME3\\DataHub\\keys\\civitas_private_key.ppk'),
+        ('MY_SFTP_HOST', '<MY_SFTP_HOST>'),
+        ('MY_FILE_TRANSFER_HOST', '<MY_FILE_TRANSFER_HOST>'),
+        ('MY_EMAIL_ADDRESS', '<MY_EMAIL_ADDRESS>'),
+        ('\\\\MY_FILE_SHARE_SERVER\\powershellrepo\\DM\\QME3\\DataHub\\keys\\vendor_01_private_key.ppk', '\\\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\QME3\\DataHub\\keys\\vendor_01_private_key.ppk'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'Send-eMail.ps1': [
-        ('mail-tools.bridgepoint.local', '<MY_SMTP_SERVER>'),
-        ('some-email@bpiedu.com', '<MY_EMAIL_ADDRESS>'),
-        ('no-reply@bpiedu.com', '<MY_NOTIFICATION_EMAIL>'),
+        ('MY_SMTP_SERVER', '<MY_SMTP_SERVER>'),
+        ('MY_EMAIL_ADDRESS', '<MY_EMAIL_ADDRESS>'),
+        ('MY_NOTIFICATION_EMAIL', '<MY_NOTIFICATION_EMAIL>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'Invoke-ErrorHandler.ps1': [
-        ('mail-tools.bridgepoint.local', '<MY_SMTP_SERVER>'),
-        ('some-email@bpiedu.com', '<MY_EMAIL_ADDRESS>'),
-        ('no-reply@bpiedu.com', '<MY_NOTIFICATION_EMAIL>'),
+        ('MY_SMTP_SERVER', '<MY_SMTP_SERVER>'),
+        ('MY_EMAIL_ADDRESS', '<MY_EMAIL_ADDRESS>'),
+        ('MY_NOTIFICATION_EMAIL', '<MY_NOTIFICATION_EMAIL>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'Put-DataFeed.ps1': [
-        ('omkar.chowkwale@bpiedu.com', '<MY_NOTIFICATION_EMAIL>'),
+        ('MY_NOTIFICATION_EMAIL', '<MY_NOTIFICATION_EMAIL>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'RestAPI' / 'Get-QualtricsExport.ps1': [
-        ('https://bridgepoint.co1.qualtrics.com/API/v3/responseexports', '<MY_QUALTRICS_API_URL>'),
+        ('MY_QUALTRICS_API_URL', '<MY_QUALTRICS_API_URL>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'FileShare' / 'Invoke-FileSharePut.ps1': [
-        ('\\bpe-aesd-cifs\\BI_Admin_dev\\FileShare\\OIE\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\outbound"'),
-        ('\\bpe-aesd-cifs\\BI_Admin_dev\\FileShare\\OIE\\inbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\inbound"'),
+        ('\\MY_FILE_SHARE_SERVER\\BI_Admin_dev\\FileShare\\OIE\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\outbound"'),
+        ('\\MY_FILE_SHARE_SERVER\\BI_Admin_dev\\FileShare\\OIE\\inbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\inbound"'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'FileShare' / 'FileShareListCheckGet.ps1': [
-        ('https://bridgepoint.atlassian.net/browse/DW-2234', '<MY_ISSUE_TRACKER_URL>'),
-        ('\\bpe-aesd-cifs\\BI_Admin_dev\\FileShare\\OIE\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\outbound"'),
-        ('\\bpe-aesd-cifs\\BI_Admin_dev\\FileShare\\OIE\\inbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\inbound"'),
+        ('MY_ISSUE_TRACKER_URL', '<MY_ISSUE_TRACKER_URL>'),
+        ('\\MY_FILE_SHARE_SERVER\\BI_Admin_dev\\FileShare\\OIE\\outbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\outbound"'),
+        ('\\MY_FILE_SHARE_SERVER\\BI_Admin_dev\\FileShare\\OIE\\inbound"', '\\<MY_FILE_SHARE_SERVER>\\BI_Admin_dev\\FileShare\\OIE\\inbound"'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'ctl' / 'Invoke-StagingPackage.ps1': [
-        ('DEDTEDLSQL01', '<MY_SQL_SERVER>'),
+        ('MY_SQL_SERVER', '<MY_SQL_SERVER>'),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'ctl' / 'New-Issue.ps1': [
-        ("$dbServer = 'dedtedlsql01'", "$dbServer = '<MY_SQL_SERVER>'"),
-        ("-dbsn 'dedtedlsql01'", "-dbsn '<MY_SQL_SERVER>'"),
-        ("-usr 'ffortunato'", "-usr '<MY_USERNAME>'"),
+        ("$dbServer = 'MY_SQL_SERVER'", "$dbServer = '<MY_SQL_SERVER>'"),
+        ("-dbsn 'MY_SQL_SERVER'", "-dbsn '<MY_SQL_SERVER>'"),
+        ("-usr 'MY_USERNAME'", "-usr '<MY_USERNAME>'"),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'ctl' / 'Get-IssueNamesToRetrieve.ps1': [
-        ("#[string]$dbServer = 'DEDTEDLSQL01'", "#[string]$dbServer = '<MY_SQL_SERVER>'"),
+        ("#[string]$dbServer = 'MY_SQL_SERVER'", "#[string]$dbServer = '<MY_SQL_SERVER>'"),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'ctl' / 'Edit-Issue.ps1': [
-        (":> Edit-Issue  -dbsn 'dedtedlsql01' -iss 1 -stat 'IF'", ":> Edit-Issue  -dbsn '<MY_SQL_SERVER>' -iss 1 -stat 'IF'"),
+        (":> Edit-Issue  -dbsn 'MY_SQL_SERVER' -iss 1 -stat 'IF'", ":> Edit-Issue  -dbsn '<MY_SQL_SERVER>' -iss 1 -stat 'IF'"),
     ],
     root / 'Powershell-bak' / 'dmutils' / 'ctl' / 'Add-ControlFile.ps1': [
-        ('\\bpe-aesd-cifs\\bi_admin_qa\\FileShare\\Civitas\\inbound', '\\<MY_FILE_SHARE_SERVER>\\bi_admin_qa\\FileShare\\Civitas\\inbound'),
+        ('\\MY_FILE_SHARE_SERVER\\bi_admin_qa\\FileShare\\Vendor_01\\inbound', '\\<MY_FILE_SHARE_SERVER>\\bi_admin_qa\\FileShare\\Vendor_01\\inbound'),
     ],
     root / 'Powershell-bak' / 'DataHub' / 'Get-Canvas.ps1': [
-        ('\\bpe-aesd-cifs\\powershellrepo\\DM\\DME1\\DataHub\\Get-Canvas.ps1', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\DME1\\DataHub\\Get-Canvas.ps1'),
-        ('\\bpe-aesd-cifs\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"', '\\<MY_FILE_SHARE_SERVER>\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"'),
-        ('\\bpe-aesd-cifs\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"', '\\<MY_FILE_SHARE_SERVER>\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"'),
+        ('\\MY_FILE_SHARE_SERVER\\powershellrepo\\DM\\DME1\\DataHub\\Get-Canvas.ps1', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\DME1\\DataHub\\Get-Canvas.ps1'),
+        ('\\MY_FILE_SHARE_SERVER\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"', '\\<MY_FILE_SHARE_SERVER>\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\"'),
+        ('\\MY_FILE_SHARE_SERVER\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"', '\\<MY_FILE_SHARE_SERVER>\\canvassync\\dev\\Canvas\\InstCode\\Inbound\\Archive\\"'),
     ],
     root / 'Powershell-bak' / 'DataHub' / 'DH1.2_InterfaceCode_ReleaseNotes.txt': [
         ('PRODEDLSQL01', '<MY_SQL_SERVER>'),
-        ('https://bridgepoint.atlassian.net/browse/DW-2128', '<MY_ISSUE_TRACKER_URL>'),
-        ('https://bridgepoint.service-now.com/nav_to.do?uri=change_request.do?sys_id=ddcc3eec13055fc42af2bcaf3244b09f', '<MY_SERVICE_NOW_URL>'),
-        ('bpiedu.visualstudio.com', '<MY_TFS_SERVER>'),
-        ('\\bpe-aesd-cifs\\powershellrepo\\DM\\QME\\dmutils', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\QME\\dmutils'),
+        ('MY_ISSUE_TRACKER_URL', '<MY_ISSUE_TRACKER_URL>'),
+        ('MY_SERVICE_NOW_URL', '<MY_SERVICE_NOW_URL>'),
+        ('MY_TFS_SERVER', '<MY_TFS_SERVER>'),
+        ('\\MY_FILE_SHARE_SERVER\\powershellrepo\\DM\\QME\\dmutils', '\\<MY_FILE_SHARE_SERVER>\\powershellrepo\\DM\\QME\\dmutils'),
     ],
-    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_BPI_DW.conmgr': [
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=BPI_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_MY_DB_DW.conmgr': [
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=MY_DB_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
     ],
     root / 'Integration' / 'DataFactoryCall' / 'AzureFunction_pg_CallDataFactory.dtsx': [
-        ('SmtpServer=Barracuda.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;', 'SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;'),
-        ('SendMailTask:From="bi-admin@bpiedu.com"', 'SendMailTask:From="<MY_NOTIFICATION_EMAIL>"'),
+        ('SmtpServer=MY_SMTP_SERVER;UseWindowsAuthentication=False;EnableSsl=False;', 'SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;'),
+        ('SendMailTask:From="MY_NOTIFICATION_EMAIL"', 'SendMailTask:From="<MY_NOTIFICATION_EMAIL>"'),
     ],
     root / 'Integration' / 'DataFactoryCall' / 'Project.params': [
-        ('SSIS:Name="Value">DEDTEDLSQL01</SSIS:Property>', 'SSIS:Name="Value"><MY_SQL_SERVER></SSIS:Property>'),
-        ('SSIS:Name="Value">SmtpServer=Barracuda.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>', 'SSIS:Name="Value">SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>'),
-        ('SSIS:Name="Value">bi-admin@bpiedu.com</SSIS:Property>', 'SSIS:Name="Value"><MY_NOTIFICATION_EMAIL></SSIS:Property>'),
+        ('SSIS:Name="Value">MY_SQL_SERVER</SSIS:Property>', 'SSIS:Name="Value"><MY_SQL_SERVER></SSIS:Property>'),
+        ('SSIS:Name="Value">SmtpServer=MY_SMTP_SERVER;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>', 'SSIS:Name="Value">SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>'),
+        ('SSIS:Name="Value">MY_NOTIFICATION_EMAIL</SSIS:Property>', 'SSIS:Name="Value"><MY_NOTIFICATION_EMAIL></SSIS:Property>'),
         ('SSIS:Name="Value">http://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline</SSIS:Property>', 'SSIS:Name="Value"><MY_AZURE_FUNCTION_URL></SSIS:Property>'),
     ],
     root / 'Integration' / 'DataFactoryCall' / 'DataFactoryCall.dtproj': [
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=BPI_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
-        ('SSIS:Property SSIS:Name="Value">SmtpServer=mail-tools.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>', 'SSIS:Property SSIS:Name="Value">SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>'),
-        ('SSIS:Property SSIS:Name="Value">mail-tools.bridgepoint.local</SSIS:Property>', 'SSIS:Property SSIS:Name="Value"><MY_SMTP_SERVER></SSIS:Property>'),
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=BPI_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=MY_DB_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+        ('SSIS:Property SSIS:Name="Value">SmtpServer=MY_SMTP_SERVER;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>', 'SSIS:Property SSIS:Name="Value">SmtpServer=<MY_SMTP_SERVER>;UseWindowsAuthentication=False;EnableSsl=False;</SSIS:Property>'),
+        ('SSIS:Property SSIS:Name="Value">MY_SMTP_SERVER</SSIS:Property>', 'SSIS:Property SSIS:Name="Value"><MY_SMTP_SERVER></SSIS:Property>'),
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=MY_DB_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
     ],
-    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_BPI_Reporting.conmgr': [
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=BPI_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_MY_DB_Reporting.conmgr': [
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=MY_DB_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
     ],
-    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_BPI_DW_STAGE.conmgr': [
-        ('Data Source=DEDTEDLSQL01;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
+    root / 'Integration' / 'DataFactoryCall' / 'conn_OLEDB_MY_DB_STAGE.conmgr': [
+        ('Data Source=MY_SQL_SERVER;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;', 'Data Source=<MY_SQL_SERVER>;Initial Catalog=Control;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'),
     ],
     root / 'Database' / 'Control' / 'Test' / 'tst_DataHubWithSSIS.sql': [
-        ('\\bpe-aesd-cifs\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
+        ('\\MY_FILE_SHARE_SERVER\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
     ],
     root / 'Database' / 'Control' / 'Test' / 'tst_DataHubWithPython.sql': [
-        ('\\bpe-aesd-cifs\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
+        ('\\MY_FILE_SHARE_SERVER\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
     ],
     root / 'Database' / 'Control' / 'Test' / 'tst_DataHubRetry.sql': [
-        ('\\bpe-aesd-cifs\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
+        ('\\MY_FILE_SHARE_SERVER\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
     ],
     root / 'Database' / 'Control' / 'Test' / 'tst_DataHub.sql': [
-        ('\\bpe-aesd-cifs\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
+        ('\\MY_FILE_SHARE_SERVER\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
     ],
     root / 'Database' / 'Control' / 'Test' / 'TestScript.sql': [
-        ('\\bpe-aesd-cifs\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
+        ('\\MY_FILE_SHARE_SERVER\\Share', '\\<MY_FILE_SHARE_SERVER>\\Share'),
     ],
     root / 'Database' / 'Control' / 'Stored Procedures' / 'pg.usp_ExecuteSSISPackage.sql': [
-        ("@pServerName\t\t\t\t= 'DEDTEDLSQL01'", "@pServerName\t\t\t\t= '<MY_SQL_SERVER>'"),
+        ("@pServerName\t\t\t\t= 'MY_SQL_SERVER'", "@pServerName\t\t\t\t= '<MY_SQL_SERVER>'"),
     ],
     root / 'Interface' / 'connections' / 'connX.php': [
-        ('//$serverName = "dedtedlsql01";', '//$serverName = "<MY_SQL_SERVER>";'),
+        ('//$serverName = "MY_SQL_SERVER";', '//$serverName = "<MY_SQL_SERVER>";'),
     ],
 }
 files_replacements.update(additional_replacements)

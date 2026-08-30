@@ -112,7 +112,7 @@ declare @PostingGroupProcessingRecords table (
 --  Display Verbose
 -------------------------------------------------------------------------------
 SELECT	 @ParametersPassedChar	= 
-			'exec BPI_DW_STAGE.pg.usp_RetryPostingGroup' + @CRLF +
+			'exec MY_DB_STAGE.pg.usp_RetryPostingGroup' + @CRLF +
 			'    ,@pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')

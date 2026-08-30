@@ -82,10 +82,10 @@ Invoke-ftpPut `
     -protocol  'sftp' `
 	-IssueName 'ChatTrafficExp_20190306095445.csv' `
     -userName  "nettutor_qa" `
-    -password  "saMNDtUjAC9-Z45w" `
+    -password  "MY_PASSWORD" `
     -hostName  "<MY_HOST_NAME>" `
     -fp  "ssh-rsa 2048 22:42:69:3e:34:98:b7:cd:3f:6b:47:bf:be:5f:18:55" `
-    -remoteDir "\\bpe-aesd-cifs\BI_Admin_dev\DME3\FileShare\ChatTraffic\outbound\" `
+    -remoteDir "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\DME3\FileShare\ChatTraffic\outbound\" `
     -port "22" `
     -destDir   "/nettutor_qa/Inbound" `
     -LogFile   "\\<MY_FILE_SHARE_SERVER>\powershellrepo\DM\DME3\DataHub\logs\ftplog.log"

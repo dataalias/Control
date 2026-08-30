@@ -34,7 +34,7 @@ function Invoke-CanvasGetCompressedFiles {
 .EXAMPLE
 Invoke-CanvasGet `
     -PublicationName   "discussion_entry_dim" `
-    -UnpkLoc  "\\bpe-aesd-cifs\BI_Admin_dev\FileShare\OIE\inbound\" `
+    -UnpkLoc  "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\FileShare\OIE\inbound\" `
 	-DFLoc "D:\CanvasSync\UoR\dataFiles\" `
     -ConfigSync    "C:\Canvas-Data-Cli-master\UoR\config.js" `
     -LogFile "\\dsbxcvsapp01\CanvasSync\UoR\logs\" 

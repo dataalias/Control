@@ -74,7 +74,7 @@ exec [audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec bpi_dw_stage.ctl.usp_SendMail' + @CRLF +
+			'exec my_db_stage.ctl.usp_SendMail' + @CRLF +
 			'     @pETLExecutionId = ' + isnull(cast(@pETLExecutionId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pPathId = ' + isnull(cast(@pPathId as varchar(100)),'NULL') + @CRLF + 
 			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL')

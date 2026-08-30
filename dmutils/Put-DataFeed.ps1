@@ -122,7 +122,7 @@ if (!$IssueId)
 # Set the SMTP Server address
 $smtpserver = $configFileContent.BPIServer.EmailServer
 $from       = $configFileContent.eMail.From
-$to         = "omkar.chowkwale@bpiedu.com"
+$to         = "MY_NOTIFICATION_EMAIL@example.com"
 $subject    = $runEnv + ' ' + $configFileContent.eMail.Subject 
 $emailBody  = @"
 Failure:`t$runEnv DataHub.Get-DataFeed
@@ -146,7 +146,7 @@ LogFile:`t`t$logfile
 #[System.Data.DataTable] $dtJobToRun = New-Object Data.datatable
 
 $sqlCon = New-Object System.Data.SqlClient.SqlConnection
-$sqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Connection Timeout=60;Integrated Security=True"
+$sqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Connection Timeout=60;Integrated Security=True"
 
 try 
 {

@@ -34,12 +34,12 @@
         </SSIS:Packages>
         <SSIS:ConnectionManagers>
           <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_Control.conmgr" />
-          <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_BPI_DW.conmgr" />
+          <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_MY_DB_DW.conmgr" />
           <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_C2000.conmgr" />
           <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_Ashford_DW.conmgr" />
           <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_MLN_STAGE.conmgr" />
           <SSIS:ConnectionManager SSIS:Name="SMTP Connection Manager.conmgr" />
-          <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_BPI_Reporting.conmgr" />
+          <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_MY_DB_Reporting.conmgr" />
           <SSIS:ConnectionManager SSIS:Name="conn_OLEDB_C2000_BPE.conmgr" />
         </SSIS:ConnectionManagers>
         <SSIS:DeploymentInfo>
@@ -147,7 +147,7 @@
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.ConnectByProxy">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.ConnectByProxy">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -162,7 +162,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.ConnectionString">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.ConnectionString">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -173,11 +173,11 @@
                 <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-                <SSIS:Property SSIS:Name="Value">Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;</SSIS:Property>
+                <SSIS:Property SSIS:Name="Value">Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_DW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;</SSIS:Property>
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.ConnectUsingManagedIdentity">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.ConnectUsingManagedIdentity">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -192,7 +192,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.InitialCatalog">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.InitialCatalog">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -203,11 +203,11 @@
                 <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-                <SSIS:Property SSIS:Name="Value">BPI_DW</SSIS:Property>
+                <SSIS:Property SSIS:Name="Value">MY_DB_DW</SSIS:Property>
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.Password">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.Password">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -221,7 +221,7 @@
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.RetainSameConnection">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.RetainSameConnection">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -236,7 +236,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_DW.UserName">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_DW.UserName">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -634,7 +634,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.ConnectByProxy">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.ConnectByProxy">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -649,7 +649,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.ConnectionString">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.ConnectionString">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -660,11 +660,11 @@
                 <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-                <SSIS:Property SSIS:Name="Value">Data Source=<MY_SQL_SERVER>;Initial Catalog=BPI_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;</SSIS:Property>
+                <SSIS:Property SSIS:Name="Value">Data Source=<MY_SQL_SERVER>;Initial Catalog=MY_DB_Reporting;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;</SSIS:Property>
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.ConnectUsingManagedIdentity">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.ConnectUsingManagedIdentity">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -679,7 +679,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.InitialCatalog">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.InitialCatalog">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -690,11 +690,11 @@
                 <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                 <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-                <SSIS:Property SSIS:Name="Value">BPI_Reporting</SSIS:Property>
+                <SSIS:Property SSIS:Name="Value">MY_DB_Reporting</SSIS:Property>
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.Password">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.Password">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -708,7 +708,7 @@
                 <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.RetainSameConnection">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.RetainSameConnection">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -723,7 +723,7 @@
                 <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
               </SSIS:Properties>
             </SSIS:Parameter>
-            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_BPI_Reporting.UserName">
+            <SSIS:Parameter SSIS:Name="CM.conn_OLEDB_MY_DB_Reporting.UserName">
               <SSIS:Properties>
                 <SSIS:Property SSIS:Name="ID">
                 </SSIS:Property>
@@ -997,7 +997,7 @@
                     <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                     <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                     <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-                    <SSIS:Property SSIS:Name="Value">Barracuda.bridgepoint.local</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">MY_SMTP_SERVER</SSIS:Property>
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>

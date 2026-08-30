@@ -12,7 +12,7 @@ version = "1.10.0"
 description = "This project is a wrapper library to call data engineering utility functions."
 readme = "README.md"
 requires-python = ">=3.9"
-license = "GPL-3.0-or-later"
+license = "MIT"
 authors = [
     {name = "Frank Fortunato"}
 ]

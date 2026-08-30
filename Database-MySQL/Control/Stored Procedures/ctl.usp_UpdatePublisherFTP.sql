@@ -19,7 +19,7 @@ Purpose:
 
 exec 		exec ctl.usp_UpdatePublisherFTP
 				 @pPublisherCode ='SK',
-                 @pSiteURL = 'vendorsftp.bridgepointeducation.com', --ftp
+                 @pSiteURL = 'MY_FTP_HOST', --ftp
 				 @pUserSite = 'chatstaff' ,
 				 @pSitePassword = NULL,
 				 @pSiteKey  = 'gKZu-Thd[oJqiH4Q',
@@ -100,7 +100,7 @@ exec	[audit].usp_InsertStepLog
 -------------------------------------------------------------------------------
 
 SELECT	 @ParametersPassedChar	= 
-			'exec BPI_DW_Stage.ctl.usp_UpdatePublisherFTP' + @CRLF +
+			'exec MY_Db_Stage.ctl.usp_UpdatePublisherFTP' + @CRLF +
 			'    ,@pPublisherCode	= ' + isnull(cast(@pPublisherCode as varchar(100)),'NULL') + @CRLF +
 			'    ,@pSiteURL			= ' + isnull(cast(@pSiteURL as varchar(100)),'NULL') + @CRLF +
 			'    ,@pSiteUser		= ' + isnull(cast(@pSiteUser as varchar(100)),'NULL') + @CRLF +

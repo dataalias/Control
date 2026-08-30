@@ -56,7 +56,7 @@
     <Content Include="config\envSpecific\DME1-ScheduledTask.xml" />
     <Content Include="config\DataHubScheduledTask.xml" />
     <Content Include="DH1.2_InterfaceCode_ReleaseNotes.txt" />
-    <Content Include="keys\civitas_private_key.ppk" />
+    <Content Include="keys\vendor_01_private_key.ppk" />
     <Content Include="logs\dummy.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -65,8 +65,8 @@ Mask of the file to be transfered. This can include wildcards
 .EXAMPLE
 Invoke-FileShareListCheckGet `
 	-dbServer "DME1EDLSQL01" `
-    -srcDir   "\\bpe-aesd-cifs\BI_Admin_dev\FileShare\OIE\outbound\" `
-    -destDir  "\\bpe-aesd-cifs\BI_Admin_dev\FileShare\OIE\inbound\" `
+    -srcDir   "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\FileShare\OIE\outbound\" `
+    -destDir  "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\FileShare\OIE\inbound\" `
     -pubnc    "BEHAVE" `
     -fileMask "AU\sMGMT\sPL\sDTL\sMTM\s([0][1-9]|[1][1-2]).[0-9]{4}\.xlsx$" `
     -logFile  "C:\tmp\FileCopy.log"

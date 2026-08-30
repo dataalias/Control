@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**eimutils** is a shared Python utility library for T-Mobile EIM (Enterprise Information Management) data engineering pipelines. It is deployed as a wheel to S3 (`s3://kaena-eim-glue/{env}/lib/eimutils/`) and consumed by AWS Glue jobs, Lambda functions, and Snowflake stored procedures.
+**eimutils** is a shared Python utility library for MY_ORGANIZATION EIM (Enterprise Information Management) data engineering pipelines. It is deployed as a wheel to S3 (`s3://MY_ORG-eim-glue/{env}/lib/eimutils/`) and consumed by AWS Glue jobs, Lambda functions, and Snowflake stored procedures.
 
 ## Build, Test, and Lint
 
@@ -103,7 +103,7 @@ eimutils==<version>,snowflake-connector-python>=3.12.0,urllib3<2.0.0
 
 ## Confluence / Jira
 
-- Project wiki: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils
+- Project wiki: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils
 
 ## Hints
 

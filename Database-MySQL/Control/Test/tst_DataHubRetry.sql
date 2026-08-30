@@ -43,7 +43,7 @@ Date		Author			Description
 -- test process.
 
 -- Cleanup
-USE BPI_DW_STAGE
+USE MY_DB_STAGE
 GO
 
 delete ctl.[distribution]			where IssueId			in (select IssueId from ctl.Issue where  publicationid in (select publicationid from ctl.publication where publicationcode in ('PUBN11-ACCT','PUBN12-ASSG','PUBN13-COUR')))
@@ -99,7 +99,7 @@ if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test11'
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'PUB_Contact_Test11'
 		,@pTier						= '1'
-		,@pEmail					= 'omkar.chowkwale@zovio.com'
+		,@pEmail					= 'MY_EMAIL_ADDRESS@example.com'
 		,@pPhone					= '877.300.6069'
 		,@pAddress01				= '10180 Telesis Ct'
 		,@pAddress02				= '#400'
@@ -111,19 +111,19 @@ if not exists (select top 1 1 from ctl.Contact where name = 'PUB_Contact_Test12'
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'PUB_Contact_Test12'
 		,@pTier						= '1'
-		,@pEmail					= 'omkar.chowkwale@zovio.com'
+		,@pEmail					= 'MY_EMAIL_ADDRESS@example.com'
 
 if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test11')
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'SUB_Contact_Test11'
 		,@pTier						= '1'
-		,@pEmail					= 'omkar.chowkwale@zovio.com'
+		,@pEmail					= 'MY_EMAIL_ADDRESS@example.com'
 
 if not exists (select top 1 1 from ctl.Contact where name = 'SUB_Contact_Test12')
 EXEC [ctl].usp_InsertNewContact 
 		 @pName						= 'SUB_Contact_Test12'
 		,@pTier						= '1'
-		,@pEmail					= 'omkar.chowkwale@zovio.com'
+		,@pEmail					= 'MY_EMAIL_ADDRESS@example.com'
 
 --	select * from ctl.refstatus
 
@@ -262,7 +262,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'TSTPUBN11-ACCT.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\MY_FILE_SHARE_SERVER\Share'
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
@@ -273,7 +273,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 2	--	int
 	,@pPublicationEntity		= '' -- 'PUBN11-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[BPI_DW_STAGE].[schema].[TBL-ACCT]' -- varchar(255) 
+	,@pDestTableName			= '[MY_DB_STAGE].[schema].[TBL-ACCT]' -- varchar(255) 
 	,@pSLATime					= '01:00'
 	,@pSLAEndTimeInMinutes		= 10
 	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'
@@ -299,7 +299,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'TSTPUBN12-ASSG.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\MY_FILE_SHARE_SERVER\Share'
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
@@ -310,7 +310,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 1	--	int
 	,@pPublicationEntity		= '' -- 'PUBN11-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[BPI_DW_STAGE].[schema].[TBL-ASSG]' -- varchar(255) 
+	,@pDestTableName			= '[MY_DB_STAGE].[schema].[TBL-ASSG]' -- varchar(255) 
 	,@pSLATime					= '01:00'
 	,@pSLAEndTimeInMinutes		= NULL
 	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'
@@ -335,7 +335,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pSSISProject				= 'PostingGroup'
 	,@pSSISFolder				= 'ETLFolder'
 	,@pSSISPackage				= 'TSTPUBN13-COUR.dtsx'
-	,@pSrcFilePath				= '' -- '\\bpe-aesd-cifs\Share'
+	,@pSrcFilePath				= '' -- '\\MY_FILE_SHARE_SERVER\Share'
 	,@pDataFactoryName			= 'N/A'
 	,@pDataFactoryPipeline		= 'N/A'
 --	,@pInterfaceCode			= 'FILE' -- varchar(20) 
@@ -346,7 +346,7 @@ EXEC [ctl].[usp_InsertNewPublication]
 	,@pRetryIntervalLength		= 1	--	int
 	,@pRetryMax					= 0	--	int
 	,@pPublicationEntity		= '' -- 'PUBN11-ACCT_[1..9]{8}_[1..9]{8}\.csv$' -- varchar(255) 
-	,@pDestTableName			= '[BPI_DW_STAGE].[schema].[TBL-COUR]' -- varchar(255) 
+	,@pDestTableName			= '[MY_DB_STAGE].[schema].[TBL-COUR]' -- varchar(255) 
 	,@pSLATime					= '01:00'
 	,@pSLAEndTimeInMinutes		= NULL
 	,@pNextExecutionDtm			= '1900-01-01 00:00:00.000'

@@ -79,10 +79,10 @@ Name of the file to be transfered. This can include wildcards
 Invoke-WinSCPGet `
     -protocol  'ftp' `
     -userName  '<MY_FILE_TRANSFER_HOST>/<MY_EMAIL_ADDRESS>' `
-    -password  "aqX3ZfMuUCfDcq9Y" `
+    -password  "MY_PASSWORD" `
     -hostName  "<MY_FILE_TRANSFER_HOST>" `
     -fileName   "*" `
-    -remoteDir  "/Reports/Bridgepoint" `
+    -remoteDir  "/Reports/MY_ORGANIZATION" `
     -destDir   "c:\\tmp\\" `
     -port  '990'
 
@@ -90,7 +90,7 @@ Invoke-WinSCPGet `
 Invoke-WinSCPGet `
     -protocol  'sftp' `
     -userName  "nettutor" `
-    -password  "0BXATWbr}y8K]Y6j2-Gj" `
+    -password  "MY_PASSWORD" `
     -hostName  "<MY_FILE_TRANSFER_HOST>" `
     -sshKey  "ssh-rsa 2048 22:42:69:3e:34:98:b7:cd:3f:6b:47:bf:be:5f:18:55" `
     -remoteDir "/nettutor/" `

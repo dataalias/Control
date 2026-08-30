@@ -39,9 +39,9 @@ class DataHubCRUDIntegrationTest(unittest.TestCase):
                 env=os.environ["ENV"],
                 aws_region=os.environ["AWS_REGION"],
                 envlayer="RAW",
-                brand="ULTRA",
+                brand="MY_ORG",
                 project="CARE",
-                database="ULTRA_DEV_RAW",
+                database="MY_ORG_DEV_RAW",
             )
             log_to_console(__name__, "Info", "DataHubCRUDIntegrationTest.setUpClass :: Complete.")
         except Exception as e:

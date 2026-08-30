@@ -54,7 +54,7 @@ The directory with files that need control files generated.
 The code for the particular file being retreived.
 
 .EXAMPLE
-Add-ControlFile -dir "\\bpe-aesd-cifs\bi_admin_qa\FileShare\Civitas\inbound" -pc "Inspire_Engagement_Report" -fm "Inspire_Engagement_Report_([0][1-9]|[1][0-2])-([0][1-9]|[1][0-9]|[2][0-9]|[3][0-1])-([19]|[20])\d{2}"
+Add-ControlFile -dir "\\MY_FILE_SHARE_SERVER\bi_admin_qa\FileShare\Vendor_01\inbound" -pc "Inspire_Engagement_Report" -fm "Inspire_Engagement_Report_([0][1-9]|[1][0-2])-([0][1-9]|[1][0-9]|[2][0-9]|[3][0-1])-([19]|[20])\d{2}"
 
 #>
 

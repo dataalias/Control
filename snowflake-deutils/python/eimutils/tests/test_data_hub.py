@@ -43,9 +43,9 @@ class DataHubIntegrationTest(unittest.TestCase):
                 os.environ["ENV"],
                 os.environ["AWS_REGION"],
                 "RAW",
-                "ULTRA",
+                "MY_ORG",
                 "CARE",
-                "ULTRA_DEV_RAW",
+                "MY_ORG_DEV_RAW",
             )
             cls.dh = DataHub(os.environ["AWS_SECRET_ARN_SF_CONN"], os.environ["ENV"])
             log_to_console(__name__, "Info", "DataHubIntegrationTest.setUpClass :: Complete.")

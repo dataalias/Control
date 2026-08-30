@@ -36,7 +36,7 @@ Date		Author			Description
 20180322	ffortunato		more expressive error handling.
 20180326	ffortunato		bringing in additional logging to support QA.
 20180706	ffortunato		Doing more to preserve the order of the files.
-							https://bridgepoint.atlassian.net/browse/DW-2234
+							MY_ISSUE_TRACKER_URL
 
 20180827	ffortunato		Using the file mask now.
 20181012	ffortunato		using calling procedure sql connection.
@@ -65,8 +65,8 @@ Mask of the file to be transfered. This can include wildcards
 .EXAMPLE
 Invoke-FileShareListCheckGet `
 	-dbServer "DME1EDLSQL01" `
-    -srcDir   "\\bpe-aesd-cifs\BI_Admin_dev\FileShare\OIE\outbound\" `
-    -destDir  "\\bpe-aesd-cifs\BI_Admin_dev\FileShare\OIE\inbound\" `
+    -srcDir   "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\FileShare\OIE\outbound\" `
+    -destDir  "\\MY_FILE_SHARE_SERVER\BI_Admin_dev\FileShare\OIE\inbound\" `
     -pubnc    "BEHAVE" `
     -fileMask "AU\sMGMT\sPL\sDTL\sMTM\s([0][1-9]|[1][1-2]).[0-9]{4}\.xlsx$" `
     -logFile  "C:\tmp\FileCopy.log"
