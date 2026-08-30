@@ -1,0 +1,230 @@
+#######################################################################################################################
+# File: bitbucket-pipelines.yml
+#
+# Purpose: This build specification us used for the build and deployment of the eimutils project. The script has a
+#          commond build of the wheel file and then copies to wheel to the s3 library location for the env associated
+#          with the branch.
+#          The following deployment steps will be executed for each pipeline run.
+#          To configure your steps and conditionally deploy see
+#          https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/
+#
+# Dependencies/Helpful Notes :
+#######################################################################################################################
+# options:
+#  max-time: 60 # Can run for 60 minutes
+#  size: 1x
+image: python:3.12
+definitions:
+  steps:
+    - step: &repodata
+        name: 'Repo Data'
+        script:
+          - echo $BITBUCKET_REPO_SLUG
+          - echo $BITBUCKET_DEPLOYMENT_ENVIRONMENT
+          - echo $BITBUCKET_BRANCH
+          - export DEUTILS_VERSION=$(python -c "import sys; sys.path.insert(0,'python'); import eimutils; print(eimutils.__version__)")
+          - 'export PIPELINE_VERSION=2.0.6'
+          - 'echo "PIPELINE_VERSION=${PIPELINE_VERSION}" > vars.env'
+          - 'echo "DEUTILS_VERSION=${DEUTILS_VERSION}" >> vars.env'
+          - more vars.env
+        artifacts:
+          - vars.env
+    - step: &securityscan
+        name: Security Scan
+        script:
+          - pipe: atlassian/git-secrets-scan:0.5.1
+pipelines:
+  default:
+    - step: *repodata
+    - step:
+        name: 'default'
+        script:
+          - echo "Default, Make sure you are calling the correct pipeline based on branch."
+  branches:
+    '{enh*,feat*,dev*,hot*}':
+      # - step: *securityscan
+      - step: *repodata
+      - step:
+          name: 'Deployment to Dev'
+          deployment: Development
+          image:
+            name: MY_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/eim-pipeline-image:dev
+            aws:
+              access-key: $AWS_ACCESS_KEY_ID
+              secret-key: $AWS_SECRET_ACCESS_KEY
+          runs-on:
+            - 'self.hosted'
+            - 'linux'
+            - 'qa'
+            - 'general'
+          script:
+            - source vars.env
+            - echo "Begin Feature Deployment to Dev"
+            - python --version
+            # - pip install setuptools
+
+            - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            - unzip -qq awscliv2.zip
+            - ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            - echo $PATH
+            - which aws
+            - pwd
+            - ls -l
+            - cd python
+            - ls -l
+            - pip install -r ./requirements.txt
+            - 'echo "eimutils version: $DEUTILS_VERSION"'
+            - python -m build --wheel
+            - cd dist
+            - ls -l
+            - aws sts get-caller-identity
+            - aws s3 cp . s3://MY_ORG-eim-glue/dev/lib/eimutils/ --recursive --exclude "*" --include "eim*.whl"
+            # - aws s3 cp . s3://MY_ORG-eim-glue/qa/lib/eimutils/ --recursive --exclude "*" --include "eim*.whl"
+            - aws s3 cp ./eimutils*.whl s3://MY_ORG-eim-glue/dev/lib/eimutils/eimutils-latest.whl
+            - pip install ./eimutils-${DEUTILS_VERSION}-py3-none-any.whl
+            - cd ../../
+            # - cd ..
+            - pwd
+            - ls -l
+            # - aws s3 cp s3://MY_ORG-eim-glue/dev/lib/eimpipeline/schema_change_pipeline-${PIPELINE_VERSION}.py .
+            - aws s3 cp s3://MY_ORG-eim-glue/dev/lib/eimpipeline/eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl .
+            - pip install ./eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl
+            - ls -l
+            # - python schema_change_pipeline-${PIPELINE_VERSION}.py
+            - python -m schemachange.schema_change_pipeline
+            - cd python
+            - ls -l
+            - python -m pytest -v
+            - pip install flake8
+            - flake8 --max-line-length=120 eimutils/
+    '{staging,release*}':
+      - step: *repodata
+      - step: *securityscan
+      - step:
+          name: 'Deployment to Stage'
+          deployment: Staging
+          image:
+            name: MY_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/eim-pipeline-image:stage
+            aws:
+              access-key: $AWS_ACCESS_KEY_ID
+              secret-key: $AWS_SECRET_ACCESS_KEY
+          runs-on:
+            - 'self.hosted'
+            - 'linux'
+            - 'qa'
+            - 'general'
+          script:
+            - echo "Begin Feature Deployment to Stage"
+            - source vars.env
+
+            - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            - unzip -qq awscliv2.zip
+            - ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            - echo $PATH
+            - which aws
+            - pwd
+            - ls -l
+            - cd python
+            - ls -l
+            - pip install -r ./requirements.txt
+            - 'echo "eimutils version $DEUTILS_VERSION"'
+            - python -m build --wheel
+            - cd dist
+            - ls -l
+            - aws sts get-caller-identity
+            - aws s3 cp . s3://MY_ORG-eim-glue/stage/lib/eimutils/ --recursive --exclude "*" --include "eim*.whl"
+            - aws s3 cp ./eimutils*.whl s3://MY_ORG-eim-glue/stage/lib/eimutils/eimutils-latest.whl
+            - pip install ./eimutils-${DEUTILS_VERSION}-py3-none-any.whl
+            - cd ..
+            - cd ..
+            - pwd
+            - ls -l
+            - aws s3 cp s3://MY_ORG-eim-glue/stage/lib/eimpipeline/eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl .
+            - pip install ./eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl
+            - python -m schemachange.schema_change_pipeline
+            - cd python
+            - ls -l
+            - python -m pytest -v
+    main:
+      - step: *repodata
+      - step: *securityscan
+      - step:
+          name: 'Deployment to Prod'
+          deployment: Production
+          image:
+            name: MY_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/eim-pipeline-image:latest
+            aws:
+              access-key: $AWS_ACCESS_KEY_ID
+              secret-key: $AWS_SECRET_ACCESS_KEY
+          runs-on:
+            - 'self.hosted'
+            - 'linux'
+            - 'prod'
+            - 'general'
+          script:
+            - echo "Begin Feature Deployment to Prod"
+            - source vars.env
+
+            - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            - unzip -qq awscliv2.zip
+            - ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            - echo $PATH
+            - which aws
+            - pwd
+            - ls -l
+            - cd python
+            - ls -l
+            - pip install -r ./requirements.txt
+            - echo "eimutils version $DEUTILS_VERSION"
+            - python -m build --wheel
+            - cd dist
+            - ls -l
+            - aws sts get-caller-identity
+            - aws s3 cp . s3://MY_ORG-eim-glue/prod/lib/eimutils/ --recursive --exclude "*" --include "eim*.whl"
+            - aws s3 cp ./eimutils*.whl s3://MY_ORG-eim-glue/prod/lib/eimutils/eimutils-latest.whl
+            - pip install ./eimutils-${DEUTILS_VERSION}-py3-none-any.whl
+            - cd ..
+            - cd ..
+            - pwd
+            - ls -l
+            - aws s3 cp s3://MY_ORG-eim-glue/prod/lib/eimpipeline/eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl .
+            - pip install ./eimpipeline-${PIPELINE_VERSION}-py3-none-any.whl
+            - python -m schemachange.schema_change_pipeline
+
+#######################################################################################################################
+#
+# Change History:
+#
+# Author         Date        Description
+#
+#######################################################################################################################
+#
+# Frank          2024-01-09  Initial Iteration, Anchors are bomb
+# Frank          2024-01-10  time to goto s3 dev
+# Frank          2024-01-11  time to goto s3 prod
+# Frank          2024-02-26  time to goto s3 stage
+# Frank          2024-04-08  creating a eimutils-latest so we can ignore version if we want.
+# Frank          2024-09-05  + setup tools until we get something better :-)
+# Frank          2024-10-02  + schema change
+#                            + unit test
+# Frank          2024-10-02  o pip install ./eimutils-1.2.0-py3-none-any.whl
+# John Gabriel   2024-12-24  o pip install ./eimutils-1.3.0-py3-none-any.whl
+# Darren Liu     2025-01-09  o pip install ./eimutils-1.4.0-py3-none-any.whl
+# Frank          2025-02-04  + runs on + test case.
+# Frank          2025-06-03  + eim-pipeline update. +eimutils (soon)
+# Frank          2025-06-23  o python 3.9
+# Frank          2025-07-08  o :latest
+# Frank          2025-07-22  o :1.5.1 formatting changes PEP8 flake8.
+# Frank          2025-08-21  o :1.6.0 + StepLogger.
+# Frank          2025-09-23  o :1.6.2 o dependencies.
+# Frank          2025-09-23  o :1.6.3 o see readme.md
+# Frank          2025-09-26  o :1.6.5 o schema_change_pipeline-2.0.1.py
+# Frank          2025-09-29  o :1.6.6 o working on boto3 / botocore redundencies
+# Frank          2025-11-19  o :1.8.0 o reducing dependencies o restructuring branches to dev pipeline.
+# Colton         2026-01-05  + :1.9.0 + dates_to_process function added. 
+# Frank          2026-01-07  o :2.0.3 schema_change_pipeline-2.0.3.py
+# Frank          2026-02-05  o :1.9.3 o pin urllib3<2.0.0 + snowflake-connector<3.0 for AWS Glue OpenSSL compatibility
+# Frank          2026-02-11  o :2.0.4 schema_change_pipeline-2.0.4.py
+# Frank          2026-02-12  o BuildSpec var version.  schema_change_pipeline-2.0.6.py + security screen.
+# Frank          2026-05-04  o schema change in wheel now.
+#######################################################################################################################

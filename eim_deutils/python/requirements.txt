@@ -1,0 +1,21 @@
+# BUILD REQUIREMENTS for Bitbucket Pipeline (Python 3.11 image)
+# These are for building the wheel AND running tests on the pipeline image.
+#
+# Runtime dependencies for AWS Glue (Python 3.9) are in pyproject.toml
+# with environment markers to pin snowflake-connector-python<3.0.0 there.
+
+# Build tools
+build
+setuptools
+wheel
+
+# Runtime deps needed on the pipeline image (Python 3.11) for build + test
+#pandas
+#pytz
+boto3
+pytest
+snowflake-connector-python>=3.0.0
+# cryptography
+# pyjwt
+# usaddress
+# requests

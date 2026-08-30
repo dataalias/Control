@@ -1,0 +1,5 @@
+definition_version: 1
+streamlit:
+  name: datahub_management_system
+  main_file: snowflake_streamlit_app.py
+  query_warehouse: DEV_WH_R
