@@ -107,7 +107,7 @@ Data is logged to:
 ```
 ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG
 ```
-Table definition: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger#Table-Schema
+Table definition: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger#Table-Schema
 
 The table uses a sequence (`SEQ__STEP_LOG_ID`) so each logging call knows its own ID and parent ID definitively.
 

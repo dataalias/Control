@@ -76,8 +76,8 @@ build = [
 # AWS Glue compatible versions (pinned to avoid conflicts with pre-installed packages)
 
 [project.urls]
-Homepage = "https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
-Documentation = "https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
+Homepage = "https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
+Documentation = "https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
 
 [tool.setuptools]
 packages = ["eimutils"]

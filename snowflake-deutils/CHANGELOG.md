@@ -1,7 +1,7 @@
 # Change Log
 
 All notable changes to the "deutils" project will be documented in this file.
-Supporting confluence page: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils
+Supporting confluence page: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils
 
 
 |Version|Description|Release Date|Status|
