@@ -110,8 +110,8 @@ class MhiSalesData(Base):
             auth_sub_domain (str): The Salesforce subdomain for authentication
                 (e.g., 'login' for production, 'test' for sandbox).
             api_sub_domain (str): The Salesforce subdomain for API calls. For example,
-                a value of "mintmobile2023" would get added to the full URL to produce
-                "mintmobile2023.my.salesforce.com".
+                a value of "my_org_2023" would get added to the full URL to produce
+                "my_org_2023.my.salesforce.com".
 
         Raises:
             Exception: If authentication fails during parent class initialization.

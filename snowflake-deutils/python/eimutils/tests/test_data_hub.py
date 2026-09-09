@@ -33,7 +33,7 @@ class DataHubIntegrationTest(unittest.TestCase):
         tracemalloc.start()
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
+            "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI"
         )
         os.environ["AWS_REGION"] = "us-west-2"
 
@@ -43,9 +43,9 @@ class DataHubIntegrationTest(unittest.TestCase):
                 os.environ["ENV"],
                 os.environ["AWS_REGION"],
                 "RAW",
-                "ULTRA",
+                "MY_ORG",
                 "CARE",
-                "ULTRA_DEV_RAW",
+                "MY_ORG_DEV_RAW",
             )
             cls.dh = DataHub(os.environ["AWS_SECRET_ARN_SF_CONN"], os.environ["ENV"])
             log_to_console(__name__, "Info", "DataHubIntegrationTest.setUpClass :: Complete.")

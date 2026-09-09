@@ -37,7 +37,7 @@ class TestStepLogger(unittest.TestCase):
 
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
+            "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI"
         )
         os.environ["AWS_REGION"] = "us-west-2"
 
@@ -256,7 +256,7 @@ class TestStepLoggerIntegration(unittest.TestCase):
 
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
+            "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI"
         )
         os.environ["AWS_REGION"] = "us-west-2"
 

@@ -47,7 +47,7 @@ Parameters:
     env - Snowflake environment, DEV/STAGE/PROD. Required.
     aws_region - Region the secret is stored. e.g. us-west-2. Required.
     envlayer - Environment layer, RAW/CURATION/WAREHOUSE.  Required when build 3.1 roles.
-    brand - {ULTRA, MINT, or PLUM} Required when build 3.1 roles.
+    brand - {MY_ORG, MY_BRAND_2, or MY_BRAND_3} Required when build 3.1 roles.
     project - Name of the project that is used within the role. Required when build 3.1 roles.
     spark_session - flag indicating, whether sfOptions for spark dataframe usage should be returned
 
@@ -483,7 +483,7 @@ def snowflake_pipeline_logging(
     job_id: str = "Not Provided",
 ):
     """
-    Function used to log ETL Pipeline activity to the @ENV@.ULTRA_DL_MONITORING.JOB_RUN_DETAILS Snowflake table.
+    Function used to log ETL Pipeline activity to the @ENV@.MY_ORG_DL_MONITORING.JOB_RUN_DETAILS Snowflake table.
     Can be used for single value insert statement or multi-value insert statements. If used for a single insert,
     then source_location and table_name should be strings and row_count should  be an integer. If used for a
     multi-value insert statement, then source_location and table_name should both be lists containing strings whereas
@@ -507,10 +507,10 @@ def snowflake_pipeline_logging(
         "\033[91mWarn\033[0m",
         "\033[91mUse of this function -- eimutils.utils.snowflake_pipeline_logging -- \
         should be deprecated and replaced with StepLogger. \
-        See: \033[94mhttps://kaena1.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger\033[0m",
+        See: \033[94mhttps://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger\033[0m",
     )
     env = env.upper()
-    database, schema, table = f"ULTRA_{env}_RAW", "DATA_HUB", "ISSUE"
+    database, schema, table = f"MY_ORG_{env}_RAW", "DATA_HUB", "ISSUE"
     job_status = "IC" if job_status == "SUCCESS" else "IF"
 
     def _esc(val: str) -> str:
@@ -518,9 +518,9 @@ def snowflake_pipeline_logging(
 
     # Get the AWS Secrets used for the Snowflake Connection.
     _secret_map = {
-        "DEV": "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_dw30_keys-L7xm5U",
-        "STAGE": "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_stage_dw30_keys-XsUKxP",
-        "PROD": "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_prod_dw30_keys-IGFHqu",
+        "DEV": "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_dev_dw30_keys-L7xm5U",
+        "STAGE": "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_stage_dw30_keys-XsUKxP",
+        "PROD": "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_prod_dw30_keys-IGFHqu",
     }
     if env not in _secret_map:
         raise ValueError(f"snowflake_pipeline_logging: unsupported env {env!r}. Must be DEV, STAGE, or PROD.")

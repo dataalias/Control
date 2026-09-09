@@ -157,10 +157,10 @@ class TestGetSnowflakeConnectionFromSecret(unittest.TestCase):
         mock_conn.return_value = MagicMock()
         get_snowflake_connection_from_secret(
             "arn:fake", "DEV", "us-west-2",
-            envlayer="RAW", brand="ULTRA", project="CARE"
+            envlayer="RAW", brand="MY_ORG", project="CARE"
         )
         sf_role = mock_conn.call_args[0][3]
-        self.assertEqual(sf_role, "ULTRA_DEV_CARE_RAW_ADMIN")
+        self.assertEqual(sf_role, "MY_ORG_DEV_CARE_RAW_ADMIN")
 
     @patch("eimutils.utils.connect_database")
     @patch("eimutils.utils.getPEMKey", return_value=b"pem")

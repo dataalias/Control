@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**eimutils** is a shared Python utility library for T-Mobile EIM (Enterprise Information Management) data engineering pipelines. It is deployed as a wheel to S3 (`s3://kaena-eim-glue/{env}/lib/eimutils/`) and consumed by AWS Glue jobs, Lambda functions, and Snowflake stored procedures.
+**eimutils** is a shared Python utility library for MY_ORGANIZATION EIM (Enterprise Information Management) data engineering pipelines. It is deployed as a wheel to S3 (`s3://MY_ORG-eim-glue/{env}/lib/eimutils/`) and consumed by AWS Glue jobs, Lambda functions, and Snowflake stored procedures.
 
 ## Build, Test, and Lint
 
@@ -76,7 +76,7 @@ Key implementation notes:
 
 ### Database DDL
 
-`Database/Control/` holds greenfield DDL for the full `DATA_HUB` schema (tables, sequences, stored procedures, reference data). DDL files use `ULTRA_@ENV@_RAW.DATA_HUB.<table>` three-part names with `@ENV@` replaced at deploy time.
+`Database/Control/` holds greenfield DDL for the full `DATA_HUB` schema (tables, sequences, stored procedures, reference data). DDL files use `MY_ORG_@ENV@_RAW.DATA_HUB.<table>` three-part names with `@ENV@` replaced at deploy time.
 
 `database_change/` holds versioned migration scripts (`V{n}__{TICKET}--{Description}.sql`) applied via schemachange. The pipeline downloads and runs `schema_change_pipeline-{PIPELINE_VERSION}.py` from S3. V7 and V8 are intentionally absent — the gap is known and benign.
 
@@ -140,7 +140,7 @@ eimutils==<version>,snowflake-connector-python>=3.12.0,urllib3<2.0.0
 
 ## Confluence / Jira
 
-- Project wiki: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils
+- Project wiki: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils
 
 ## Known Intentional Decisions
 
