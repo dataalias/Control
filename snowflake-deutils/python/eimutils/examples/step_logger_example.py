@@ -32,7 +32,7 @@ def example_basic_usage():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Enhanced_Basic_Example",
@@ -70,7 +70,7 @@ def example_basic_usage():
                 description="Successfully extracted customer records from PostgreSQL",
                 record_count=1000,
                 custom_attributes={
-                    "lccop_count": "{i}",
+                    "lccop_count": i,
                     "extraction_time_ms": 1500,
                 }
             )
@@ -148,7 +148,7 @@ def example_etl_pipeline():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Customer_Data_ETL_Enhanced",
@@ -332,7 +332,7 @@ def example_totals_tracking():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Totals_Tracking_Demo",
@@ -421,7 +421,7 @@ def example_error_handling():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Error_Handling_Demo",
@@ -498,7 +498,7 @@ def example_batch_processing():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Batch_File_Processor",
@@ -600,7 +600,7 @@ def example_data_quality_checks():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Data_Quality_Validation",
@@ -732,7 +732,7 @@ def example_api_integration():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="External_API_Integration",
@@ -835,7 +835,7 @@ def example_best_practices_demo():
 
     etl_execution_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:eim_dev_pipeline_keys-yj4HJ6",
+        secret_key="arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_dev_pipeline_keys-yj4HJ6",
         env="DEV",
         etl_execution_id=etl_execution_id,
         process_name="Best_Practices_Demo",

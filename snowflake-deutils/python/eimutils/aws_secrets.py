@@ -37,14 +37,18 @@ class AwsSecrets:
     Example:
         Basic usage:
             aws_secrets = AwsSecrets(
-                "arn:aws:secretsmanager:MY_AWS_REGION:123456789012:secret:my-secret-abcdef",
-                "MY_AWS_REGION"
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:my-secret-abcdef",
+                "us-west-2"
             )
             secrets_dict = aws_secrets.get_secret()
             jwt_token = aws_secrets.get_sfdc_jwt_token()
     """
 
     _instance = None
+    # Caching note: secrets are fetched once at first instantiation and held for the
+    # process lifetime. Rotated credentials are not picked up without a process restart.
+    # This is acceptable for Glue jobs (short-lived) and Streamlit sessions (restarted
+    # on deploy). If you need TTL-based refresh, replace the singleton pattern here.
 
     def __new__(cls, secret_arn: str, aws_region: str):
         """Create or return existing singleton instance.
@@ -63,6 +67,12 @@ class AwsSecrets:
         if cls._instance is None:
             cls._instance = super(AwsSecrets, cls).__new__(cls)
             cls._instance.initialize_aws_secrets(secret_arn, aws_region)
+        elif cls._instance.secret_arn != secret_arn:
+            raise ValueError(
+                f"AwsSecrets singleton already initialised with ARN "
+                f"'{cls._instance.secret_arn}'. Cannot reinitialise with "
+                f"'{secret_arn}' in the same process."
+            )
         return cls._instance
 
     def initialize_aws_secrets(self, secret_arn: str, aws_region: str):
@@ -153,7 +163,13 @@ def get_secrets_dict(secret_arn: str, aws_region: str) -> dict:
         Exception: If retrieval from AWS Secrets Manager fails.
     """
     secret = get_secrets(secret_arn, aws_region)
-    return json.loads(secret)
+    try:
+        return json.loads(secret)
+    except (json.JSONDecodeError, TypeError) as e:
+        raise ValueError(
+            f"Secret at ARN '{secret_arn}' is not valid JSON. "
+            f"Binary secrets are not supported by this function. Error: {e}"
+        ) from e
 
 
 """
@@ -188,7 +204,7 @@ def get_secrets(srcArn, aws_region):
     try:
         get_secret_value_response = client.get_secret_value(SecretId=srcArn)
 
-        logger.debug(f"Secret Retrieved :: Value: {get_secret_value_response}")
+        logger.debug("Secret Retrieved :: OK")
 
     except ClientError as e:
         if e.response["Error"]["Code"] == "DecryptionFailureException":

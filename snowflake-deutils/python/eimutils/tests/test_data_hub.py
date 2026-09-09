@@ -33,9 +33,9 @@ class DataHubIntegrationTest(unittest.TestCase):
         tracemalloc.start()
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET"
+            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
         )
-        os.environ["AWS_REGION"] = "MY_AWS_REGION"
+        os.environ["AWS_REGION"] = "us-west-2"
 
         try:
             cls.sf_conn = get_snowflake_connection_from_secret(
@@ -43,9 +43,9 @@ class DataHubIntegrationTest(unittest.TestCase):
                 os.environ["ENV"],
                 os.environ["AWS_REGION"],
                 "RAW",
-                "MY_ORG",
+                "ULTRA",
                 "CARE",
-                "MY_ORG_DEV_RAW",
+                "ULTRA_DEV_RAW",
             )
             cls.dh = DataHub(os.environ["AWS_SECRET_ARN_SF_CONN"], os.environ["ENV"])
             log_to_console(__name__, "Info", "DataHubIntegrationTest.setUpClass :: Complete.")
@@ -535,9 +535,9 @@ PublicationCode
                 result = dh.get_publication_list(params)
                 self.assertEqual(result["Status"], "Success", "Expected Success inside context.")
 
-            self.assertTrue(
-                dh.db_connection.is_closed(),
-                "Expected connection to be closed after exiting context manager.",
+            self.assertIsNone(
+                dh.db_connection,
+                "Expected connection to be None after exiting context manager.",
             )
             log_to_console(__name__, "Info", "test_060_context_manager :: Complete.")
         except Exception as err:
@@ -587,6 +587,72 @@ PublicationCode
             log_to_console(__name__, "Error", f"test_080_is_issue_absent :: Failed :: {str(err)}")
             assert False, err
 
+    def test_085_write_issue_insert(self):
+        try:
+            log_to_console(__name__, "Info", "test_085_write_issue_insert :: Starting.")
+            params = {
+                "PublisherCode": "PUBR01",
+                "CurrentDate": f"{datetime.now():%Y-%m-%d %H:%M:%S.%f}",
+            }
+            self.dh.get_publication_list(params)
+            self.dh.set_publication_code("PUBN02-ASSG")
+
+            issue = {
+                "IssueName": "Assignment_20241001.csv",
+                "SrcIssueName": "Assignment.csv",
+                "StatusCode": "IC",
+                "ETLExecutionId": "test_085_write_issue_insert",
+                "PeriodStartTime": params["CurrentDate"],
+                "PeriodEndTime": params["CurrentDate"],
+                "PeriodStartTimeUTC": f"{params['CurrentDate']} +0000",
+                "PeriodEndTimeUTC": f"{params['CurrentDate']} +0000",
+            }
+            result = self.dh.write_issue(issue)
+            self.assertEqual(result["Status"], "Success", "Expected Status=Success after write_issue insert.")
+
+            issue_id = self.dh.get_issue_id()
+            self.assertIsNotNone(issue_id, "Expected IssueId to be assigned after insert.")
+            self.assertNotEqual(str(issue_id), "-1", "Expected a real IssueId, not -1.")
+
+            cursor = self.sf_conn.cursor()
+            cursor.execute(
+                "SELECT IssueId, StatusCode FROM DATA_HUB.Issue WHERE IssueId = %s",
+                (issue_id,),
+            )
+            row = cursor.fetchone()
+            cursor.close()
+
+            self.assertIsNotNone(row, "Expected inserted issue to exist in DB.")
+            self.assertEqual(row[1], "IC", "Expected StatusCode=IC after write_issue insert.")
+            log_to_console(__name__, "Info", "test_085_write_issue_insert :: Complete.")
+        except Exception as err:
+            log_to_console(__name__, "Error", f"test_085_write_issue_insert :: Failed :: {str(err)}")
+            assert False, err
+
+    def test_086_write_issue_update(self):
+        try:
+            log_to_console(__name__, "Info", "test_086_write_issue_update :: Starting.")
+            # Relies on test_085 having inserted PUBN02-ASSG and left IssueId set on self.dh
+            result = self.dh.write_issue({"StatusCode": "CM", "RecordCount": 99})
+            self.assertEqual(result["Status"], "Success", "Expected Status=Success after write_issue update.")
+
+            issue_id = self.dh.get_issue_id()
+            cursor = self.sf_conn.cursor()
+            cursor.execute(
+                "SELECT StatusCode, RecordCount FROM DATA_HUB.Issue WHERE IssueId = %s",
+                (issue_id,),
+            )
+            row = cursor.fetchone()
+            cursor.close()
+
+            self.assertIsNotNone(row, "Expected issue row to exist after update.")
+            self.assertEqual(row[0], "CM", "Expected StatusCode=CM after write_issue update.")
+            self.assertEqual(row[1], 99, "Expected RecordCount=99 after write_issue update.")
+            log_to_console(__name__, "Info", "test_086_write_issue_update :: Complete.")
+        except Exception as err:
+            log_to_console(__name__, "Error", f"test_086_write_issue_update :: Failed :: {str(err)}")
+            assert False, err
+
     def test_900_cleanup_data_hub(self):
         try:
             log_to_console(__name__, "Info", "test_900_cleanup_data_hub :: Starting.")
@@ -602,8 +668,8 @@ delete from DATA_HUB.Publisher                          where publishercode     
 delete from DATA_HUB.Contact                            where ContactName       in (
     'PUB_Contact_Test01','PUB_Contact_Test02','SUB_Contact_Test01','SUB_Contact_Test02');
 """
-            # self.sf_conn.execute_string(sql)
-            # self.sf_conn.commit()
+            self.sf_conn.execute_string(sql)
+            self.sf_conn.commit()
             log_to_console(__name__, "Info", f"test_900_cleanup_data_hub :: Complete. :: {sql}")
         except Exception as err:
             log_to_console(__name__, "Error", f"test_900_cleanup_data_hub :: Failed :: {str(err)}")

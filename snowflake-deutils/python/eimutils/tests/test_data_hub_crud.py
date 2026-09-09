@@ -28,9 +28,9 @@ class DataHubCRUDIntegrationTest(unittest.TestCase):
     def setUpClass(cls):
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET"
+            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
         )
-        os.environ["AWS_REGION"] = "MY_AWS_REGION"
+        os.environ["AWS_REGION"] = "us-west-2"
 
         try:
             cls.crud = DataHubCRUD()
@@ -39,9 +39,9 @@ class DataHubCRUDIntegrationTest(unittest.TestCase):
                 env=os.environ["ENV"],
                 aws_region=os.environ["AWS_REGION"],
                 envlayer="RAW",
-                brand="MY_ORG",
+                brand="ULTRA",
                 project="CARE",
-                database="MY_ORG_DEV_RAW",
+                database="ULTRA_DEV_RAW",
             )
             log_to_console(__name__, "Info", "DataHubCRUDIntegrationTest.setUpClass :: Complete.")
         except Exception as e:

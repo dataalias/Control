@@ -28,7 +28,7 @@ select	 pr.PublisherId
 			,pn.PublicationArchivePath
 			,pn.PublicationGroupSequence
 			,id.IssueId					    LastIssueId
-			,'Unknown'				        IssueName	
+			,IFNULL(id.IssueName, 'Unknown')	IssueName
 			,id.PeriodStartTime				LastHighWaterMarkDatetime
 			,id.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
 			,id.PeriodEndTime				HighWaterMarkDatetime

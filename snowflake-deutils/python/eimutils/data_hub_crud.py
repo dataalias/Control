@@ -26,15 +26,34 @@ class DataHubCRUD:
         """Initialize DataHubCRUD with empty connection"""
         self.connection = None
 
+    def close(self):
+        """Close the Snowflake connection."""
+        if self.connection:
+            try:
+                self.connection.close()
+            except Exception:
+                pass
+            self.connection = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+        return False
+
+    def __del__(self):
+        self.close()
+
     def initialize(
         self,
         secret_arn: str,
         env: str,
-        aws_region: str = "MY_AWS_REGION",
+        aws_region: str = "us-west-2",
         envlayer: str = "",
         brand: str = "",
         project: str = "",
-        database: str = "MY_ORG_DEV_RAW",
+        database: str = "ULTRA_DEV_RAW",
     ):
         """
         Initialize database connection using AWS Secrets Manager
@@ -44,7 +63,7 @@ class DataHubCRUD:
             env: Environment (DEV, STAGE, PROD)
             aws_region: AWS region for secrets manager
             envlayer: Snowflake environment layer (e.g. RAW)
-            brand: Brand segment (e.g. MY_ORG)
+            brand: Brand segment (e.g. ULTRA)
             project: Project segment (e.g. CARE)
             database: Snowflake database name
 
@@ -127,9 +146,9 @@ class DataHubCRUD:
         try:
             cursor = self.connection.cursor()
             if params:
-                result = cursor.execute(query, params)
+                cursor.execute(query, params)
             else:
-                result = cursor.execute(query)
+                cursor.execute(query)
 
             rows_affected = cursor.rowcount
             self.connection.commit()
@@ -149,7 +168,8 @@ class DataHubCRUD:
                 "SELECT * FROM DATA_HUB.Publisher ORDER BY PublisherCode"
             )
             return df.to_dict("records")
-        except Exception:
+        except Exception as e:
+            log_to_console(__name__, "Error", f"get_publishers failed: {e}")
             return []
 
     def get_subscribers(self) -> list:
@@ -159,7 +179,8 @@ class DataHubCRUD:
                 "SELECT * FROM DATA_HUB.Subscriber ORDER BY SubscriberCode"
             )
             return df.to_dict("records")
-        except Exception:
+        except Exception as e:
+            log_to_console(__name__, "Error", f"get_subscribers failed: {e}")
             return []
 
     def get_publications(self) -> list:
@@ -169,36 +190,104 @@ class DataHubCRUD:
                 "SELECT * FROM DATA_HUB.Publication ORDER BY PublicationCode"
             )
             return df.to_dict("records")
-        except Exception:
+        except Exception as e:
+            log_to_console(__name__, "Error", f"get_publications failed: {e}")
             return []
 
     def validate_referential_integrity(
         self, table_name: str, operation: str, data: dict
     ) -> tuple:
         """
-        Validate referential integrity for CRUD operations
+        Validate referential integrity for CRUD operations.
 
         Args:
-            table_name: Name of the table being operated on
+            table_name: Table being operated on — Publisher, Publication, Subscription
             operation: CREATE, UPDATE, or DELETE
-            data: Data dictionary to validate
+            data: Data dictionary containing the record fields
 
         Returns:
             Tuple of (is_valid: bool, message: str)
         """
+        def _count(sql, params):
+            df = self.execute_query(sql, params)
+            return 0 if df.empty else int(df.iloc[0, 0])
+
         try:
-            # Basic validation - check for duplicate keys
-            if operation == "CREATE" and table_name == "Publisher":
-                if "PublisherCode" in data:
-                    existing = self.execute_query(
-                        "SELECT COUNT(*) FROM DATA_HUB.Publisher WHERE PublisherCode = %s",
-                        (data["PublisherCode"],),
-                    )
-                    if not existing.empty and existing.iloc[0, 0] > 0:
-                        return (
-                            False,
-                            f"Publisher with code '{data['PublisherCode']}' already exists",
+            op = operation.upper()
+            tbl = table_name
+
+            # ── Publisher ────────────────────────────────────────────────────────────
+            if tbl == "Publisher":
+                if op == "CREATE":
+                    if "PublisherCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Publisher WHERE PublisherCode = %s",
+                            (data["PublisherCode"],),
                         )
+                        if n > 0:
+                            return False, f"Publisher '{data['PublisherCode']}' already exists"
+
+                elif op == "DELETE":
+                    if "PublisherCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Publication WHERE PublisherCode = %s",
+                            (data["PublisherCode"],),
+                        )
+                        if n > 0:
+                            return False, (
+                                f"Cannot delete Publisher '{data['PublisherCode']}': "
+                                f"{n} Publication(s) reference it"
+                            )
+
+            # ── Publication ──────────────────────────────────────────────────────────
+            elif tbl == "Publication":
+                if op in ("CREATE", "UPDATE"):
+                    if "PublicationCode" in data and op == "CREATE":
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Publication WHERE PublicationCode = %s",
+                            (data["PublicationCode"],),
+                        )
+                        if n > 0:
+                            return False, f"Publication '{data['PublicationCode']}' already exists"
+
+                    if "PublisherCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Publisher WHERE PublisherCode = %s",
+                            (data["PublisherCode"],),
+                        )
+                        if n == 0:
+                            return False, f"Publisher '{data['PublisherCode']}' does not exist"
+
+                elif op == "DELETE":
+                    if "PublicationCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Subscription WHERE PublicationCode = %s",
+                            (data["PublicationCode"],),
+                        )
+                        if n > 0:
+                            return False, (
+                                f"Cannot delete Publication '{data['PublicationCode']}': "
+                                f"{n} Subscription(s) reference it"
+                            )
+
+            # ── Subscription ─────────────────────────────────────────────────────────
+            elif tbl == "Subscription":
+                if op in ("CREATE", "UPDATE"):
+                    if "PublicationCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Publication WHERE PublicationCode = %s",
+                            (data["PublicationCode"],),
+                        )
+                        if n == 0:
+                            return False, f"Publication '{data['PublicationCode']}' does not exist"
+
+                    if "SubscriberCode" in data:
+                        n = _count(
+                            "SELECT COUNT(*) FROM DATA_HUB.Subscriber WHERE SubscriberCode = %s",
+                            (data["SubscriberCode"],),
+                        )
+                        if n == 0:
+                            return False, f"Subscriber '{data['SubscriberCode']}' does not exist"
 
             return True, "Validation passed"
         except Exception as e:

@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG(
     Process_Name varchar(256) NULL,
     Process_Type varchar(256) NULL,
     Step_Name varchar(256) NULL,
-    Step_Desc varchar(8000) NULL,
+    Step_Desc VARIANT NULL,
     Step_Status varchar(10) NULL,
     Start_Dtm datetime NOT NULL,
     Duration_In_Seconds int NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG(
 | `Process_Name` | varchar(256) | Name of the overall process |
 | `Process_Type` | varchar(256) | Category of process (ETL, BATCH, etc.) |
 | `Step_Name` | varchar(256) | Name of the individual step |
-| `Step_Desc` | varchar(8000) | JSON string containing structured metadata |
+| `Step_Desc` | VARIANT | Structured metadata stored as parsed JSON (Snowflake VARIANT) |
 | `Step_Status` | varchar(10) | START, SUCCESS, FAILED, or END |
 | `Start_Dtm` | datetime | Timestamp when step started |
 | `Duration_In_Seconds` | int | Calculated step duration |
@@ -141,7 +141,7 @@ StepLogger
 | `process_name` | str | Name of the process being logged |
 | `process_type` | str | Type of process (default: 'ETL') |
 | `database` | str | Snowflake database name (ULTRA_{env}_RAW) |
-| `aws_region` | str | AWS region (default: 'MY_AWS_REGION') |
+| `aws_region` | str | AWS region (default: 'us-west-2') |
 
 ### Process Tracking Properties
 
@@ -190,7 +190,7 @@ StepLogger
 **Example**:
 ```python
 logger = StepLogger(
-    secret_key="arn:aws:secretsmanager:MY_AWS_REGION:123456789:secret:db-creds",
+    secret_key="arn:aws:secretsmanager:us-west-2:123456789:secret:db-creds",
     env="DEV",
     etl_execution_id=str(uuid.uuid4()),
     process_name="Daily_Customer_ETL",
@@ -259,7 +259,7 @@ logger.start_step(
 **Step Description JSON Structure**:
 ```json
 {
-    "MessageType": "SUCCESS" | "ERROR",
+    "MessageType": "SUCCESS" | "FAILED" | "INFO",
     "StepNumber": 0,
     "Operation": "EXTRACT",
     "Description": "Successfully processed customer data",
@@ -353,7 +353,7 @@ from eimutils.step_logger import StepLogger
 def run_basic_etl():
     etl_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:123456:secret:prod-db",
+        secret_key="arn:aws:secretsmanager:us-west-2:123456:secret:prod-db",
         env="PROD",
         etl_execution_id=etl_id,
         process_name="Customer_Data_ETL",

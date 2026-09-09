@@ -20,11 +20,17 @@ _IDENTIFIER_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_$]*$')
 
 
 def _n(v):
-    # None becomes SQL NULL with parameterized queries; coerce to "" for non-nullable VARCHAR columns
+    # None becomes "" because several ISSUE columns are declared NOT NULL VARCHAR.
+    # Passing None through would write SQL NULL and cause a NOT NULL constraint violation
+    # on those columns. Known limitation: legitimate NULLs cannot be written to
+    # NUMBER/TIMESTAMP columns via this helper; callers that need NULL for a numeric or
+    # timestamp column must handle it before calling _n().
     if v is None:
         return ""
     if hasattr(v, 'item'):  # coerce numpy scalars (int64, float64, etc.) to native Python types
         return v.item()
+    if hasattr(v, 'isoformat'):  # datetime/date/Timestamp — old connector (<3.0) can't bind these
+        return str(v)
     return v
 
 
@@ -41,6 +47,7 @@ def get_publication_list(connection: Any, params: dict, get_type: str) -> pd.Dat
         PublisherCode: string
     :return: publication_list dictionary of publication attributes
     """
+    cursor = None
     try:
         params_values = []
         if get_type in ("Schedule", "PublisherCode"):
@@ -80,19 +87,20 @@ select	 pr.PublisherId
         ,pn.PublicationArchivePath
         ,pn.PublicationGroupSequence
         ,id.IssueId					LastIssueId
-        ,'Unknown'				IssueName
+        ,IFNULL(id.IssueName, 'Unknown')	IssueName
         ,id.PeriodStartTime				LastHighWaterMarkDatetime
         ,id.PeriodStartTimeUTC			LastHighWaterMarkDatetimeUTC
         ,id.PeriodEndTime				HighWaterMarkDatetime
         ,id.PeriodEndTimeUTC			HighWaterMarkDatetimeUTC
         ,LastRecordSeq					HighWaterMarkRecordSeq
         ,id.PublicationSeq
-        ,subn.SUBSCRIPTIONFILEPATH
+        ,subn.SUBSCRIPTIONFILEPATH      SubscriptionFilePath
     from 	DATA_HUB.Publication		  pn
     left join (
         select
              iss.IssueId                                    IssueId
             ,issd.PublicationCode                           PublicationCode
+            ,iss.IssueName                                  IssueName
             ,ifnull(iss.PeriodStartTime   ,'1900-01-01')    PeriodStartTime
             ,iss.PeriodEndTime                              PeriodEndTime
             ,ifnull(iss.PeriodStartTimeUTC,'1900-01-01')    PeriodStartTimeUTC
@@ -135,8 +143,10 @@ select	 pr.PublisherId
             params_values = [params['PublisherCode'], params['CurrentDate'], params['PublisherCode']]
 
         else:
-            # print('Cant determine what data to get from database.')
-            sql = "N/A"
+            raise NotImplementedError(
+                f"get_type={get_type!r} is not yet implemented. "
+                "Supported values: 'Schedule', 'PublisherCode'."
+            )
 
         # print(sql)
 
@@ -186,7 +196,8 @@ select	 pr.PublisherId
         # return {"Status": "Failed", "Error Message": error_msg}
 
     finally:
-        cursor.close()
+        if cursor:
+            cursor.close()
     return df_publication_list
 
 
@@ -229,7 +240,7 @@ def prepare_issues(publication_list: pd.DataFrame) -> list:
                 "PeriodStartTime": publication["LASTHIGHWATERMARKDATETIME"],
                 "PeriodEndTime": publication["HIGHWATERMARKDATETIME"],
                 "PeriodStartTimeUTC": publication["LASTHIGHWATERMARKDATETIMEUTC"],
-                "PeriodEndTimeUTC": publication["HIGHWATERMARKDATETIME"],
+                "PeriodEndTimeUTC": publication["HIGHWATERMARKDATETIMEUTC"],
                 "IssueConsumedDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "RecordCount": "0",
                 "RetryCount": "0",
@@ -256,18 +267,11 @@ def prepare_issues(publication_list: pd.DataFrame) -> list:
             )  # ['RecordCount']  # Maybe you want to start with a different status.
             issue["ETLExecutionId"] = "-1"
 
-            if issue["PeriodStartTime"] is None:
-                issue["PeriodStartTime"] = "1900-01-01"
-                # print('PeriodStartTime was none')
-            if issue["PeriodStartTimeUTC"] is None:
-                issue["PeriodStartTimeUTC"] = "1900-01-01"
-                # print('PeriodStartTimeUTC was none')
-            if issue["PeriodEndTime"] is None:
-                issue["PeriodEndTime"] = "1900-01-01"
-                # print('PeriodEndTime was none')
-            if issue["PeriodEndTimeUTC"] is None:
-                issue["PeriodEndTimeUTC"] = "1900-01-01"
-                # print('PeriodEndTimeUTC was none')
+            # pd.isna() catches both Python None and pandas NaN (which is what
+            # pandas stores for None in a mixed-type column during iteration).
+            for key in ("PeriodStartTime", "PeriodStartTimeUTC", "PeriodEndTime", "PeriodEndTimeUTC"):
+                if issue[key] is None or pd.isna(issue[key]):
+                    issue[key] = "1900-01-01"
 
             issue_list.append(issue)
             issue = {}  # Clean out the issue for the next loop.
@@ -276,11 +280,9 @@ def prepare_issues(publication_list: pd.DataFrame) -> list:
         issue_list.append(index)
 
     except Exception as err:
-        error_msg = (
-            "data_hub_connection.prepare_issues :: Exception building issue ",
-            err,
-        )
+        error_msg = f"data_hub_connection.prepare_issues :: Exception building issue: {err}"
         log_to_console(__name__, "Error", error_msg)
+        raise Exception(error_msg)
 
     return issue_list
 
@@ -331,12 +333,16 @@ def insert_new_issue(connection: Any, issue: dict) -> dict:
  );
 """
 
+        cursor = None
         cursor = connection.cursor()
         try:
             cursor.execute("SELECT DATA_HUB.SEQ_ISSUE_ID.NEXTVAL")
             next_id = int(cursor.fetchone()[0])
-        except Exception:
-            # Sequence not yet deployed — fall back to MAX(IssueId) + 1 across all issues
+        except snowflake.connector.errors.ProgrammingError:
+            # Sequence not yet deployed — fall back to MAX(IssueId) + 1 across all issues.
+            # Uses a fresh cursor because the previous one may be in an aborted state.
+            cursor.close()
+            cursor = connection.cursor()
             cursor.execute("SELECT IFNULL(MAX(IssueId), 0) + 1 FROM DATA_HUB.Issue")
             next_id = int(cursor.fetchone()[0])
 
@@ -384,7 +390,7 @@ def insert_new_issue(connection: Any, issue: dict) -> dict:
             err, issue["IssueName"]
         )
         log_to_console(__name__, "Error", error_msg)
-        return {"message": error_msg}
+        raise Exception(error_msg)
     finally:
         if cursor:
             cursor.close()
@@ -412,10 +418,11 @@ def update_issue(connection: Any, issue: dict) -> dict:
                 continue
             _validate_identifier(col)
             set_parts.append(f"{col} = %s")
-            values.append(str(val))
+            values.append(_n(val))
         values.append(issue['IssueId'])
         sql = "UPDATE DATA_HUB.ISSUE SET " + ", ".join(set_parts) + " WHERE IssueId = %s"
 
+        cursor = None
         cursor = connection.cursor()
         cursor.execute(sql, values)
         connection.commit()
@@ -449,10 +456,11 @@ def update_issue(connection: Any, issue: dict) -> dict:
             err, issue["IssueName"]
         )
         log_to_console(__name__, "Error", error_msg)
-        return {"Status": error_msg}
+        raise Exception(error_msg)
 
     finally:
-        cursor.close()
+        if cursor:
+            cursor.close()
 
     return {"Status": "Success"}
 

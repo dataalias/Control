@@ -12,6 +12,8 @@ import unittest
 import uuid
 import os
 import tracemalloc
+from datetime import datetime, timedelta
+from unittest.mock import patch, MagicMock
 
 from eimutils.step_logger import StepLogger, StepStatus
 from eimutils.delogging import log_to_console
@@ -35,9 +37,9 @@ class TestStepLogger(unittest.TestCase):
 
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET"
+            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
         )
-        os.environ["AWS_REGION"] = "MY_AWS_REGION"
+        os.environ["AWS_REGION"] = "us-west-2"
 
     @classmethod
     def tearDownClass(cls):
@@ -106,7 +108,7 @@ class TestStepLogger(unittest.TestCase):
             )
 
             self.assertEqual(logger.current_step_name, "extract_data")
-            self.assertEqual(logger.operation, "EXTRACT")
+            self.assertEqual(logger.current_step_operation, "EXTRACT")
             self.assertIsNotNone(logger.current_step_start)
 
             # Log the step as successful
@@ -161,7 +163,7 @@ class TestStepLogger(unittest.TestCase):
 
             self.assertIsNotNone(step_id)
             self.assertGreater(step_id, 0)
-            # FAILED step should not add to TOTAL_COUNT
+            # no record_count passed, so TOTAL_COUNT stays 0
             self.assertEqual(logger.TOTAL_COUNT, 0)
 
             logger.close()
@@ -254,9 +256,9 @@ class TestStepLoggerIntegration(unittest.TestCase):
 
         os.environ["ENV"] = "dev"
         os.environ["AWS_SECRET_ARN_SF_CONN"] = (
-            "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET"
+            "arn:aws:secretsmanager:us-west-2:263307080745:secret:eim_ultra_dev_care_keys-OGR2iI"
         )
-        os.environ["AWS_REGION"] = "MY_AWS_REGION"
+        os.environ["AWS_REGION"] = "us-west-2"
 
     @classmethod
     def tearDownClass(cls):
@@ -390,6 +392,88 @@ class TestStepLoggerIntegration(unittest.TestCase):
             msg = f"TestStepLoggerIntegration.test_080_error_scenario :: Failed :: {err}"
             log_to_console(__name__, "Error", msg)
             self.fail(f"Error scenario test failed: {err}")
+
+
+class TestStepLoggerUnit(unittest.TestCase):
+    """
+    Unit tests for StepLogger business logic.
+    All database and AWS calls are mocked — no live connection required.
+    """
+
+    def _make_logger(self, **kwargs):
+        """Return a StepLogger with all I/O mocked out."""
+        mock_conn = MagicMock()
+        defaults = dict(
+            secret_key="arn:fake",
+            env="DEV",
+            etl_execution_id="test-exec-id",
+            process_name="UnitTest_Process",
+        )
+        defaults.update(kwargs)
+        with patch('eimutils.step_logger.get_snowflake_connection_from_secret', return_value=mock_conn), \
+             patch.object(StepLogger, '_insert_step_log', return_value=42):
+            logger = StepLogger(**defaults)
+        logger.db_connection = mock_conn  # restore mock for subsequent calls
+        return logger
+
+    def test_unit_010_start_step_raises_when_already_active(self):
+        """start_step must raise RuntimeError when a previous step has not been logged."""
+        logger = self._make_logger()
+        logger.start_step("first_step")
+        with self.assertRaises(RuntimeError) as ctx:
+            logger.start_step("second_step")
+        self.assertIn("first_step", str(ctx.exception))
+
+    def test_unit_020_close_is_idempotent(self):
+        """Second call to close() must be a silent no-op, not raise."""
+        logger = self._make_logger()
+        with patch.object(logger, '_insert_step_log', return_value=1):
+            logger.close()
+        self.assertIsNone(logger.db_connection)
+        logger.close()  # must not raise
+
+    def test_unit_030_get_next_sequence_value_delegates(self):
+        """get_next_sequence_value() must delegate to _get_next_step_log_id()."""
+        logger = self._make_logger()
+        with patch.object(logger, '_get_next_step_log_id', return_value=99) as mock_fn:
+            result = logger.get_next_sequence_value()
+        self.assertEqual(result, 99)
+        mock_fn.assert_called_once()
+
+    def test_unit_040_operation_reset_after_log_step(self):
+        """current_step_operation must be None after log_step resets state."""
+        logger = self._make_logger()
+        with patch.object(logger, '_insert_step_log', return_value=1):
+            logger.start_step("my_step", operation="TRANSFORM")
+            self.assertEqual(logger.current_step_operation, "TRANSFORM")
+            logger.log_step(status="SUCCESS")
+        self.assertIsNone(logger.current_step_operation)
+
+    def test_unit_050_duration_rounds_not_truncates(self):
+        """Duration must use round(), not int() — a 0.9 s step records as 1, not 0."""
+        logger = self._make_logger()
+        captured = []
+
+        def capture_insert(step_data):
+            captured.append(step_data.get("Duration_In_Seconds"))
+            return 1
+
+        with patch.object(logger, '_insert_step_log', side_effect=capture_insert):
+            logger.start_step("fast_step")
+            logger.current_step_start = datetime.now() - timedelta(seconds=0.9)
+            logger.log_step(status="SUCCESS")
+
+        self.assertEqual(captured[0], 1)  # round(0.9) == 1; int(0.9) == 0
+
+    def test_unit_060_invalid_env_raises_value_error(self):
+        """StepLogger must raise ValueError for env values with non-identifier characters."""
+        with self.assertRaises(ValueError):
+            StepLogger(
+                secret_key="arn:fake",
+                env="DEV; DROP TABLE STEP_LOG",
+                etl_execution_id="x",
+                process_name="BadEnv",
+            )
 
 
 if __name__ == "__main__":
