@@ -6,6 +6,6 @@
   DTS:CreationName="SMTP">
   <DTS:ObjectData>
     <SmtpConnectionManager
-      ConnectionString="SmtpServer=mail-tools.bridgepoint.local;UseWindowsAuthentication=False;EnableSsl=False;" />
+      ConnectionString="SmtpServer=MY_SMTP_SERVER;UseWindowsAuthentication=False;EnableSsl=False;" />
   </DTS:ObjectData>
 </DTS:ConnectionManager>

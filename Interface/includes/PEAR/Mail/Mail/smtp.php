@@ -96,7 +96,7 @@ class Mail_smtp extends Mail {
      *
      * @var string
      */
-    var $host = 'smtp.gmail.com';
+    var $host = 'localhost';
 
     /**
      * The port the SMTP server is on.
@@ -123,14 +123,14 @@ class Mail_smtp extends Mail {
      *
      * @var string
      */
-    var $username = 'reports@gmail.com';
+    var $username = '';
 
     /**
      * The password to use if the SMTP server requires authentication.
      *
      * @var string
      */
-    var $password = 'Tr33Mug14!';
+    var $password = '';
 
     /**
      * Hostname or domain that will be sent to the remote SMTP server in the

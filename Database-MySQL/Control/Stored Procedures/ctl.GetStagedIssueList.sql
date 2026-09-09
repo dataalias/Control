@@ -1,42 +1,39 @@
-﻿-- Depricate. This seems to be Canvas only.
-
-CREATE PROCEDURE [ctl].[usp_GetPublicationList]
-	 @pPublisherCode			varchar(50) 
+﻿CREATE PROCEDURE [ctl].[GetStagedIssueList]
+	 @pPublicationCode			varchar(50) 
+	,@pStatusCode				varchar(10)			= 'IS'
 	,@pVerbose					int = 0
 AS
 
 /*****************************************************************************
- File:			usp_GetPublicationList.sql
- Name:			usp_GetPublicationList
+ File:			GetStagedIssueList.sql
+ Name:			GetStagedIssueList
  Purpose:		Returns all publications related to a particular publisher.
 				Both Active and InActive publications are returned.
 				It is the applications responsibility to decide what to do
 				with active or inactive records.
 
-	exec ctl.[usp_GetPublicationList] NULL, 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AU', 1
-	exec ctl.[usp_GetPublicationList] 'CANVAS-AB' ,1 
+	exec ctl.[GetStagedIssueList] NULL,'IS', 1
+	exec ctl.[GetStagedIssueList] 'CNVSRTSQS','IS', 1
+	exec ctl.[GetStagedIssueList] 'CNVSRTSQS' ,'IG',1 
+	exec ctl.[GetStagedIssueList] 'CANVAS-AB' ,'IG',1 
+
 
  Parameters:    
 
  Called by:		Application
  Calls:          
 
- Author:		
- Date:			20161114
+ Author:		ffortunato
+ Date:			20170602
 *******************************************************************************
        CHANGE HISTORY
 *******************************************************************************
  Date		Author			Description
  --------	-------------	-----------------------------------------------------
- 20170109	ffortunato		Adding parameters to allow for getting publication 
-							list from based on a specific publisher code.
- 20170110	ffortunato		Error handling
- 20170120a	ffortunato		publication code should be varchar(50)
- 20170120b	ffortunato		returning 2 additional attributes
-							PublicationFilePath
-							PublicationArchivePath
-20170126	ffortunato		adding IsActive indicator to result set.
+
+ 20170602	ffortunato		adding IsActive indicator to result set.
+ 20201118	ffortunato		removing warnings.
+
 ******************************************************************************/
 
 DECLARE	 @Rows					int
@@ -44,6 +41,8 @@ DECLARE	 @Rows					int
 		,@ErrMsg				nvarchar(2000)
 		,@FailedProcedure		varchar(1000)
 		,@ParametersPassedChar	varchar(1000)
+		,@CRLF					varchar(20)
+
 
 -------------------------------------------------------------------------------
 --  Initializations
@@ -51,10 +50,14 @@ DECLARE	 @Rows					int
 SELECT	 @Rows					= @@ROWCOUNT
         ,@Err					= 50000
 		,@ErrMsg				= 'N/A'
-		,@FailedProcedure		= 'Stored Procedure : ' + OBJECT_NAME(@@PROCID) + ' failed.' + Char(13)
-		,@ParametersPassedChar	= char (13) + 'Parameters Passed: ' + char (13) +
-		'	@pPublisherCode : '	+ isnull(@pPublisherCode, 'NULL')   + char (13) +
-		'	@pVerbose : '		+ isnull(cast(@pVerbose as varchar(10)),'NULL')  +   char (13)
+		,@FailedProcedure		= 'Stored Procedure : ' + OBJECT_NAME(@@PROCID) + ' failed.' + Char(13) + Char(10)
+		,@CRLF =  char(13) + char(10) -- CR + LF
+		,@ParametersPassedChar	=       
+			'***** Parameters Passed to exec <schema>.GetStagedIssueList' + @CRLF +
+			'     @pPublicationCode = ''' + isnull(@pPublicationCode ,'NULL') + '''' + @CRLF + 
+			'    ,@pStatusCode = ''' + isnull(@pStatusCode ,'NULL') + '''' + @CRLF + 
+			'    ,@pVerbose = ' + isnull(cast(@pVerbose as varchar(100)),'NULL') + @CRLF + 
+			'***** End of Parameters' + @CRLF 
 
 
 if		@pVerbose				= 1
@@ -67,16 +70,19 @@ end
 
 begin try
 
-IF @pPublisherCode IS NULL or not exists (
-	SELECT	top 1 1 
+IF @pPublicationCode IS NULL 
+or not exists (
+SELECT	top 1 1 
 	FROM	[ctl].[Publication]	  pn
-	JOIN	[ctl].[Publisher]	  pr 
-	ON		pr.PublisherId		= pn.PublisherId
-	WHERE	pr.PublisherCode	= @pPublisherCode)
+	WHERE	pn.PublicationCode	= @pPublicationCode)
+or not exists (
+	SELECT	top 1 1 
+	FROM	[ctl].RefStatus	  rs
+	WHERE	rs.StatusCode	= @pStatusCode)
 
 begin
 
-	select @ErrMsg				=  'Custom Error: PublisherCode not found. Publication list cannont be created.'
+	select @ErrMsg				=  'Custom Error: PublicationCode or StatusCode not found. Issue list cannot be created.'
 
 	if		@pVerbose			= 1
 	begin
@@ -104,16 +110,16 @@ end catch
 
 begin try
 
-	SELECT	 pn.[PublicationId]
-			,pn.[PublicationName]
-			,pn.[PublicationCode]
-			,pn.PublicationFilePath
-			,pn.PublicationArchivePath
-			,pn.IsActive
-	FROM 	[ctl].[Publication]		as pn
-	join	[ctl].[Publisher]		as pr 
-	ON		pr.PublisherId			= pn.PublisherId
-	WHERE	pr.PublisherCode		= @pPublisherCode
+	select	 iss.IssueId
+			,iss.RecordCount
+	from	ctl.Publication		  pn
+	join	ctl.Issue			  iss
+	on		pn.PublicationId	= iss.PublicationId
+	join	ctl.RefStatus		  stat
+	on		iss.StatusId		= stat.StatusId
+	where	pn.PublicationCode	= @pPublicationCode
+	and     stat.StatusCode		= @pStatusCode
+	
 
 end	try
 

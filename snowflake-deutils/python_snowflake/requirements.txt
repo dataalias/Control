@@ -1,0 +1,10 @@
+# Requirements for StepLoggerSnowflake
+# For development and testing outside of Snowflake
+
+# Core Snowflake packages
+snowflake-snowpark-python>=1.0.0
+snowflake-connector-python<3.0.0
+
+# Optional: For deployment script
+# (not needed when running inside Snowflake)
+

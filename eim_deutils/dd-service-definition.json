@@ -1,0 +1,17 @@
+{
+    "contacts": ["MY_NOTIFICATION_EMAIL@example.com"],
+    "dd-service": "eim_deutils",
+    "dd-team": "eim",
+    "docs": ["https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils","https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3384311817/class+datahub"],
+    "links": [],
+    "repos": [
+        {
+            "name": "Source Code",
+            "provider": "bitbucket",
+            "url": "https://bitbucket.org/MY_ORG/eim_deutils"
+        }
+    ],
+    "schema-version": "v2",
+    "tags": ["eim","utils","utilities"],
+    "team": "eim"
+}

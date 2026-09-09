@@ -13,7 +13,7 @@ setup(
     description='This project is a wrapper library to call utility functions that interact with Data Hub.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://git-codecommit.us-east-1.amazonaws.com/v1/repos/deDataHub',
+    url='<MY_REPOSITORY_URL>',
     project_urls={},
     classifiers=[
         "Programming Language :: Python :: 3",

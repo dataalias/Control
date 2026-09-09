@@ -97,7 +97,7 @@ try
     }
 
     $sqlCon = New-Object System.Data.SqlClient.SqlConnection
-    $sqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Connection Timeout=60;Integrated Security=True"
+    $sqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Connection Timeout=60;Integrated Security=True"
     $sqlCon.Open()
 
     # update the issue record so ETL knows we are ready to go.

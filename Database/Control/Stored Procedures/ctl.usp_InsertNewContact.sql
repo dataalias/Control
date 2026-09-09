@@ -23,7 +23,7 @@ Purpose:
 EXEC [ctl].[usp_InsertNewContact] 
 		 @pName						= 'Unit Test Name'
 		,@pTier						= '1'
-		,@pEmail					= 'DM-Development@bpiedu.com'
+		,@pEmail					= '<MY_NOTIFICATION_EMAIL>'
 		,@pPhone					= '877.300.6069'
 		,@pAddress01				= '10180 Telesis Ct'
 		,@pAddress02				= '#400'

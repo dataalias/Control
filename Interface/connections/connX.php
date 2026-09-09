@@ -10,13 +10,13 @@ $connectionInfo = array("UID" => $uid, "PWD" => $pwd)); */
 
 //$serverName = "(local)";
 //$serverName = ".";
-//$serverName = "dedtedlsql01";
+//$serverName = "<MY_SQL_SERVER>";
 $serverName = "dme1edlsql01";
 //$serverName = "(local)\MSSQLSERVER2K8";
 $uid = "DataHubWeb";
-$pwd = "1BE4AF70-3D37-4EDB-99C8-F1CE03BA07F6";
+$pwd = "";
 //$database = "CSR2";
-$database = "BPI_DW_STAGE";
+$database = "MY_DB_STAGE";
 $connectionInfo = array("Database"=>$database, "UID" => $uid, "PWD" => $pwd);
 $conn = sqlsrv_connect($serverName, $connectionInfo);
 

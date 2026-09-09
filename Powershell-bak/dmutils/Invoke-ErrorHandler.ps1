@@ -39,7 +39,7 @@ This function ofers a generic method for handleing errors thrown to a catch bloc
 Desc...
 
 .EXAMPLE
-Invoke_ErrorHandler 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-reply@bpiedu.com' 'Some Subject' 'Some Body' $null #no attachment.
+Invoke_ErrorHandler '<MY_SMTP_SERVER>' '<MY_EMAIL_ADDRESS>' '<MY_NOTIFICATION_EMAIL>' 'Some Subject' 'Some Body' $null #no attachment.
 
 #>
 
@@ -47,70 +47,70 @@ Invoke_ErrorHandler 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-r
 	param (
 	[parameter(Mandatory=$true,
 		Position = 0,
-		HelpMessage=’Sever that will relay the email’
+		HelpMessage=Sever that will relay the email
 		)]
 	[alias("svr")]
 	[string]$smtpserver,
 	
 	[parameter(Mandatory=$true,
 		Position = 1,
-		HelpMessage=’To e-mail address’
+		HelpMessage=To e-mail address
 		)]
 	[alias("t")]
 	[string]$to,
 	
 	[parameter(Mandatory=$true,
 		Position = 2,
-		HelpMessage=’From e-mail address’
+		HelpMessage=From e-mail address
 		)]
 	[alias("f")]
-	[string]$from='no-reply@bpiedu.com',
+	[string]$from='<MY_NOTIFICATION_EMAIL>',
 	
 	[parameter(Mandatory=$true,
 		Position = 3,
-		HelpMessage=’Subject to the e-mail’
+		HelpMessage=Subject to the e-mail
 		)]
 	[alias("s")]
 	[string][AllowNull()]$subject,
 	
 	[parameter(Mandatory=$false,
 		Position = 4,
-		HelpMessage=’Content of the e-mail’
+		HelpMessage=Content of the e-mail
 		)]
 	[alias("b")]
 	[string][AllowNull()]$body,
 	
 	[parameter(Mandatory=$false,
 		Position = 5,
-		HelpMessage=’Attachments to the e-mail’
+		HelpMessage=Attachments to the e-mail
 		)]
 	[alias("a")]
 	[string][AllowNull()]$fileAttachment,
 
 	[parameter(Mandatory=$false,
 		Position = 6,
-		HelpMessage=’File that contains the running log.’
+		HelpMessage=File that contains the running log.
 		)]
 	[alias("log")]
 	[string][AllowNull()]$logFile,
 
 	[parameter(Mandatory=$false,
 		Position = 7,
-		HelpMessage=’System thrown error message.’
+		HelpMessage=System thrown error message.
 		)]
 	[alias("err")]
 	[ref][AllowNull()]$errorObject,
 
 	[parameter(Mandatory=$false,
 		Position = 8,
-		HelpMessage=’Custom Error Message.’
+		HelpMessage=Custom Error Message.
 		)]
 	[alias("cust")]
 	[string][AllowNull()]$customMessage,
 
 	[parameter(Mandatory=$false,
 		Position = 8,
-		HelpMessage=’Action to take by calling procedure.’
+		HelpMessage=Action to take by calling procedure.
 		)]
 	[ValidateSet("Exit","Continue")] 
 	[alias("act")]
@@ -118,7 +118,7 @@ Invoke_ErrorHandler 'mail-tools.bridgepoint.local' 'some-email@bpiedu.com' 'no-r
 	
 	[parameter(Mandatory=$false,
 		Position = 9,
-		HelpMessage=’This is the event log source.’
+		HelpMessage=This is the event log source.
 		)]
 #	[ValidateSet("DataHub")] 
 	[alias("src")]
@@ -167,7 +167,7 @@ $Action
 <#
 		try
 		{
-			Write-EventLog –LogName Application –Source $source –EntryType "Error" –EventID $PID -Message $body -ComputerName 'localhost'
+			Write-EventLog LogName Application Source $source EntryType "Error" EventID $PID -Message $body -ComputerName 'localhost'
 		}
 		catch
 		{

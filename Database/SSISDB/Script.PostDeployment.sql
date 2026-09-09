@@ -21,16 +21,16 @@ DECLARE @vfolder_name NVARCHAR(15) = N'ETLFolder'
 	,@vproject_name NVARCHAR(25) = N'Control'
 	,@FALSE BIT = CAST(0 AS BIT)
 	,@reference_id BIGINT
-	,@AzureFunctionUrl  NVARCHAR(100)    = CASE WHEN @@SERVERNAME IN ('DME1EDLSQL01', 'DEDTEDLSQL01') THEN 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline'
-											  WHEN @@SERVERNAME IN ('QME1EDLSQL01', 'QME3EDLSQL01') THEN 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline'
-											  WHEN @@SERVERNAME = 'PRODEDLSQL01' THEN 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline'
-											  ELSE 'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline'
+	,@AzureFunctionUrl  NVARCHAR(100)    = CASE WHEN @@SERVERNAME IN ('<MY_SQL_SERVER>', '<MY_SQL_SERVER>') THEN '<MY_AZURE_FUNCTION_URL>'
+											  WHEN @@SERVERNAME IN ('<MY_SQL_SERVER>', '<MY_SQL_SERVER>') THEN '<MY_AZURE_FUNCTION_URL>'
+											  WHEN @@SERVERNAME = '<MY_SQL_SERVER>' THEN '<MY_AZURE_FUNCTION_URL>'
+											  ELSE '<MY_AZURE_FUNCTION_URL>'
 										 END
-	,@subscriptionId  NVARCHAR(100)    = '3641d697-5ff2-4b72-9be2-c9ecbebd47c5'
-	,@resourceGroup NVARCHAR(100)    = CASE WHEN @@SERVERNAME IN ('DME1EDLSQL01', 'DEDTEDLSQL01') THEN 'zvo-sbx-01-ds-dev-rg'
-											  WHEN @@SERVERNAME IN ('QME1EDLSQL01', 'QME3EDLSQL01') THEN 'zvo-sbx-01-ds-qa-rg'
-											  WHEN @@SERVERNAME = 'PRODEDLSQL01' THEN 'zvo-sbx-01-ds-rg'
-											  ELSE 'zvo-sbx-01-ds-dev-rg'
+	,@subscriptionId  NVARCHAR(100)    = '<MY_SUBSCRIPTION_ID>'
+	,@resourceGroup NVARCHAR(100)    = CASE WHEN @@SERVERNAME IN ('<MY_SQL_SERVER>', '<MY_SQL_SERVER>') THEN '<MY_RESOURCE_GROUP_DEV>'
+											  WHEN @@SERVERNAME IN ('<MY_SQL_SERVER>', '<MY_SQL_SERVER>') THEN '<MY_RESOURCE_GROUP_QA>'
+											  WHEN @@SERVERNAME = '<MY_SQL_SERVER>' THEN '<MY_RESOURCE_GROUP_PROD>'
+											  ELSE '<MY_RESOURCE_GROUP_DEV>'
 										 END;
 
 Declare @ERefID INT				= (SELECT TOP 1 reference_id

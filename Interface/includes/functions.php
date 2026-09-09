@@ -212,21 +212,21 @@ function footer(){
 	echo '<hr style="height:2px; border:none; color:#dbdbdb; background-color:#dbdbdb;">';
 	small_space();
 
-	echo "<a href='https://www.zovio.com' target='_blank'><font class='grey-12px'>Zovio.com</font></a>";
+	echo "<a href='#' target='_blank'><font class='grey-12px'>MY_ORGANIZATION</font></a>";
 
 	echo "&nbsp;&nbsp;<font class='grey-11px'>-</font>&nbsp;&nbsp";
-	echo "<a href='https://www.facebook.com/ZovioSolutions' target='_blank'><font class='fab fa-facebook-square' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
+	echo "<a href='#' target='_blank'><font class='fab fa-facebook-square' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
 //	echo "&nbsp;&nbsp;<font class='grey-11px'>-</font>&nbsp;&nbsp";
 	echo "&nbsp;&nbsp;";
 	echo "&nbsp;&nbsp;";
-	echo "<a href='https://twitter.com/ZovioSolutions' target='_blank'><font class='fab fa-twitter-square' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
+	echo "<a href='#' target='_blank'><font class='fab fa-twitter-square' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
 //	echo "&nbsp;&nbsp;";
 //	echo "<a href='https://www.linkedin.com/company/' target='_blank'><font class='fab fa-linkedin' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
 //	echo "&nbsp;&nbsp;";
 //	echo "<a href='https://www.instagram.com/' target='_blank'><font class='fab fa-instagram' style='font-size: 12px; color: rgb(156, 156, 156);'></font></a>";
 
 	echo "<br>";
-	printf("<font class='grey-12px'>Copyright &#169; %s Zovio. All rights reserved</font>", date('Y'));
+	printf("<font class='grey-12px'>Copyright &#169; %s MY_ORGANIZATION. All rights reserved</font>", date('Y'));
 
 	echo "<br><br>";
 }

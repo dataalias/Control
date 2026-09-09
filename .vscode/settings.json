@@ -1,0 +1,5 @@
+{
+    "dataworkspace.excludedProjects": [
+        "Database-MySQL/Control/Control.sqlproj"
+    ]
+}

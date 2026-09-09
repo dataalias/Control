@@ -117,7 +117,7 @@ $errorMessage = ""
 [System.Data.DataTable] $dtArchiveList = New-Object Data.datatable
 
 $SqlCon = New-Object System.Data.SqlClient.SqlConnection
-$SqlCon.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
+$SqlCon.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Integrated Security=True"
 
 <#
 If (($Version    -ne $configFileContent.__Header.Version) `

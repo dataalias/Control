@@ -16,5 +16,5 @@ phases:
       - echo "Updating lambda Function..."
       - echo "$ENV"
       #- aws lambda update-function-code --function-name DataHubS3Trigger --zip-file fileb://DataHubS3Trigger.zip
-      - aws s3 cp deUtils.zip s3://$ENV-ascent-de-assets/deDataHub/dist/
+      - aws s3 cp deUtils.zip s3://$ENV-<MY_ORG>-de-assets/deDataHub/dist/
       - echo "DONE!!"

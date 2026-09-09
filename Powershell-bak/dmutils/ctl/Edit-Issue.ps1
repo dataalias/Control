@@ -49,12 +49,12 @@ paramaters.
 
 .EXAMPLE
 Set an issue to failed.
-:> Edit-Issue  -dbsn 'dedtedlsql01' -iss 1 -stat 'IF'
+:> Edit-Issue  -dbsn '<MY_SQL_SERVER>' -iss 1 -stat 'IF'
 
 #>
 
     [CmdletBinding(
-        DefaultParameterSetName=”Folder”,
+        DefaultParameterSetName=Folder,
         SupportsShouldProcess=$True
     )]
     param (
@@ -166,7 +166,7 @@ PROCESS
     try 
     {
         $SqlConn = New-Object System.Data.SqlClient.SqlConnection
-        $SqlConn.ConnectionString = "Server=$dbServer;Database=BPI_DW_Stage;Integrated Security=True"
+        $SqlConn.ConnectionString = "Server=$dbServer;Database=MY_Db_Stage;Integrated Security=True"
         $SqlConn.Open()
     }
     catch
