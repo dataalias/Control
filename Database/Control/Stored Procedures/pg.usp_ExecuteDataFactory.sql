@@ -14,7 +14,7 @@ Purpose:	Trigger the Data Factory pipelines through SQL server
 			This process can only be triggered individually at this point.
 
 Example:	DECLARE @DataFactoryStatus VARCHAR(200)
-			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'zvo-sbx-01-ds-dev-ContactCenter-df',
+			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'myorg-sbx-01-ds-dev-ContactCenter-df',
 											@pDataFactoryPipeline = 'ADFContactCenterStagingLoad',
 											@pStatus = @DataFactoryStatus OUTPUT
 			select @DataFactoryStatus

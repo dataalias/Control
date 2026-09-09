@@ -104,7 +104,7 @@ In the sidebar, configure:
 1. **Secret ARN** - AWS Secrets Manager ARN for database credentials
 2. **Environment** - Target environment (DEV, STAGE, PROD)
 3. **AWS Region** - AWS region for secrets and resources
-4. **Database** - Snowflake database name (e.g., `ULTRA_DEV_RAW`)
+4. **Database** - Snowflake database name (e.g., `MYDB_DEV_RAW`)
 5. **User ID** - Your user identifier for audit logging
 
 ### AWS Secrets Manager Format
@@ -115,7 +115,7 @@ Your secret should contain database connection details:
   "host": "your-snowflake-account.snowflakecomputing.com",
   "username": "your-username",
   "password": "your-password",
-  "database": "ULTRA_DEV_RAW",
+  "database": "MYDB_DEV_RAW",
   "schema": "DATA_HUB",
   "warehouse": "your-warehouse",
   "role": "your-role"

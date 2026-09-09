@@ -14,7 +14,7 @@ from secrets.aws_secrets import *
 
 
 try:
-    config_data = Read_Objects_From_S3("dev-ascent-de-assets", "DataHubStagingEvent/config/S3_file_event_lambda.json")
+    config_data = Read_Objects_From_S3("dev-<MY_ORG>-de-assets", "DataHubStagingEvent/config/S3_file_event_lambda.json")
     file_content = config_data.get()['Body'].read()
     json_content = json.loads(file_content)
     print(json_content["__Header"]["Env"]["EnvironmentAbbreviation"])

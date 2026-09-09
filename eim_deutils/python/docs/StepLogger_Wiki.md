@@ -48,10 +48,10 @@ python/eimutils/step_logger.py
 ### STEP_LOG Table Definition
 
 ```sql
-CREATE SEQUENCE ULTRA_@ENV@_RAW.DATA_HUB.SEQ__STEP_LOG_ID;
+CREATE SEQUENCE MYDB_@ENV@_RAW.DATA_HUB.SEQ__STEP_LOG_ID;
 
-CREATE TABLE IF NOT EXISTS ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG(
-    Step_Log_Id bigint DEFAULT ULTRA_@ENV@_RAW.DATA_HUB.SEQ__STEP_LOG_ID.NEXTVAL,
+CREATE TABLE IF NOT EXISTS MYDB_@ENV@_RAW.DATA_HUB.STEP_LOG(
+    Step_Log_Id bigint DEFAULT MYDB_@ENV@_RAW.DATA_HUB.SEQ__STEP_LOG_ID.NEXTVAL,
     Parent_Log_Id int NOT NULL DEFAULT 0,
     Process_Name varchar(256) NULL,
     Process_Type varchar(256) NULL,
@@ -140,7 +140,7 @@ StepLogger
 | `etl_execution_id` | str | Unique identifier for ETL execution |
 | `process_name` | str | Name of the process being logged |
 | `process_type` | str | Type of process (default: 'ETL') |
-| `database` | str | Snowflake database name (ULTRA_{env}_RAW) |
+| `database` | str | Snowflake database name (MYDB_{env}_RAW) |
 | `aws_region` | str | AWS region (default: 'us-west-2') |
 
 ### Process Tracking Properties

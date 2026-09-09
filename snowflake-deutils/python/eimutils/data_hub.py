@@ -84,7 +84,7 @@ class DataHub:
 
         :param secret_key: AWS Secrets Manager ARN containing Snowflake credentials.
         :param env: Environment name ("DEV", "STAGE", or "PROD"). Uppercased internally and used to construct
-            the target database name (e.g. ULTRA_DEV_RAW).
+            the target database name (e.g. MYDB_DEV_RAW).
         """
         self.issue_list = []
         self.publication_list = pd.DataFrame()
@@ -95,7 +95,7 @@ class DataHub:
         self.aws_region = "us-west-2"
         self.secret_key = secret_key
         self.env = env.upper()
-        self.database = f"ULTRA_{self.env}_RAW"
+        self.database = f"MYDB_{self.env}_RAW"
 
         self.secret = self.get_secrets()
         self.db_connection = self.connect()

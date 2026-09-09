@@ -1,6 +1,6 @@
 """
 import sys
-sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')
+sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')
 
 #import python
 from data_hub import DataHub

@@ -17,7 +17,7 @@ date:           20181011
 -- Table ctl.Subscriber
 -- ----------------------------------------------------------------------------
 -- ************************************** DATA_HUB.Subscriber
-CREATE OR REPLACE TABLE ULTRA_@ENV@_RAW.DATA_HUB.Subscriber
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.Subscriber
 (
  SubscriberId           integer NOT NULL AUTOINCREMENT START 1 INCREMENT 1 order,
  ContactName            varchar(255) NOT NULL,

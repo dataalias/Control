@@ -71,7 +71,7 @@ Verify you have necessary permissions:
 
 ```sql
 -- Test permissions
-USE DATABASE ULTRA_DEV_RAW;
+USE DATABASE MYDB_DEV_RAW;
 USE SCHEMA DATA_HUB;
 
 -- Should succeed if you have permissions
@@ -156,7 +156,7 @@ This creates:
 ```sql
 -- Grant to service role
 GRANT USAGE ON STAGE DATA_HUB.PYTHON_MODULES TO ROLE PIPELINE_DEV_SVC;
-GRANT USAGE ON DATABASE ULTRA_DEV_RAW TO ROLE PIPELINE_DEV_SVC;
+GRANT USAGE ON DATABASE MYDB_DEV_RAW TO ROLE PIPELINE_DEV_SVC;
 GRANT USAGE ON SCHEMA DATA_HUB TO ROLE PIPELINE_DEV_SVC;
 GRANT SELECT, INSERT ON TABLE DATA_HUB.STEP_LOG TO ROLE PIPELINE_DEV_SVC;
 GRANT USAGE ON SEQUENCE DATA_HUB.SEQ__STEP_LOG_ID TO ROLE PIPELINE_DEV_SVC;
@@ -488,13 +488,13 @@ python deployment/deploy.py --env PROD --connection-file conn_prod.json
 
 ```sql
 -- Use environment-specific databases
--- DEV:   ULTRA_DEV_RAW
--- STAGE: ULTRA_STAGE_RAW
--- PROD:  ULTRA_PROD_RAW
+-- DEV:   MYDB_DEV_RAW
+-- STAGE: MYDB_STAGE_RAW
+-- PROD:  MYDB_PROD_RAW
 
 -- Example with variable
 SET env = 'DEV';
-SET database = 'ULTRA_' || $env || '_RAW';
+SET database = 'MYDB_' || $env || '_RAW';
 
 USE DATABASE IDENTIFIER($database);
 ```

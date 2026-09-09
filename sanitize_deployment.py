@@ -3,20 +3,20 @@ from pathlib import Path
 root = Path(r'c:\Users\DataA\source\repos\Control')
 files_replacements = {
     root / 'AWS' / 'infra' / 'variables.tf': [
-        ('arn:aws:events:us-east-1:582033825934:event-bus/default', 'arn:aws:events:us-east-1:<MY_ACCOUNT_ID>:event-bus/default'),
-        ('transfer.ascentfunding.com', '<MY_FTP_DOMAIN>'),
+        ('arn:aws:events:us-east-1:<MY_ACCOUNT_ID>:event-bus/default', 'arn:aws:events:us-east-1:<MY_ACCOUNT_ID>:event-bus/default'),
+        ('transfer.<MY_ORG>.com', '<MY_FTP_DOMAIN>'),
     ],
     root / 'AWS' / 'pipeline' / 'buildspec_deploy.yml': [
-        ('s3://$ENV-ascent-de-assets/deDataHub/dist/', 's3://$ENV-<MY_ORG>-de-assets/deDataHub/dist/'),
+        ('s3://$ENV-<MY_ORG>-de-assets/deDataHub/dist/', 's3://$ENV-<MY_ORG>-de-assets/deDataHub/dist/'),
     ],
     root / 'AWS' / 'infra' / 'accounts' / 'prod' / 'terraform.tfvars': [
         ('account_id                  = "000000000000"', 'account_id                  = "<MY_ACCOUNT_ID>"'),
         ('datalake_bucket             = "datalake"', 'datalake_bucket             = "<MY_DATALAKE_BUCKET>"'),
         ('artifact_bucket             = "prod-de-assets"', 'artifact_bucket             = "<MY_ARTIFACT_BUCKET>"'),
-        ('artifact_encryption_key     = "arn:aws:kms:us-east-1:000000000000:key/51981c0d-892e-4148-bf8f-3d52d6b09bae"', 'artifact_encryption_key     = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
+        ('artifact_encryption_key     = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"', 'artifact_encryption_key     = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
         ('dev_account_id              = "000000000000"', 'dev_account_id              = "<MY_ACCOUNT_ID>"'),
         ('code_commit_access_role_arn = "arn:aws:iam::00000000000000:role/ProdAcctCodePipelineCodeCommitRole"', 'code_commit_access_role_arn = "arn:aws:iam::<MY_ACCOUNT_ID>:role/ProdAcctCodePipelineCodeCommitRole"'),
-        ('source_bucket_name          = "prod-ascent-datalake"', 'source_bucket_name          = "<MY_SOURCE_BUCKET_NAME>"'),
+        ('source_bucket_name          = "prod-<MY_ORG>-datalake"', 'source_bucket_name          = "<MY_SOURCE_BUCKET_NAME>"'),
         ('mssql_layer                 = "arn:aws:lambda:us-east-1:000000000000:layer:pymssql39:1"', 'mssql_layer                 = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:pymssql39:1"'),
         ('boto_layer                  = "arn:aws:lambda:us-east-1:000000000000:layer:boto39:1"', 'boto_layer                  = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:boto39:1"'),
         ('datahub_layer               = "arn:aws:lambda:us-east-1:000000000000:layer:Python39-deDataHub:latest"', 'datahub_layer               = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:Python39-deDataHub:latest"'),
@@ -28,7 +28,7 @@ files_replacements = {
         ('datalake_bucket         = "datalake"', 'datalake_bucket         = "<MY_DATALAKE_BUCKET>"'),
         ('source_bucket_name      = "dev-datalake"', 'source_bucket_name      = "<MY_SOURCE_BUCKET_NAME>"'),
         ('artifact_bucket         = "dev-de-assets"', 'artifact_bucket         = "<MY_ARTIFACT_BUCKET>"'),
-        ('artifact_encryption_key = "arn:aws:kms:us-east-1:000000000000:key/75367033-46ff-4c29-91b2-0df67b73637d"', 'artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
+        ('artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"', 'artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
         ('mssql_layer             = "arn:aws:lambda:us-east-1:000000000000:layer:pymssql39:1"', 'mssql_layer             = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:pymssql39:1"'),
         ('boto_layer              = "arn:aws:lambda:us-east-1:000000000000:layer:boto3-layer:1"', 'boto_layer              = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:boto3-layer:1"'),
         ('datahub_layer           = "arn:aws:lambda:us-east-1:000000000000:layer:Python39-deDataHub:latest"', 'datahub_layer           = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:Python39-deDataHub:latest"'),
@@ -39,7 +39,7 @@ files_replacements = {
         ('account_id              = "000000000000"', 'account_id              = "<MY_ACCOUNT_ID>"'),
         ('datalake_bucket         = "datalake"', 'datalake_bucket         = "<MY_DATALAKE_BUCKET>"'),
         ('artifact_bucket         = "dev-de-assets"', 'artifact_bucket         = "<MY_ARTIFACT_BUCKET>"'),
-        ('artifact_encryption_key = "arn:aws:kms:us-east-1:000000000000:key/75367033-46ff-4c29-91b2-0df67b73637d"', 'artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
+        ('artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"', 'artifact_encryption_key = "arn:aws:kms:us-east-1:<MY_ACCOUNT_ID>:key/<MY_KMS_KEY_ID>"'),
         ('pandas_layer            = "arn:aws:lambda:us-east-1:000000000000:layer:pandas-layer:1"', 'pandas_layer            = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:pandas-layer:1"'),
         ('mssql_layer             = "arn:aws:lambda:us-east-1:000000000000:layer:pymssql-layer:4"', 'mssql_layer             = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:pymssql-layer:4"'),
         ('boto_layer              = "arn:aws:lambda:us-east-1:000000000000:layer:boto3-layer:1"', 'boto_layer              = "arn:aws:lambda:us-east-1:<MY_ACCOUNT_ID>:layer:boto3-layer:1"'),
@@ -48,20 +48,20 @@ files_replacements = {
         ('security_group_ids = ["sg-000000000","sg-000000000","sg-000000000"]', 'security_group_ids = ["<MY_SECURITY_GROUP_ID>","<MY_SECURITY_GROUP_ID>","<MY_SECURITY_GROUP_ID>"]'),
     ],
     root / 'README.md': [
-        ('https://github.com/Ascent-Funding/deControl', 'https://github.com/<MY_ORGANIZATION>/deControl'),
-        ('Ascent-Funding', '<MY_ORGANIZATION>'),
+        ('https://github.com/<MY_ORGANIZATION>/deControl', 'https://github.com/<MY_ORGANIZATION>/deControl'),
+        ('<MY_ORGANIZATION>', '<MY_ORGANIZATION>'),
     ],
     root / 'AWS' / 'DataHubS3Trigger' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'AWS' / 'PostingGroupTrigger' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'AWS' / 'DataHubScheduler' / 'app.py': [
-        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'deUtils' / 'main.py': [
-        ("sys.path.insert(1,'D:\\Users\\MY_USERNAME\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
+        ("sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')", "sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')"),
     ],
     root / 'deUtils' / 'python' / 'setup.py': [
         ('url=\'https://git-codecommit.us-east-1.amazonaws.com/v1/repos/deDataHub\'', 'url=\'<MY_REPOSITORY_URL>\''),
@@ -71,16 +71,16 @@ files_replacements = {
     ],
     root / 'AzureFunctions' / 'ExecutePipeline' / 'Properties' / 'PublishProfiles' / 'ExecutePipeline20200807204635 - Zip Deploy.pubxml': [
         ('https://executepipeline20200807204635.azurewebsites.net', '<MY_AZURE_FUNCTION_APP_URL>'),
-        ('/subscriptions/3641d697-5ff2-4b72-9be2-c9ecbebd47c5/resourcegroups/zvo-sbx-01-ds-qa-rg/providers/Microsoft.Web/sites/ExecutePipeline20200807204635', '<MY_RESOURCE_ID>'),
+        ('/subscriptions/<MY_SUBSCRIPTION_ID>/resourcegroups/myorg-sbx-01-ds-qa-rg/providers/Microsoft.Web/sites/ExecutePipeline20200807204635', '<MY_RESOURCE_ID>'),
         ('https://executepipeline20200807204635.scm.azurewebsites.net/', '<MY_PUBLISH_URL>'),
         ('<UserName>$ExecutePipeline20200807204635</UserName>', '<UserName><MY_PUBLISH_USER></UserName>'),
     ],
     root / 'Database' / 'SSISDB' / 'Script.PostDeployment.sql': [
         ("'https://execdatafactorypipeline.azurewebsites.net/api/ExecutePipeline'", "'<MY_AZURE_FUNCTION_URL>'"),
-        ('3641d697-5ff2-4b72-9be2-c9ecbebd47c5', '<MY_SUBSCRIPTION_ID>'),
-        ('zvo-sbx-01-ds-dev-rg', '<MY_RESOURCE_GROUP_DEV>'),
-        ('zvo-sbx-01-ds-qa-rg', '<MY_RESOURCE_GROUP_QA>'),
-        ('zvo-sbx-01-ds-rg', '<MY_RESOURCE_GROUP_PROD>'),
+        ('<MY_SUBSCRIPTION_ID>', '<MY_SUBSCRIPTION_ID>'),
+        ('myorg-sbx-01-ds-dev-rg', '<MY_RESOURCE_GROUP_DEV>'),
+        ('myorg-sbx-01-ds-qa-rg', '<MY_RESOURCE_GROUP_QA>'),
+        ('myorg-sbx-01-ds-rg', '<MY_RESOURCE_GROUP_PROD>'),
         ('DME1EDLSQL01', '<MY_SQL_SERVER>'),
         ('MY_SQL_SERVER', '<MY_SQL_SERVER>'),
         ('QME1EDLSQL01', '<MY_SQL_SERVER>'),

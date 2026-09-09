@@ -105,7 +105,7 @@ The `StepLogger` class provides a simple, 4-method interface for logging ETL pro
 
 Data is logged to:
 ```
-ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG
+MYDB_@ENV@_RAW.DATA_HUB.STEP_LOG
 ```
 Table definition: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger#Table-Schema
 

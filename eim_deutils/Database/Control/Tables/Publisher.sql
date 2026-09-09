@@ -18,7 +18,7 @@ date:           20181011
 
 -- ************************************** DATA_HUB.PUBLISHER
 -- ************************************** DATA_HUB.Publisher
-CREATE OR REPLACE TABLE ULTRA_@ENV@_RAW.DATA_HUB.Publisher
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.Publisher
 (
  PublisherId            integer NOT NULL AUTOINCREMENT START 1 INCREMENT 1 order,
  --ContactId              integer NOT NULL,

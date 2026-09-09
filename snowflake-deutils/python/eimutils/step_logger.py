@@ -246,7 +246,7 @@ class StepLogger:
                             Should have format: arn:aws:secretsmanager:region:account:secret:name
             env (str): Environment identifier used to construct database name.
                       Valid values: "DEV", "STAGE", "PROD"
-                      Results in database: ULTRA_{env}_RAW
+                      Results in database: MYDB_{env}_RAW
             etl_execution_id (str): Unique identifier for this ETL execution run.
                                    Typically a UUID string for tracking related processes.
             process_name (str): Human-readable name for the process being logged.
@@ -303,7 +303,7 @@ class StepLogger:
         self.process_name = process_name
         self.process_type = process_type
         self.aws_region = "us-west-2"
-        self.database = f"ULTRA_{self.env}_RAW"
+        self.database = f"MYDB_{self.env}_RAW"
 
         # Process tracking
         self.process_start_time = datetime.now()

@@ -34,11 +34,11 @@ Then run the generated SQL commands in Snowflake:
 ```sql
 -- Upload the package
 PUT file://C:/Users/frankf/source/eim_deutils/python_snowflake/dist/eimutils_snowflake.zip
-@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
+@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
 OVERWRITE=TRUE;
 
 -- Verify upload
-LIST @ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV PATTERN='.*eimutils_snowflake.*';
+LIST @MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV PATTERN='.*eimutils_snowflake.*';
 ```
 
 ### 2. Create Stored Procedure
@@ -52,7 +52,7 @@ RETURNS VARCHAR
 LANGUAGE PYTHON
 RUNTIME_VERSION = '3.9'
 PACKAGES = ('snowflake-snowpark-python')
-IMPORTS = ('@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake.zip')
+IMPORTS = ('@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake.zip')
 HANDLER = 'run_etl'
 AS
 $$
@@ -87,7 +87,7 @@ $$;
 CALL MY_ETL('My_Process', 'unique-execution-id-123');
 
 -- Query the logs
-SELECT * FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG 
+SELECT * FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG 
 WHERE ETL_Execution_Id = 'unique-execution-id-123'
 ORDER BY Step_Log_Id;
 ```
@@ -449,7 +449,7 @@ logger = StepLoggerSnowflake(session=session, ...)
 **Issue: "Permission denied"**
 ```sql
 -- Solution: Grant necessary permissions
-GRANT USAGE ON DATABASE ULTRA_DEV_RAW TO ROLE your_role;
+GRANT USAGE ON DATABASE MYDB_DEV_RAW TO ROLE your_role;
 GRANT USAGE ON SCHEMA DATA_HUB TO ROLE your_role;
 GRANT SELECT, INSERT ON TABLE DATA_HUB.STEP_LOG TO ROLE your_role;
 ```

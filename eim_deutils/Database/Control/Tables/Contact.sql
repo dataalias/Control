@@ -3,7 +3,7 @@
 -- Table ctl.Contact
 -- ----------------------------------------------------------------------------
 -- ************************************** DATA_HUB.Contact
-CREATE TABLE ULTRA_@ENV@_RAW.DATA_HUB.Contact
+CREATE TABLE MYDB_@ENV@_RAW.DATA_HUB.Contact
 (
  ContactId   integer NOT NULL AUTOINCREMENT START 1 INCREMENT 1,
  CompanyName varchar(255) NOT NULL,

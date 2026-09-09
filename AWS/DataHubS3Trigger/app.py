@@ -20,7 +20,7 @@ Dependencies/Helpful Notes : N/A
 
 """
 import sys
-sys.path.insert(1,'D:\\Users\\ffortunato\\source\\AscentRepo\\deDataHub\\src_dh_layer\\python')
+sys.path.insert(1, '<MY_LOCAL_REPO_PATH>/deDataHub/src_dh_layer/python')
 my_event={'Key01':'Val01'}
 my_context={'Key01':'Val01'}
 #lambda_handler(my_event, my_context)

@@ -65,7 +65,7 @@ class TestStepLogger(unittest.TestCase):
             self.assertEqual(logger.env, os.environ["ENV"].upper())
             self.assertEqual(logger.process_name, "UnitTest_Init_Basic")
             self.assertEqual(logger.process_type, "ETL")
-            self.assertEqual(logger.database, f"ULTRA_{os.environ['ENV'].upper()}_RAW")
+            self.assertEqual(logger.database, f"MYDB_{os.environ['ENV'].upper()}_RAW")
             self.assertIsNotNone(logger.db_connection)
             self.assertIsNotNone(logger.parent_step_log_id)
             self.assertGreater(logger.parent_step_log_id, 0)

@@ -11,7 +11,7 @@ author:         ffortunato
 date:           20181011
 
 **********************************************************************************************************************/
-CREATE OR REPLACE TABLE ULTRA_@ENV@_RAW.DATA_HUB.ISSUE
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.ISSUE
 (
  IssueId             bigint NOT NULL DEFAULT DATA_HUB.SEQ_ISSUE_ID.NEXTVAL,
 -- PublicationId       integer NOT NULL,

@@ -1,4 +1,4 @@
-create or replace view ULTRA_@ENV@_RAW.DATA_HUB.PUBLICATION_LIST_VW AS
+create or replace view MYDB_@ENV@_RAW.DATA_HUB.PUBLICATION_LIST_VW AS
 select	 pr.PublisherId
 			,pr.PublisherCode
 			,pr.PublisherName

@@ -156,7 +156,7 @@ def __init__(self, secret_key: str, env: str) -> None
 - `publication_code`: Code of currently active publication (str)
 - `current_publication`: Dictionary of active publication details
 - `db_connection`: Snowflake database connection object
-- `database`: Constructed database name (e.g., "ULTRA_DEV_RAW")
+- `database`: Constructed database name (e.g., "MYDB_DEV_RAW")
 
 ### Context Manager Support
 

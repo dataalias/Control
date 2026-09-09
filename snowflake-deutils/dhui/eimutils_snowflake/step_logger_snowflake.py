@@ -175,7 +175,7 @@ class StepLoggerSnowflake:
             try:
                 database = self.session.get_current_database()
             except Exception:
-                database = "ULTRA_DEV_RAW"  # Default fallback
+                database = "MYDB_DEV_RAW"  # Default fallback
 
         self.database = database
         self.schema = schema
