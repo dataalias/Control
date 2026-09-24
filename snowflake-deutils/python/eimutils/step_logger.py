@@ -67,6 +67,7 @@ Example:
 """
 
 import json
+import re
 from typing import Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
@@ -217,6 +218,10 @@ class StepLogger:
     Raises:
         ValueError: If invalid parameters are provided or if methods are called out of sequence
         Exception: For database connection or query execution errors
+
+    Thread safety: NOT thread-safe. Each Glue job / Lambda invocation must use its own
+    StepLogger instance. Sharing an instance across threads will corrupt step counters,
+    durations, and the Snowflake connection.
     """
 
     def __init__(
@@ -241,7 +246,7 @@ class StepLogger:
                             Should have format: arn:aws:secretsmanager:region:account:secret:name
             env (str): Environment identifier used to construct database name.
                       Valid values: "DEV", "STAGE", "PROD"
-                      Results in database: ULTRA_{env}_RAW
+                      Results in database: MYDB_{env}_RAW
             etl_execution_id (str): Unique identifier for this ETL execution run.
                                    Typically a UUID string for tracking related processes.
             process_name (str): Human-readable name for the process being logged.
@@ -270,7 +275,7 @@ class StepLogger:
             import uuid
 
             logger = StepLogger(
-                secret_key="arn:aws:secretsmanager:MY_AWS_REGION:123456789:secret:db-creds",
+                secret_key="arn:aws:secretsmanager:us-west-2:123456789:secret:db-creds",
                 env="DEV",
                 etl_execution_id=str(uuid.uuid4()),
                 process_name="Daily_Customer_ETL",
@@ -290,11 +295,15 @@ class StepLogger:
         """
         self.secret_key = secret_key
         self.env = env.upper()
+        if not re.match(r'^[A-Za-z][A-Za-z0-9_]*$', self.env):
+            raise ValueError(
+                f"Invalid env {env!r} — must be alphanumeric (e.g. 'DEV', 'STAGE', 'PROD')."
+            )
         self.etl_execution_id = etl_execution_id
         self.process_name = process_name
         self.process_type = process_type
-        self.aws_region = "MY_AWS_REGION"
-        self.database = f"ULTRA_{self.env}_RAW"
+        self.aws_region = "us-west-2"
+        self.database = f"MYDB_{self.env}_RAW"
 
         # Process tracking
         self.process_start_time = datetime.now()
@@ -309,6 +318,7 @@ class StepLogger:
         self.current_step_name = None
         self.current_step_start = None
         self.current_step_custom_attributes = None
+        self.current_step_operation = None
 
         log_to_console(
             __name__, "Info", f"Initializing StepLogger for process: {process_name}"
@@ -382,14 +392,13 @@ class StepLogger:
             the previous one will generate a warning.
         """
         if self.current_step_name:
-            log_to_console(
-                __name__,
-                "Warning",
-                f"Step '{self.current_step_name}' was started but not logged. Starting new step: {step_name}",
+            raise RuntimeError(
+                f"Step '{self.current_step_name}' is already active. "
+                f"Call log_step() to complete it before starting '{step_name}'."
             )
 
         self.current_step_name = step_name
-        self.operation = operation
+        self.current_step_operation = operation
         self.current_step_start = datetime.now()
         self.current_step_custom_attributes = custom_attributes
 
@@ -450,7 +459,7 @@ class StepLogger:
             The method creates a standardized JSON structure for Step_Desc VARIANT column:
             ```json
             {
-                "MessageType": "SUCCESS" | "ERROR",
+                "MessageType": "SUCCESS" | "FAILED",
                 "StepNumber": <sequential_number>,
                 "Operation": <operation_from_start_step>,
                 "Description": <provided_description>,
@@ -507,13 +516,13 @@ class StepLogger:
 
         # Calculate duration
         end_time = datetime.now()
-        duration_seconds = int((end_time - self.current_step_start).total_seconds())
+        duration_seconds = round((end_time - self.current_step_start).total_seconds())
 
         # Build step description with required fields (using current step_number)
         step_desc = {
-            "MessageType": "SUCCESS" if status == "SUCCESS" else "ERROR",
+            "MessageType": "SUCCESS" if status == "SUCCESS" else status,
             "StepNumber": self.step_number,
-            "Operation": self.operation,
+            "Operation": self.current_step_operation,
             "Description": description or f"Step {self.current_step_name} completed",
         }
 
@@ -528,38 +537,40 @@ class StepLogger:
         # Increment step number after using it in description
         self.step_number += 1
 
-        # Log to database
-        step_id = self._insert_step_log(
-            {
-                "Parent_Log_Id": self.parent_step_log_id,
-                "Process_Name": self.process_name,
-                "Process_Type": self.process_type,
-                "Step_Name": self.current_step_name,
-                "Step_Desc": step_desc,  # Pass dict directly for VARIANT column
-                "Step_Status": status,
-                "Start_Dtm": self.current_step_start,
-                "Duration_In_Seconds": duration_seconds,
-                "Db_Name": db_name,
-                "Record_Count": record_count,
-                "ETL_Execution_Id": self.etl_execution_id,
-            }
-        )
+        # Log to database — reset step tracking in finally so a failed insert never wedges the logger
+        step_name_for_log = self.current_step_name
+        try:
+            step_id = self._insert_step_log(
+                {
+                    "Parent_Log_Id": self.parent_step_log_id,
+                    "Process_Name": self.process_name,
+                    "Process_Type": self.process_type,
+                    "Step_Name": self.current_step_name,
+                    "Step_Desc": step_desc,  # Pass dict directly for VARIANT column
+                    "Step_Status": status,
+                    "Start_Dtm": self.current_step_start,
+                    "Duration_In_Seconds": duration_seconds,
+                    "Db_Name": db_name,
+                    "Record_Count": record_count,
+                    "ETL_Execution_Id": self.etl_execution_id,
+                }
+            )
+        finally:
+            self.current_step_name = None
+            self.current_step_start = None
+            self.current_step_custom_attributes = None
+            self.current_step_operation = None
 
         log_to_console(
             __name__,
             "Info",
-            f"Logged step: {self.current_step_name} ({status}) - Duration: {duration_seconds}s - ID: {step_id}",
+            f"Logged step: {step_name_for_log} ({status}) - Duration: {duration_seconds}s - ID: {step_id}",
         )
 
         # Update totals (step number was already incremented above)
         self.TOTAL_DURATION += duration_seconds
         if record_count is not None:
             self.TOTAL_COUNT += record_count
-
-        # Reset current step tracking
-        self.current_step_name = None
-        self.current_step_start = None
-        self.current_step_custom_attributes = None
 
         return step_id
 
@@ -630,6 +641,9 @@ class StepLogger:
             - Automatically includes TOTAL_DURATION and TOTAL_COUNT in the log
             - Connection cleanup is guaranteed even if logging fails
         """
+        if not self.db_connection:
+            return
+
         try:
             # Build completion description with required fields (using current step_number)
             completion_desc = {
@@ -654,7 +668,7 @@ class StepLogger:
                     "Step_Name": f"{self.process_name}_END",
                     "Step_Desc": completion_desc,  # Pass dict directly for VARIANT column
                     "Step_Status": StepStatus.END.value,
-                    "Start_Dtm": datetime.now(),
+                    "Start_Dtm": self.process_start_time,
                     "Duration_In_Seconds": self.TOTAL_DURATION,
                     "Db_Name": None,
                     "Record_Count": self.TOTAL_COUNT,
@@ -673,9 +687,9 @@ class StepLogger:
             log_to_console(__name__, "Error", f"Failed to log process completion: {e}")
 
         finally:
-            # Close database connection
             if self.db_connection:
                 self.db_connection.close()
+                self.db_connection = None
                 log_to_console(
                     __name__, "Info", "StepLogger closed - Database connection closed"
                 )
@@ -750,6 +764,10 @@ class StepLogger:
         except Exception as e:
             log_to_console(__name__, "Error", f"Failed to get next Step_Log_Id: {e}")
             raise
+
+    def get_next_sequence_value(self) -> int:
+        """Public alias for _get_next_step_log_id. Returns the next Step_Log_Id from the sequence."""
+        return self._get_next_step_log_id()
 
     def _log_process_start(
         self, process_description: str, custom_attributes: Dict[str, Any] = None
@@ -871,6 +889,7 @@ class StepLogger:
         Note:
             This is a private method used by _log_process_start, log_step, and close methods.
         """
+        cursor = None
         try:
             # Get next Step_Log_Id from SEQ__STEP_LOG_ID.NEXTVAL
             step_log_id = self._get_next_step_log_id()
@@ -950,7 +969,10 @@ class StepLogger:
             log_to_console(__name__, "Error", f"Failed to insert step log: {e}")
             if self.db_connection:
                 self.db_connection.rollback()
-            return None
+            raise
+        finally:
+            if cursor:
+                cursor.close()
 
 
 """

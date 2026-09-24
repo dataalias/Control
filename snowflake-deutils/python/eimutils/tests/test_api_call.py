@@ -34,12 +34,10 @@ class TestDownloadFile:
 
         output_file = tmp_path / "output.txt"
         with patch("eimutils.api_call.requests.get", return_value=mock_response):
-            with patch("eimutils.api_call.log_to_console") as mock_log:
+            with pytest.raises(Exception) as exc_info:
                 download_file("http://example.com/missing.txt", str(output_file))
-                mock_log.assert_called_once()
-                _, level, _ = mock_log.call_args[0]
-                assert level.lower() == "error"
 
+        assert "404" in str(exc_info.value)
         assert not output_file.exists()
 
     def test_connection_error_raises(self):

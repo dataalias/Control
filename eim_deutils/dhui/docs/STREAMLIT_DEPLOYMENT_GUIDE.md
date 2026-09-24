@@ -5,7 +5,7 @@ This guide covers the complete process of deploying the DataHub Management Syste
 ## Prerequisites
 
 - Snowflake CLI (`snow`) installed and configured
-- Access to Snowflake database `ULTRA_DEV_RAW` and schema `DATA_HUB`
+- Access to Snowflake database `MYDB_DEV_RAW` and schema `DATA_HUB`
 - Python environment with required packages
 - StepLoggerSnowflake wheel file (`eimutils_snowflake-1.0.0-py3-none-any.whl`)
 
@@ -35,17 +35,17 @@ This creates the wheel file: `dist/eimutils_snowflake-1.0.0-py3-none-any.whl`
 
 ### 2.1 Create Stage (if not exists)
 ```sql
-CREATE STAGE IF NOT EXISTS ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
+CREATE STAGE IF NOT EXISTS MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
 ```
 
 ### 2.2 Upload Wheel File to Stage
 ```bash
-snow stage upload @ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV python_snowflake/dist/eimutils_snowflake-1.0.0-py3-none-any.whl
+snow stage upload @MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV python_snowflake/dist/eimutils_snowflake-1.0.0-py3-none-any.whl
 ```
 
 ### 2.3 Verify Upload
 ```sql
-LIST @ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
+LIST @MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
 ```
 
 You should see: `eimutils_snowflake-1.0.0-py3-none-any.whl`
@@ -68,7 +68,7 @@ from snowflake.snowpark import Session as SnowparkSession
 # Get current session and download from stage
 session = SnowparkSession.builder.getOrCreate()
 session.file.get(
-    "@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake-1.0.0-py3-none-any.whl",
+    "@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake-1.0.0-py3-none-any.whl",
     "/tmp/"
 )
 
@@ -90,7 +90,7 @@ cd dhui
 
 ### 4.2 Deploy Using Snowflake CLI
 ```bash
-snow streamlit deploy datahub_management_system --database ULTRA_DEV_RAW --schema DATA_HUB --replace
+snow streamlit deploy datahub_management_system --database MYDB_DEV_RAW --schema DATA_HUB --replace
 ```
 
 ### 4.3 Verify Deployment
@@ -134,12 +134,12 @@ You should see entries with:
 **Solutions**:
 1. Verify stage file exists:
    ```sql
-   LIST @ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
+   LIST @MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV;
    ```
 
 2. Check file permissions:
    ```sql
-   GRANT USAGE ON STAGE ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV TO ROLE YOUR_ROLE;
+   GRANT USAGE ON STAGE MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV TO ROLE YOUR_ROLE;
    ```
 
 3. Re-upload the wheel file if needed
@@ -155,13 +155,13 @@ You should see entries with:
 
 2. Verify database and schema access:
    ```sql
-   USE DATABASE ULTRA_DEV_RAW;
+   USE DATABASE MYDB_DEV_RAW;
    USE SCHEMA DATA_HUB;
    ```
 
 3. Check if app already exists and needs replacement:
    ```bash
-   snow streamlit list --database ULTRA_DEV_RAW --schema DATA_HUB
+   snow streamlit list --database MYDB_DEV_RAW --schema DATA_HUB
    ```
 
 ### Issue: Environment Dependencies Missing
@@ -246,10 +246,10 @@ streamlit:
 cd python_snowflake && python -m build
 
 # Upload to stage
-snow stage upload @ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV python_snowflake/dist/eimutils_snowflake-1.0.0-py3-none-any.whl
+snow stage upload @MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV python_snowflake/dist/eimutils_snowflake-1.0.0-py3-none-any.whl
 
 # Deploy Streamlit app
-cd dhui && snow streamlit deploy datahub_management_system --database ULTRA_DEV_RAW --schema DATA_HUB --replace
+cd dhui && snow streamlit deploy datahub_management_system --database MYDB_DEV_RAW --schema DATA_HUB --replace
 
 # Verify logging
 # Run in Snowflake SQL editor:

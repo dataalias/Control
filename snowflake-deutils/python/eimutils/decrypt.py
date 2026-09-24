@@ -9,7 +9,6 @@ Dependencies/Helpful Notes :
 ***********************************************************************************************************************
 """
 
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 import re
 
@@ -33,16 +32,17 @@ Returns:
 
 
 def getDERKey(dw30sfpkey: str, dw30sfpprs: str) -> bytes:
-    key = bytes(dw30sfpkey, encoding="utf-8")
-    passkey = bytes(dw30sfpprs, encoding="utf-8")
-    p_key = serialization.load_pem_private_key(
-        key, password=passkey, backend=default_backend()
-    )
-    return p_key.private_bytes(
-        encoding=serialization.Encoding.DER,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
+    try:
+        key = bytes(dw30sfpkey, encoding="utf-8")
+        passkey = bytes(dw30sfpprs, encoding="utf-8")
+        p_key = serialization.load_pem_private_key(key, password=passkey)
+        return p_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Failed to decrypt private key (DER): {e}") from e
 
 
 """
@@ -64,18 +64,19 @@ Returns:
 
 
 def getPEMKey(dw30sfpkey: str, dw30sfpprs: str) -> str:
-    key = bytes(dw30sfpkey, encoding="utf-8")
-    passkey = bytes(dw30sfpprs, encoding="utf-8")
-    p_key = serialization.load_pem_private_key(
-        key, password=passkey, backend=default_backend()
-    )
-    pkb = p_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    pkb = pkb.decode("UTF-8")
-    return re.sub("-*(BEGIN|END) PRIVATE KEY-*\n", "", pkb).replace("\n", "")
+    try:
+        key = bytes(dw30sfpkey, encoding="utf-8")
+        passkey = bytes(dw30sfpprs, encoding="utf-8")
+        p_key = serialization.load_pem_private_key(key, password=passkey)
+        pkb = p_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        pkb = pkb.decode("UTF-8")
+        return re.sub("-+(BEGIN|END) (ENCRYPTED )?PRIVATE KEY-+\n", "", pkb).replace("\n", "")
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Failed to decrypt private key (PEM): {e}") from e
 
 
 """

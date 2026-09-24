@@ -18,7 +18,7 @@ date:           20181011
 
 -- ************************************** DATA_HUB.PUBLISHER
 -- ************************************** DATA_HUB.Publisher
-CREATE OR REPLACE TABLE DATA_HUB.Publisher
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.Publisher
 (
  PublisherId            integer NOT NULL AUTOINCREMENT START 1 INCREMENT 1 order,
  --ContactId              integer NOT NULL,
@@ -35,8 +35,7 @@ CREATE OR REPLACE TABLE DATA_HUB.Publisher
 
  CONSTRAINT PK_PubrPublisherId PRIMARY KEY ( PublisherId ),
  CONSTRAINT UNQ_Publisher__PublisherCode UNIQUE ( PublisherCode ),
- CONSTRAINT FK_Publisher_RefInterface__InterfaceCode FOREIGN KEY ( InterfaceCode ) REFERENCES DATA_HUB.REF_Interface ( InterfaceCode ),
- CONSTRAINT FK_RefContact__ContactId FOREIGN KEY ( ContactId ) REFERENCES DATA_HUB.Contact ( ContactId )
+ CONSTRAINT FK_Publisher_RefInterface__InterfaceCode FOREIGN KEY ( InterfaceCode ) REFERENCES DATA_HUB.REF_Interface ( InterfaceCode )
 );
   /*
   UNIQUE INDEX UNQ_Publisher__PublisherCode (Publisher_Code ASC) VISIBLE,

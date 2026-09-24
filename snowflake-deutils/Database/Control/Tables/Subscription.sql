@@ -16,7 +16,7 @@ date:           20181011
 -- Table ctl.Subscription
 -- ----------------------------------------------------------------------------
 -- ************************************** DATA_HUB.Subscription
-CREATE OR REPLACE TABLE DATA_HUB.Subscription
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.Subscription
 (
  SubscriptionId          integer NOT NULL AUTOINCREMENT START 1 INCREMENT 1 order,
  PublicationCode         varchar(25) NOT NULL,

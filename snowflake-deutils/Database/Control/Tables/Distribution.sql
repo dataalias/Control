@@ -22,12 +22,12 @@ date		author			description
 
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 
-CREATE OR REPLACE TABLE DATA_HUB.Distribution
+CREATE OR REPLACE TABLE MYDB_@ENV@_RAW.DATA_HUB.Distribution
 (
  DistributionId bigint NOT NULL AUTOINCREMENT START 1 INCREMENT 1,
  IssueId        bigint NOT NULL,
  SubscriptionId integer NOT NULL,
- StatusId       integer NOT NULL,
+ StatusCode     varchar(25) NOT NULL,
  RetryCount     integer NOT NULL DEFAULT ((1)),
  CreatedBy      varchar(255) NOT NULL,
  CreatedDtm     date,
@@ -36,8 +36,8 @@ CREATE OR REPLACE TABLE DATA_HUB.Distribution
 
  CONSTRAINT PK_Dist__IssueId_SubnId PRIMARY KEY ( IssueId, SubscriptionId ),
  CONSTRAINT UNQ_Dist_DistributionId UNIQUE ( DistributionId ),
- CONSTRAINT FK_Dist__IssueId FOREIGN KEY ( IssueId ) REFERENCES DATA_HUB."Issue" ( IssueId ),
- CONSTRAINT FK_Dist__StatusId FOREIGN KEY ( StatusId ) REFERENCES DATA_HUB.REF_Status ( StatusId ),
+ CONSTRAINT FK_Dist__IssueId FOREIGN KEY ( IssueId ) REFERENCES DATA_HUB.ISSUE ( IssueId ),
+ CONSTRAINT FK_Dist__StatusCode FOREIGN KEY ( StatusCode ) REFERENCES DATA_HUB.REF_Status ( StatusCode ),
  CONSTRAINT FK_Dist__SubscriptionId FOREIGN KEY ( SubscriptionId ) REFERENCES DATA_HUB.Subscription ( SubscriptionId )
 );
 

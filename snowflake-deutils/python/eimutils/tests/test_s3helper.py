@@ -2,7 +2,9 @@
 Unit tests for s3helper.py — no AWS connectivity required.
 """
 
+import os
 import pytest
+import tempfile
 from io import BytesIO
 from unittest.mock import patch, MagicMock
 import zipfile
@@ -57,13 +59,12 @@ class TestS3CreateFolder:
         assert result == "Success"
         mock_client.put_object.assert_not_called()
 
-    def test_returns_failure_on_boto3_exception(self):
+    def test_raises_on_boto3_exception(self):
         from eimutils.s3helper import s3_create_folder
 
         with patch("eimutils.s3helper.boto3.resource", side_effect=Exception("AWS error")):
-            result = s3_create_folder("my-bucket", "path/", "subfolder/")
-
-        assert result == "Failure"
+            with pytest.raises(Exception, match="AWS error"):
+                s3_create_folder("my-bucket", "path/", "subfolder/")
 
 
 class TestUploadObjectsToS3:
@@ -71,8 +72,14 @@ class TestUploadObjectsToS3:
         from eimutils.s3helper import upload_objects_to_s3
 
         mock_resource = MagicMock()
-        with patch("eimutils.s3helper.boto3.resource", return_value=mock_resource):
-            upload_objects_to_s3(b"content", "my-bucket", "path/file.txt")
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(b"content")
+            tmp_path = tmp.name
+        try:
+            with patch("eimutils.s3helper.boto3.resource", return_value=mock_resource):
+                upload_objects_to_s3(tmp_path, "my-bucket", "path/file.txt")
+        finally:
+            os.unlink(tmp_path)
 
         mock_resource.meta.client.put_object.assert_called_once_with(
             Body=b"content", Bucket="my-bucket", Key="path/file.txt"

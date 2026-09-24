@@ -189,7 +189,7 @@ def example_initialize_datahub():
     # Set up environment variables (or use your actual secret ARN)
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -220,7 +220,7 @@ def example_get_publication_list_by_publisher():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -278,7 +278,7 @@ def example_set_publication_code():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -305,10 +305,10 @@ def example_set_publication_code():
         current_pub = dh.get_current_publication()
         if current_pub:
             pub_name = current_pub.get("PUBLICATIONNAME", "N/A")
-            pub_desc = current_pub.get("PUBLICATIONDESC", "N/A")
+            pub_code = current_pub.get("PUBLICATIONCODE", "N/A")
             log_to_console(__name__, "Info", f"Current publication name: {pub_name}")
             log_to_console(
-                __name__, "Info", f"Current publication description: {pub_desc}"
+                __name__, "Info", f"Current publication code: {pub_code}"
             )
 
         # Get publication index
@@ -331,7 +331,7 @@ def example_insert_new_issue():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -398,7 +398,7 @@ def example_update_issue():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -478,7 +478,7 @@ def example_check_issue_absent():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -525,7 +525,7 @@ def example_get_publication_list_by_filename():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -572,7 +572,7 @@ def example_get_publication_list_by_issue_id():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -617,7 +617,7 @@ def example_complete_workflow():
 
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
 
@@ -717,7 +717,7 @@ def main():
     # Initialize DataHub for setup/cleanup
     secret_key = os.environ.get(
         "AWS_SECRET_ARN_SF_CONN",
-        "arn:aws:secretsmanager:MY_AWS_REGION:MY_AWS_ACCOUNT:secret:MY_AWS_SECRET",
+        "arn:aws:secretsmanager:us-west-2:MY_ACCOUNT_ID:secret:eim_myorg_dev_care_keys-OGR2iI",
     )
     env = "dev"
     dh_setup = None

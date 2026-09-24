@@ -51,7 +51,7 @@ from eimutils.step_logger import StepLogger
 
 # Initialize logger
 logger = StepLogger(
-    secret_key="arn:aws:secretsmanager:MY_AWS_REGION:123456:secret:db-creds",
+    secret_key="arn:aws:secretsmanager:us-west-2:123456:secret:db-creds",
     env="DEV",
     etl_execution_id=str(uuid.uuid4()),
     process_name="My_ETL_Process",
@@ -98,7 +98,7 @@ CREATE TABLE DATA_HUB.STEP_LOG (
     Process_Name VARCHAR,
     Process_Type VARCHAR,
     Step_Name VARCHAR,
-    Step_Desc VARCHAR,  -- JSON string
+    Step_Desc VARIANT,  -- parsed JSON stored as Snowflake VARIANT
     Step_Status VARCHAR,  -- START, SUCCESS, FAILED, END
     Start_Dtm TIMESTAMP,
     Duration_In_Seconds NUMBER,
@@ -119,7 +119,7 @@ from eimutils.step_logger import StepLogger
 def run_etl_process():
     etl_id = str(uuid.uuid4())
     logger = StepLogger(
-        secret_key="arn:aws:secretsmanager:MY_AWS_REGION:123456:secret:prod-db",
+        secret_key="arn:aws:secretsmanager:us-west-2:123456:secret:prod-db",
         env="PROD",
         etl_execution_id=etl_id,
         process_name="Customer_Data_ETL",
@@ -661,7 +661,7 @@ class TestMyETL(unittest.TestCase):
         
         # Verify logger state
         self.assertEqual(logger.TOTAL_COUNT, 100)
-        self.assertEqual(logger.step_number, 2)  # 1 step + 1 close
+        self.assertEqual(logger.step_number, 3)  # START + 1 step + END
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

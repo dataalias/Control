@@ -181,6 +181,35 @@ class TestDatesToProcess(unittest.TestCase):
         expected_dates = ["2026-01-01", "2026-01-02", "2026-01-03"]
         self.assertEqual(file_dt_list, expected_dates)
 
+    # ── Edge-case tests added by audit ────────────────────────────────────────
+
+    def test_inverted_range_returns_empty_list(self):
+        """from > to silently returns an empty date list (no error raised)."""
+        _, _, file_dt_list = dates_to_process(
+            file_dt_from="2026-01-10",
+            file_dt_to="2026-01-05",
+            last_processed_date=None,
+        )
+        self.assertEqual(file_dt_list, [])
+
+    def test_last_processed_date_as_datetime_raises_type_error(self):
+        """Passing a datetime instead of a date raises TypeError on the < comparison."""
+        with self.assertRaises(TypeError):
+            dates_to_process(
+                file_dt_from="Not Provided",
+                file_dt_to="Not Provided",
+                last_processed_date=datetime(2026, 1, 1, 12, 0, 0),  # datetime, not date
+            )
+
+    def test_only_from_provided_raises_value_error(self):
+        """Providing only one of from/to raises ValueError."""
+        with self.assertRaises((ValueError, Exception)):
+            dates_to_process(
+                file_dt_from="2026-01-01",
+                file_dt_to="Not Provided",
+                last_processed_date=None,
+            )
+
 
 class TestDatesToProcessEdgeCases(unittest.TestCase):
     """Test edge cases for dates_to_process function."""

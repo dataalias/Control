@@ -122,7 +122,7 @@ def prepare_issues(publication_list):
 
             issue = {
                 'PublicationCode': publication['PublicationCode'],
-                'DataLakePath': publication['PublicationFilePath'],  # 's3://dev-ascent-datalake/RawData/8x8CC/8x8CRZ/',
+                'DataLakePath': publication['PublicationFilePath'],  # 's3://dev-<MY_ORG>-datalake/RawData/8x8CC/8x8CRZ/',
                 'IssueName':  'Unknown', # publication['IssueName'],
                 'SrcIssueName': 'Unknown',
                 'StatusCode': 'IP',  # Maybe you want to start with a different status.

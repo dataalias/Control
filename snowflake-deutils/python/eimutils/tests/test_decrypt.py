@@ -102,8 +102,8 @@ class TestGetPEMKey:
             full_pem.encode(), password=None, backend=default_backend()
         )
         assert (
-            der_key.private_numbers().private_value
-            == pem_key.private_numbers().private_value
+            der_key.private_numbers().d
+            == pem_key.private_numbers().d
         )
 
 

@@ -66,7 +66,7 @@ def s3_create_folder(s3_bucket_name, s3_bucket_path, s3_sub_folders):
     except Exception as e:
         e_msg = "s3helper.s3_create_folder :: s3 error. " + str(e)
         log_to_console(__name__, "Error", e_msg)
-        return "Failure"
+        raise
 
 
 """
@@ -88,18 +88,19 @@ Date:		20220401
 
 
 def upload_objects_to_s3(file_name, s3bucketname, object_name=None):
-    """Upload a file to an S3 bucket
+    """Upload a local file to an S3 bucket.
 
-    :param s3bucketname: Nam eof S3 Bucket
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
+    :param file_name: Local path of the file to upload
+    :param s3bucketname: S3 bucket name
+    :param object_name: S3 key. Defaults to the basename of file_name if not provided.
     """
+    if object_name is None:
+        object_name = os.path.basename(file_name)
 
     s3 = boto3.resource("s3")
     try:
-        s3.meta.client.put_object(Body=file_name, Bucket=s3bucketname, Key=object_name)
+        with open(file_name, "rb") as f:
+            s3.meta.client.put_object(Body=f.read(), Bucket=s3bucketname, Key=object_name)
 
     except Exception as e:
         e_msg = "s3helper.upload_objects_to_s3 :: s3 error uploading file. " + str(e)
@@ -175,13 +176,18 @@ def unzip_file(s3bucket, s3folder, s3unzipfolder, zip_filename):
         z = zipfile.ZipFile(buffer)
 
         for filename in z.namelist():
-            log_to_console(__name__, "Info", f"Copying file {filename} to {s3bucket}/{s3unzipfolder}{filename}")
+            # Strip path traversal components so an adversarial zip can't write outside s3unzipfolder
+            safe_name = filename.lstrip("/").replace("../", "").replace("..\\", "")
+            if not safe_name or safe_name.endswith("/"):
+                continue  # skip directories and empty entries
+            log_to_console(__name__, "Info", f"Copying file {safe_name} to {s3bucket}/{s3unzipfolder}{safe_name}")
 
-            response = resource.meta.client.put_object(
-                Body=z.open(filename).read(),
-                Bucket=s3bucket,
-                Key=f"{s3unzipfolder}{filename}",
-            )
+            with z.open(filename) as zf:
+                response = resource.meta.client.put_object(
+                    Body=zf.read(),
+                    Bucket=s3bucket,
+                    Key=f"{s3unzipfolder}{safe_name}",
+                )
 
         log_to_console(__name__, "Info", f"Done Unzipping {zip_filename}")
     except Exception as e:
@@ -215,41 +221,55 @@ def unzip_file_nested(s3bucket, s3folder, zipfilename, dh, env, file_name_prefix
         z = zipfile.ZipFile(buffer)
 
         for filename in z.namelist():
+            # Strip path traversal so a crafted zip can't write outside the intended prefix
+            safe_name = filename.lstrip("/").replace("../", "").replace("..\\", "")
+            if not safe_name or safe_name.endswith("/"):
+                continue  # skip directories and empty entries
 
             regex_matches = dh.publication_list[
                 dh.publication_list["SRCFILEREGEX"].apply(
-                    lambda x: True if re.search(x, filename) else False
+                    lambda x: True if re.search(x, safe_name) else False
                 )
             ]
             if len(regex_matches) > 0:
-                s3unzipfolder = regex_matches.iloc[0, 25]  # pn.PublicationFilePath
-                publication_code = regex_matches.iloc[0, 5]  # pn.PublicationCode
-                # print("\t * File Name matched the pattern:", regex_matches.iloc[0,7]) # ,pn.SrcFileRegEx
-                # print("\t * File should be moved to:", regex_matches.iloc[0,25]) # pn.PublicationFilePath
-                # print(f"Copying file {filename} to {s3bucket}/{env}{s3unzipfolder}{file_name_prefix}{filename}")
+                if len(regex_matches) > 1:
+                    log_to_console(
+                        "unzip_file", "Warn",
+                        f"File '{safe_name}' matched {len(regex_matches)} publications; "
+                        f"routing to first match: {regex_matches.iloc[0]['PUBLICATIONCODE']}"
+                    )
+                s3unzipfolder = regex_matches.iloc[0]["PUBLICATIONFILEPATH"]
+                publication_code = regex_matches.iloc[0]["PUBLICATIONCODE"]
+
+                dest_key = f"{env}{s3unzipfolder}{file_name_prefix}{safe_name}"
+
+                # Upload first — only record the issue after a successful write so a
+                # failed upload doesn't permanently mark the file as processed.
+                with z.open(filename) as zf:
+                    response = resource.meta.client.put_object(
+                        Body=zf.read(),
+                        Bucket=s3bucket,
+                        Key=dest_key,
+                    )
 
                 dh.set_publication_code(publication_code)
                 issue = {}
-                issue["IssueName"] = f"{file_name_prefix}{filename}"
+                issue["IssueName"] = f"{file_name_prefix}{safe_name}"
                 issue["StatusCode"] = "IP"
                 dh.set_issue_val(issue)
                 dh.insert_new_issue()
 
-                response = resource.meta.client.put_object(
-                    Body=z.open(filename).read(),
-                    Bucket=s3bucket,
-                    Key=f"{env}{s3unzipfolder}{file_name_prefix}{filename}",
-                )
-                msg = f"Copied file {filename} to {s3bucket}/{env}{s3unzipfolder}"
+                msg = f"Copied file {safe_name} to {s3bucket}/{dest_key}"
                 log_to_console("unzip_file", "Info", msg)
             else:
-                msg = f"File _NOT_ extracted: {filename}"
+                msg = f"File _NOT_ extracted: {safe_name}"
                 log_to_console("unzip_file", "Warn", msg)
 
         log_to_console("unzip_file", "Info", f"Done Unzipping {zipfilename}")
     except Exception as e:
         msg = f"S3UnZip.unzip_file failed: {e}"
         log_to_console("unzip_file", "Error", msg)
+        raise
     return response
 
 
@@ -298,7 +318,6 @@ def multi_part_upload_with_s3(file_name, s3bukcetname, object_name=None):
             file_name,
             s3bukcetname,
             object_name,
-            ExtraArgs={"ACL": "public-read"},
             Config=config,
             Callback=ProgressPercentage(file_name),
         )
@@ -318,7 +337,7 @@ class ProgressPercentage(object):
     def __call__(self, bytes_amount):
         with self._lock:
             self._seen_so_far += bytes_amount
-            percentage = (self._seen_so_far / self._size) * 100
+            percentage = (self._seen_so_far / self._size) * 100 if self._size else 100.0
             sys.stdout.write(
                 "\r%s  %s / %s  (%.2f%%)"
                 % (self._filename, self._seen_so_far, self._size, percentage)
@@ -336,5 +355,7 @@ ffortunato  2023-06-01  Initial Iteration.
 jgabriel    2024-09-05  + unzip_file_nested
 ffortunato  2024-09-05  + unzip_file_nested
 ffortunato  07-22-2025  o formatting
+ffortunato  06-26-2026  o s3unzipfolder = regex_matches.iloc[0]["PUBLICATIONFILEPATH"]
+                        o publication_code = regex_matches.iloc[0]["PUBLICATIONCODE"]
 ***********************************************************************************************************************
 """

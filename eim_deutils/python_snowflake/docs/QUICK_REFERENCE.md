@@ -11,7 +11,7 @@ cd python_snowflake
 ```sql
 -- Upload to Snowflake
 PUT file://C:/Users/frankf/source/eim_deutils/python_snowflake/dist/eimutils_snowflake.zip
-@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
+@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
 OVERWRITE=TRUE;
 ```
 
@@ -23,7 +23,7 @@ RETURNS VARCHAR
 LANGUAGE PYTHON
 RUNTIME_VERSION = '3.9'
 PACKAGES = ('snowflake-snowpark-python')
-IMPORTS = ('@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake.zip')
+IMPORTS = ('@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake.zip')
 HANDLER = 'my_handler'
 AS
 $$
@@ -143,7 +143,7 @@ SELECT
     Step_Status,
     Duration_In_Seconds,
     Record_Count
-FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG
+FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG
 WHERE ETL_Execution_Id = 'your-execution-id'
 ORDER BY Step_Log_Id;
 ```
@@ -156,7 +156,7 @@ SELECT
     Step_Desc:Description::STRING as description,
     Step_Desc:filter_rate::FLOAT as filter_rate,
     Step_Desc:source_system::STRING as source_system
-FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG
+FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG
 WHERE ETL_Execution_Id = 'your-execution-id';
 ```
 
@@ -169,7 +169,7 @@ WITH RECURSIVE step_tree AS (
         Parent_Log_Id,
         Step_Name,
         0 as level
-    FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG
+    FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG
     WHERE Parent_Log_Id = 0
         AND ETL_Execution_Id = 'your-execution-id'
     
@@ -181,7 +181,7 @@ WITH RECURSIVE step_tree AS (
         s.Parent_Log_Id,
         s.Step_Name,
         st.level + 1
-    FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG s
+    FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG s
     JOIN step_tree st ON s.Parent_Log_Id = st.Step_Log_Id
 )
 SELECT 
@@ -197,7 +197,7 @@ SELECT DISTINCT
     ETL_Execution_Id,
     Process_Name,
     MAX(Start_Dtm) as last_run
-FROM ULTRA_DEV_RAW.DATA_HUB.STEP_LOG
+FROM MYDB_DEV_RAW.DATA_HUB.STEP_LOG
 WHERE Step_Status = 'FAILED'
 GROUP BY ETL_Execution_Id, Process_Name
 ORDER BY last_run DESC;
@@ -266,7 +266,7 @@ cd python_snowflake
 ```sql
 -- 2. Re-upload
 PUT file://C:/Users/frankf/source/eim_deutils/python_snowflake/dist/eimutils_snowflake.zip
-@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
+@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV 
 OVERWRITE=TRUE;
 
 -- 3. Recreate procedures (Snowflake caches imports)

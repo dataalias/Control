@@ -40,9 +40,7 @@ def download_file(url: str, local_filename: str) -> None:
                 file.write(response.content)
             log_to_console(__name__, "Info", f"Downloaded {local_filename}")
         else:
-            log_to_console(
-                __name__, "Error", f"Failed to download file: {response.status_code}"
-            )
+            raise Exception(f"Failed to download file: HTTP {response.status_code}")
     except Exception as e:
         e_msg = "Issue with file download: " + str(e)
         log_to_console(__name__, "Error", e_msg)

@@ -52524,7 +52524,7 @@ CREATE TABLE IF NOT EXISTS `pg`.`RefStatus` (
 
 -- Example:	DECLARE @DataFactoryStatus VARCHAR(200)
 
--- 			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'zvo-sbx-01-ds-dev-ContactCenter-df',
+-- 			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'myorg-sbx-01-ds-dev-ContactCenter-df',
 
 -- 											@pDataFactoryPipeline = 'ADFContactCenterStagingLoad',
 
@@ -63453,7 +63453,7 @@ CREATE TABLE IF NOT EXISTS `pg`.`RefStatus` (
 
 -- Example:	DECLARE @DataFactoryStatus VARCHAR(200)
 
--- 			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'zvo-sbx-01-ds-dev-ContactCenter-df',
+-- 			exec ctl.usp_ExecuteDataFactory @pDataFactoryName = 'myorg-sbx-01-ds-dev-ContactCenter-df',
 
 -- 											@pDataFactoryPipeline = 'ADFContactCenterStagingLoad',
 

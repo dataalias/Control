@@ -24,7 +24,7 @@ from snowflake.snowpark import Session as SnowparkSession
 # Get current session and download from stage
 session = SnowparkSession.builder.getOrCreate()
 session.file.get(
-    "@ULTRA_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake-1.0.0-py3-none-any.whl",
+    "@MYDB_DEV_RAW.DATA_HUB.EIM_LIBS_DEV/eimutils_snowflake-1.0.0-py3-none-any.whl",
     "/tmp/"
 )
 

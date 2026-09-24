@@ -11,6 +11,7 @@ from eimutils.data_hub_connection import (
 from eimutils.utils import get_snowflake_connection_from_secret
 import json
 import pandas as pd
+import warnings
 
 """
 *******************************************************************************
@@ -22,8 +23,8 @@ Purpose: Defines the class methods and properties for dh.
 Class: dh :: Class to allow python packages to interact with the datahub database.
 
 Methods:
-    __init__ :: Takes the provided secret key and creates a mssql database connection to the database
-                that hosts the ctl and pg schema.
+    __init__ :: Takes the provided secret key and creates a Snowflake database connection to the database
+                that hosts the DATA_HUB schema.
     connect :: Private, establishes the database connection.
     get_secret :: Private, looks up the secret data from AWS.
     get_publication_list: Returns a list of publications associated with the provided publisher_code
@@ -34,27 +35,27 @@ Methods:
     get_publication_idx: Returns the active publication index  for the data hub object.
     set_publication_idx: N/A set publication code now sets the index as well.
 
-    get_issue_details: Gets the latest issue details for a given file name.
-        get_issue_details: Gets the latest issue details for a given issue_id.
+    get_issue_details: NOT YET IMPLEMENTED — raises NotImplementedError.
 
-    insert_new_issue: Takes stored issue information and inserts it to the db. Returns IssueId
-    update_issue: Takes stored issue information and updates it to the db based on stored IssueId
+    write_issue: Insert or update the current publication's issue — inserts if no IssueId exists yet,
+        updates otherwise. Accepts an optional dict of values to merge before writing.
+    insert_new_issue: Deprecated — use write_issue().
+    update_issue: Deprecated — use write_issue().
     is_issue_absent: Returns a true or false based on the file name's presence in data hub.
     get_issue_id: Gets the IssueId of the current publication -1 if the issue hasn't been inserted yet.
     set_issue_val
-    notify_subscriber_of_distribution: Requires IssueId and kicks off down stream posting groups if all dependencies
-        are met.
+    notify_subscriber_of_distribution: (Not Yet Implemented) Requires IssueId and kicks off downstream posting
+        groups if all dependencies are met.
 
 
-    T0D0: write_issue -- combine functionality of insert and update issue functions.
-    T0D0: make get_publication_list part ofd the class __init__.
+    TODO: make get_publication_list part of the class __init__.
 Properties:
 
     publication_list = () :: Dataframe of publications associated with the publisher.
     issue_list = [] :: An array of issues derived from the publication list. This is a list of the issues that we are
-        trying to load. The first position in the list is a dictionary that points to the other dictionaries in the
-        list that represent issues. Subsequent dictionaries in this list represent individual issues.
-        The [0] position of the array equates later dictionaries in this array with their publication_code.
+        trying to load. The LAST position in the list (issue_list[-1]) is a lookup dictionary mapping publication
+        codes to their integer indices in the list. Positions [0..N-2] are individual issue dictionaries, one per
+        publication. Always access the index via issue_list[len(issue_list) - 1] or issue_list[-1].
     publication_idx = int :: Position of the active publication_code for the object.
     publication_code = str :: Currently active publication code for the object.
 
@@ -65,8 +66,8 @@ Dependencies/Helpful Notes :
 
 """
 TODO: Consolidate data_hub_connection into the class
-TODO: forget geter and setter just call the ptroperty directly.
-TODO: Clarfit params for each of the calls. specifically get publication.
+TODO: Forget getter and setter — just call the property directly.
+TODO: Clarify params for each of the calls, specifically get_publication_list.
 TODO: Configuration for datahub connection
 """
 
@@ -81,7 +82,9 @@ class DataHub:
         Creates a connection to the control/datahub database using an AWS secret key.
         We also set up some properties for use later. The definition for these properties are in the class comments.
 
-        :param secret_key: This is the key in aws secrets that stores credentials to the database.
+        :param secret_key: AWS Secrets Manager ARN containing Snowflake credentials.
+        :param env: Environment name ("DEV", "STAGE", or "PROD"). Uppercased internally and used to construct
+            the target database name (e.g. MYDB_DEV_RAW).
         """
         self.issue_list = []
         self.publication_list = pd.DataFrame()
@@ -89,10 +92,10 @@ class DataHub:
         self.publication_code = "Unknown"
         self.current_publication = {}
         self.get_type = "Unknown"
-        self.aws_region = "MY_AWS_REGION"
+        self.aws_region = "us-west-2"
         self.secret_key = secret_key
         self.env = env.upper()
-        self.database = f"ULTRA_{self.env}_RAW"
+        self.database = f"MYDB_{self.env}_RAW"
 
         self.secret = self.get_secrets()
         self.db_connection = self.connect()
@@ -107,6 +110,7 @@ class DataHub:
     def close(self):
         if hasattr(self, "db_connection") and self.db_connection:
             self.db_connection.close()
+            self.db_connection = None
 
     def __del__(self):
         try:
@@ -142,7 +146,7 @@ class DataHub:
 
     def get_publication_code(self) -> str:
         """
-        Simple setter method for the publication_code
+        Simple getter method for the publication_code
         :return:
         """
         # print('in get_publication_code and I should return:', self.publication_code)
@@ -181,14 +185,14 @@ class DataHub:
     # depricate this one ... just use the property.
     def get_publication_idx(self) -> int:
         """
-        Simple setter method for the publication_code
+        Simple getter method for the publication_idx
         :return:
         """
         return self.publication_idx
 
     def get_issue_id(self) -> int:
         """
-        Simple setter method for the publication_code
+        Simple getter method for the current issue ID
         :return:
         """
         try:
@@ -205,6 +209,11 @@ class DataHub:
             currently active publication.
         :return:
         """
+        if self.publication_idx < 0:
+            raise RuntimeError(
+                "set_issue_val called before a publication was selected. "
+                "Call get_publication_list() and set_publication_code() first."
+            )
         self.issue_list[self.publication_idx].update(issue_updates)
 
     def get_publication_list(self, params: dict) -> dict:
@@ -240,29 +249,88 @@ class DataHub:
             # set the publication code and index to the first value returned.
             if not self.publication_list.empty:
                 self.publication_code = self.publication_list.loc[
-                    0, ["PUBLICATIONCODE"]
+                    0, "PUBLICATIONCODE"
                 ]
                 self.publication_idx = 0
                 response = success
 
+        except NotImplementedError:
+            raise
         except Exception as err:
             error_msg = "data_hub.get_publication_list :: Failed. Error: {}".format(err)
             log_to_console(__name__, "Error", error_msg)
             if self.publication_list.empty:
-                # No publication list was returned. This isn't necessacarily an error.
+                # No publication list was returned. This isn't necessarily an error.
                 response["Message"] = "No Publication list was returned."
             else:
                 raise Exception(error_msg)
 
         return response
 
+    def write_issue(self, issue: dict = None) -> dict:
+        """
+        Insert or update the current publication's issue depending on whether an IssueId already exists.
+        Merges any values in `issue` into the active issue before writing.
+
+        :param issue: Optional dict of issue attributes to apply before writing.
+        :return: {'Status': 'Success'} on successful execution.
+        """
+        if issue:
+            self.issue_list[self.publication_idx].update(issue)
+
+        current_issue = self.issue_list[self.publication_idx]
+        issue_id = current_issue.get("IssueId")
+        has_id = issue_id is not None and str(issue_id) != "-1"
+
+        if not has_id:
+            return self._insert_new_issue()
+        else:
+            return self._update_issue()
+
+    def _insert_new_issue(self) -> dict:
+        response = {"Status": "Failure"}
+        success = {"Status": "Success"}
+        try:
+            issue_id = insert_new_issue(
+                self.db_connection, self.issue_list[self.publication_idx]
+            )
+            self.issue_list[self.publication_idx].update(issue_id)
+            response = success
+        except Exception as err:
+            error_msg = "data_hub.write_issue (insert) :: Failed inserting new issue. Error:{}".format(err)
+            log_to_console(__name__, "Error", error_msg)
+            self.db_connection.rollback()
+            raise Exception(error_msg)
+        return response
+
+    def _update_issue(self) -> dict:
+        response = {"Status": "Failure"}
+        success = {"Status": "Success"}
+        try:
+            response = update_issue(
+                self.db_connection, self.issue_list[self.publication_idx]
+            )
+            response.update(success)
+        except Exception as err:
+            error_msg = "data_hub.write_issue (update) :: Failed updating existing issue. Error:{}".format(err)
+            log_to_console(__name__, "Error", error_msg)
+            self.db_connection.rollback()
+            raise Exception(error_msg)
+        return response
+
     def insert_new_issue(self) -> dict:
         """
+        Deprecated — use write_issue() instead.
+
         Create a record given a set of parameters needed to create an issue. The newly issued
         IssueId will be updated in the parameter set for use when updating later.
-        :param issue: This dictionary object includes each of the parameters needs to insert a new issue.
         :return: success or failure.
         """
+        warnings.warn(
+            "insert_new_issue() is deprecated; use write_issue() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         response = {"Status": "Failure"}
         success = {"Status": "Success"}
         try:
@@ -286,13 +354,19 @@ class DataHub:
 
     def update_issue(self, issue: dict) -> dict:
         """
-        Update an existing record in the database with the issue passed. This is derived from the
-            currently active publication's associated issue stored as a property in the data hub class.
+        Deprecated — use write_issue() instead.
+
+        Update an existing record in the database with the issue passed.
         :param issue: A dictionary object that includes all or a subset of values used to update an issue record prior
             to writing to the database.
         :return:  {'Status': 'Success'} on successful execution
                   {'Status': 'Failure'} on failure of execution
         """
+        warnings.warn(
+            "update_issue() is deprecated; use write_issue() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         response = {"Status": "Failure"}
         success = {"Status": "Success"}
         try:
@@ -300,7 +374,6 @@ class DataHub:
             response = update_issue(
                 self.db_connection, self.issue_list[self.publication_idx]
             )
-            self.db_connection.commit()
             response.update(success)
         except Exception as err:
             error_msg = "data_hub.update_issue :: Failed updating existing issue to database. Error :: {}".format(
@@ -312,6 +385,22 @@ class DataHub:
 
         return response
 
+    def notify_subscriber_of_distribution(self, issue_id: int) -> dict:
+        """
+        Kicks off downstream posting groups for all subscribers once all issue dependencies are met.
+        :param issue_id: IssueId of the issue whose distributions should be notified.
+        :return: Status dictionary.
+        """
+        raise NotImplementedError("notify_subscriber_of_distribution is not yet implemented.")
+
+    def get_issue_details(self, identifier) -> dict:
+        """
+        Gets the latest issue details for a given file name or issue ID.
+        :param identifier: File name (str) or IssueId (int) to look up.
+        :return: Issue details dictionary.
+        """
+        raise NotImplementedError("get_issue_details is not yet implemented.")
+
     def is_issue_absent(self, file_name: str) -> bool:
         """
         This function determines if an issue has been processed already via a lookup in the issue table.
@@ -321,9 +410,8 @@ class DataHub:
                  False: The file has already been processed and should _not_ be loaded again.
         """
         # Determine if the file has already been processed by looking at ctl.issue.
-        response = False
         try:
-            response = is_issue_absent(self.db_connection, file_name)
+            return is_issue_absent(self.db_connection, file_name)
         except Exception as err:
             error_msg = (
                 "data_hub.is_issue_absent :: Failed looking up issue. Error:{}".format(
@@ -331,7 +419,7 @@ class DataHub:
                 )
             )
             log_to_console(__name__, "Error", error_msg)
-        return response
+            raise Exception(error_msg)
 
 
 """
@@ -340,7 +428,7 @@ Change History:
 
 Author		Date		Description
 ----------	----------	-------------------------------------------------------
-ffortunato  01-08-2022  Initial Iteration
+acosta		01-08-2022  Initial Iteration
 ffortunato  04-08-2022  + get_db_connection_from_secret
 ffortunato  04-11-2022  o pyODBC --> pymssql
 ffortunato  04-22-2022  + multiple new methods for the class.

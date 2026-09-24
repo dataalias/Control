@@ -62,11 +62,23 @@ The `DataHub` class ([python/eimutils/data_hub.py](../python/eimutils/data_hub.p
 
 `python_snowflake/` contains `StepLoggerSnowflake` — a Snowpark-native version of `StepLogger` with no AWS dependencies. `step_logger_factory.py` auto-detects whether the runtime is AWS Glue or Snowflake and returns the appropriate implementation.
 
+`dhui/` contains a duplicate `eimutils_snowflake/` package including its own `step_logger_snowflake.py` and `step_logger_factory.py`. This duplication is intentional — the Snowflake native Streamlit app (`dhui/snowflake_streamlit_app.py`) needs a self-contained copy.
+
+### Streamlit UI (dhui/)
+
+`dhui/snowflake_streamlit_app.py` is a Snowflake-native Streamlit app for managing the DATA_HUB schema. It runs inside Snowflake's built-in Streamlit environment (Snowpark session, no AWS).
+
+Key implementation notes:
+- **Wheel import**: Extract zip to `/tmp/` with `zipfile.ZipFile(...).extractall('/tmp/')` then `sys.path.insert(0, '/tmp/')`. `sys.path.append('.whl')` does NOT work for imports in Snowflake.
+- **Rerun**: Use `st.rerun()` — `st.experimental_rerun()` was removed in Streamlit ≥ 1.27.
+- **Cache on instance methods**: Use `_self` (underscore prefix) as the parameter name — Streamlit excludes it from hashing, allowing `@st.cache_data` on instance methods with non-hashable `Session` objects.
+- **Column names**: Snowflake returns uppercase; `normalize_column_names()` maps to camelCase; `COUNT(*)` alias `count` → `"Count"` via `.title()`.
+
 ### Database DDL
 
-`Database/Control/` holds greenfield DDL for the full `DATA_HUB` schema (tables, sequences, stored procedures, reference data). DDL files use `@ENV@` placeholders replaced at deploy time.
+`Database/Control/` holds greenfield DDL for the full `DATA_HUB` schema (tables, sequences, stored procedures, reference data). DDL files use `MY_ORG_@ENV@_RAW.DATA_HUB.<table>` three-part names with `@ENV@` replaced at deploy time.
 
-`database_change/` holds versioned migration scripts (`V{n}__{TICKET}--{Description}.sql`) applied via schemachange. The pipeline downloads and runs `schema_change_pipeline-{PIPELINE_VERSION}.py` from S3.
+`database_change/` holds versioned migration scripts (`V{n}__{TICKET}--{Description}.sql`) applied via schemachange. The pipeline downloads and runs `schema_change_pipeline-{PIPELINE_VERSION}.py` from S3. V7 and V8 are intentionally absent — the gap is known and benign.
 
 ### Environment Separation
 
@@ -81,10 +93,35 @@ Pipeline variables `DEUTILS_VERSION` (read from `pyproject.toml`) and `PIPELINE_
 ### AWS Glue Compatibility Constraints
 
 `pyproject.toml` pins dependencies per Python version to match what AWS Glue pre-installs:
-- Python < 3.11: `snowflake-connector-python<3.0.0`, `urllib3<2.0.0`, `pytz<2022.2`
+- Python < 3.11: `snowflake-connector-python<3.0.0`, `urllib3<2.0.0`, `pytz<2022.2`, `pandas<2.0.0`
 - Python ≥ 3.11: modern unpinned versions
 
-Do not relax these pins without verifying against the target Glue runtime.
+Do not relax these pins without verifying against the target Glue runtime. The pandas split is critical — pandas 2.x pulls numpy 2.x which breaks `awswrangler` 2.x pre-installed in Glue.
+
+### Error Handling Contract
+
+There is a deliberate three-layer contract:
+1. **Connection layer** (`data_hub_connection.py`): always raises on failure.
+2. **Business layer** (`data_hub.py`): catches and re-raises with context.
+3. **CRUD public API** (`data_hub_crud.py`): logs and returns safe defaults (`[]`, `{}`) — these are called directly by the Streamlit UI which has no try/except.
+
+Do not change `data_hub_crud.py` list methods to raise — the soft-failure behavior is intentional.
+
+### StepLogger Design
+
+`StepLogger` (`step_logger.py`) has a 4-method interface: `__init__` → `start_step` → `log_step` → `close`.
+
+- `Step_Desc` is a **VARIANT** column (not VARCHAR). SQL uses `PARSE_JSON(%s)` in a `SELECT` clause — `PARSE_JSON` cannot be used in a `VALUES` clause with parameters.
+- `start_step` raises `RuntimeError` if called while a step is already active.
+- `close()` is idempotent — safe to call multiple times.
+- `MessageType` in `Step_Desc` JSON uses `"SUCCESS"`, `"FAILED"`, or `"INFO"` (START/END records use `"INFO"`).
+- `env` parameter is validated against `^[A-Za-z][A-Za-z0-9_]*$` to prevent SQL injection via the database identifier.
+
+### SQL Injection Guards
+
+- `utils.py`: `_esc()` helper escapes single quotes in all string values passed to `snowflake_pipeline_logging` SQL.
+- `step_logger_snowflake.py`: `_e()` helper (defined inside `_insert_step_log`) escapes all f-string-interpolated values.
+- `snowflake_connection.py` / `step_logger.py`: `env` is validated as a safe SQL identifier before use in database names.
 
 ## Deployment
 
@@ -105,7 +142,16 @@ eimutils==<version>,snowflake-connector-python>=3.12.0,urllib3<2.0.0
 
 - Project wiki: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eimutils
 
+## Known Intentional Decisions
+
+- **`cryptography` pin**: `pyproject.toml` pins `cryptography>=38.0.0,<39.0.0`. This is an old release with known CVEs. The pin is a conscious trade-off for Glue runtime compatibility — do not widen it without testing against the target Glue environment.
+- **Duplicate `step_logger_snowflake.py`**: Exists in both `python_snowflake/eimutils_snowflake/` and `dhui/eimutils_snowflake/`. The duplication is intentional — the Streamlit app needs a self-contained copy. Keep both in sync when making changes.
+- **`data_hub_crud.py` soft failures**: List methods return `[]` on exception rather than raising. This is by design for Streamlit UI resilience.
+- **`notify_subscriber_of_distribution`** and **`get_issue_details`**: Stubbed with `NotImplementedError` — not yet implemented.
+- **V7/V8 migration gap**: `database_change/` goes V6 → V9. V7 and V8 were intentionally skipped.
+- **`issue_list[-1]`**: The DataHub lookup index is the **last** element (`[-1]`), not `[0]`. The list is ordered ascending; the last entry is the most recent matching publication.
+
 ## Hints
 
 Ignore the .venv folder unless question specifically about libraries / requirements are asked.
-Ignore files and folders in the .gitignore or promopt me if you think the are needed.
+Ignore files and folders in the .gitignore or prompt me if you think they are needed.

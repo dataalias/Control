@@ -1,6 +1,13 @@
 /*
 
-CALL USP_INSERT_NEW_PUBLICATION(pPublisherCode=>'CLLMNR');
+CALL USP_INSERT_NEW_PUBLICATION(
+     pPublisherCode    => 'CLLMNR'
+    ,pPublicationCode  => 'CLLMNR_DAILY'
+    ,pPublicationName  => 'Callminer Daily Feed'
+    ,pPublicationDesc  => 'Daily callminer extract'
+    ,pSrcPublicationCode => 'SRC_CLLMNR'
+    ,pSrcPublicationName => 'Source Callminer'
+    ,pPublicationEntity  => 'CallminderRecord');
 
 */
 
@@ -8,8 +15,8 @@ CREATE OR REPLACE PROCEDURE USP_INSERT_NEW_PUBLICATION(
      pPublisherCode            varchar(25)
     ,pPublicationCode          varchar(25)
     ,pPublicationName          varchar(255)
-    ,pPublicationDesc          varchar(255) 
-    ,pSrcPublicationCode       varchar(255) 
+    ,pPublicationDesc          varchar(255)
+    ,pSrcPublicationCode       varchar(255)
     ,pSrcPublicationName       varchar(255)
     ,pPublicationEntity        varchar(255))
 RETURNS INTEGER
@@ -19,27 +26,37 @@ $$
 DECLARE
     publication_id INTEGER;
 BEGIN
-    publication_id := (select publicationid from DATA_HUB.PUBLICATION where PUBLISHERCODE = :pPublisherCode limit 1);  -- this query should return single value
-
     INSERT INTO DATA_HUB.PUBLICATION
     (
-         PublisherId
-        ,PublisherCode     
-        ,PublicationCode   
-        ,PublicationName   
-        ,PublicationDesc   
+         PublisherCode
+        ,PublicationCode
+        ,PublicationName
+        ,PublicationDesc
         ,SrcPublicationCode
         ,SrcPublicationName
-        ,PublicationEntity  
-    ) values (
-         pPublisherCode     
-        ,pPublicationCode   
-        ,pPublicationName   
-        ,pPublicationDesc   
-        ,pSrcPublicationCode
-        ,pSrcPublicationName
-        ,pPublicationEntity 
-    )
-    
+        ,PublicationEntity
+    ) VALUES (
+         :pPublisherCode
+        ,:pPublicationCode
+        ,:pPublicationName
+        ,:pPublicationDesc
+        ,:pSrcPublicationCode
+        ,:pSrcPublicationName
+        ,:pPublicationEntity
+    );
+
+    publication_id := (SELECT PublicationId FROM DATA_HUB.PUBLICATION WHERE PublicationCode = :pPublicationCode);
+    RETURN publication_id;
 END;
 $$;
+
+/******************************************************************************
+       change history
+*******************************************************************************
+date        author          description
+--------    -------------   ---------------------------------------------------
+20181011    ffortunato      initial iteration
+20260626    ffortunato      fix: removed PublisherId from INSERT (AUTOINCREMENT);
+                            fixed VALUES alignment; added RETURN of new id;
+                            renamed file USP_INSERT_NEW_PUBLISHER.sql -> this file
+******************************************************************************/

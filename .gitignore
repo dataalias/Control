@@ -2,6 +2,8 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+.claude/worktrees/
+
 /.vs
 /ftp/__pycache__
 /secrets/__pycache__

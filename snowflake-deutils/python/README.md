@@ -47,7 +47,7 @@ The DataHub class allows Python packages to interact with the DataHub database. 
 | Property | Type | Description |
 |----------|------|-------------|
 | `publication_list` | `pd.DataFrame` | DataFrame of publications associated with the publisher, returned by `get_publication_list`. |
-| `issue_list` | `list` | Array of issue dictionaries derived from the publication list. `issue_list[0]` is a lookup index mapping publication codes to their positions; subsequent entries are individual issue dictionaries. |
+| `issue_list` | `list` | Array of issue dictionaries derived from the publication list. `issue_list[-1]` (the last element) is a lookup index mapping publication codes to their integer positions; preceding entries `[0..N-2]` are individual issue dictionaries, one per publication. |
 | `publication_idx` | `int` | Position in `issue_list` corresponding to the active `publication_code`. |
 | `publication_code` | `str` | Currently active publication code. |
 
@@ -65,7 +65,7 @@ pub_list_parms = {
 }
 
 # Create the DataHub object with your AWS secret ARN and environment
-dh = DataHub('arn:aws:secretsmanager:MY_AWS_REGION:123456789:secret:my-secret', 'dev')
+dh = DataHub('arn:aws:secretsmanager:us-west-2:123456789:secret:my-secret', 'dev')
 
 # Retrieve the publication list
 dh.get_publication_list(pub_list_parms)
@@ -105,9 +105,9 @@ The `StepLogger` class provides a simple, 4-method interface for logging ETL pro
 
 Data is logged to:
 ```
-ULTRA_@ENV@_RAW.DATA_HUB.STEP_LOG
+MYDB_@ENV@_RAW.DATA_HUB.STEP_LOG
 ```
-Table definition: https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger#Table-Schema
+Table definition: https://kaena1.atlassian.net/wiki/spaces/EIM/pages/4189258488/class+StepLogger#Table-Schema
 
 The table uses a sequence (`SEQ__STEP_LOG_ID`) so each logging call knows its own ID and parent ID definitively.
 
@@ -239,7 +239,7 @@ Specialized subclass for retrieving MHI sales data from a Salesforce Apex REST e
 
 | Method | Description |
 |--------|-------------|
-| `get_sales_data(call_date)` | POSTs to Salesforce and returns sales data for a given date. Returns empty dict on 404; raises on other errors. |
+| `get_sales_data(call_date, endpoint:optional)` | POSTs to Salesforce and returns sales data for a given date. Returns empty dict on 404; raises on other errors. |
 
 ---
 
@@ -394,7 +394,7 @@ from eimutils.data_hub_crud import DataHubCRUD
 
 crud = DataHubCRUD()
 crud.initialize(
-    secret_arn='arn:aws:secretsmanager:MY_AWS_REGION:123456789:secret:my-secret',
+    secret_arn='arn:aws:secretsmanager:us-west-2:123456789:secret:my-secret',
     env='dev'
 )
 
@@ -449,5 +449,6 @@ https://awstip.com/create-aws-lambda-layers-using-cloud-9-694895903ca5
 | ffortunato | 01/29/2025 | Version 1.6.0 + class StepLogger. |
 | dostrowski | 09/06/2025 | Version 1.6.1 + Salesforce API, basic logger. |
 | ffortunato | 04/22/2026 | Version 1.10.0 + SEQ_ISSUE_ID, DataHubCRUD, full README refresh. |
+| Colton     | 05/13/2026 | Version 1.11.0 + MHI data class update. |
 
 [Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)

@@ -10,8 +10,12 @@ setuptools
 wheel
 
 # Runtime deps needed on the pipeline image (Python 3.11) for build + test
-pandas
-pytz
+#pandas
+#pytz
 boto3
 pytest
 snowflake-connector-python>=3.0.0
+# cryptography
+# pyjwt
+# usaddress
+# requests

@@ -2,19 +2,19 @@
 requires = [
     "setuptools",
     "wheel",
-    "pybind11",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "eimutils"
-version = "1.10.0"
+dynamic = ["version"]
 description = "This project is a wrapper library to call data engineering utility functions."
 readme = "README.md"
 requires-python = ">=3.9"
-license = "MIT"
+license = "GPL-3.0-or-later"
 authors = [
-    {name = "Frank Fortunato"}
+    {name = "Frank Fortunato"},
+    {name = "Drew Ostrowski"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -31,12 +31,11 @@ classifiers = [
 keywords = ["etl", "data", "utilities", "snowflake", "aws", "logging"]
 dependencies = [
     "boto3",
-    "cryptography", # >=46.0.6",
+    "cryptography >=38.0.0,<39.0.0",
     # Glue (Python 3.9/3.10): pandas 2.x pulls numpy 2.x which breaks awswrangler 2.x pre-installed in Glue
-    "pandas",
-    # "pandas<2.0.0; python_version < '3.11'",
-    # "pandas>=2.0.0; python_version >= '3.11'",
-    "pyjwt>=2.12.0",
+    "pandas<2.0.0; python_version < '3.11'",
+    "pandas>=2.0.0; python_version >= '3.11'",
+    "pyjwt>=2.8.0",
     # Glue (Python 3.9/3.10): redshift-connector 2.0.907 pre-installed in Glue requires pytz<2022.2
     "pytz<2022.2; python_version < '3.11'",
     "pytz; python_version >= '3.11'",
@@ -76,8 +75,8 @@ build = [
 # AWS Glue compatible versions (pinned to avoid conflicts with pre-installed packages)
 
 [project.urls]
-Homepage = "https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
-Documentation = "https://MY_ORG.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
+Homepage = "https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
+Documentation = "https://kaena1.atlassian.net/wiki/spaces/EIM/pages/3109683221/eim_deutils"
 
 [tool.setuptools]
 packages = ["eimutils"]
@@ -149,7 +148,7 @@ strict_equality = true
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --strict-markers --strict-config"
-testpaths = ["tests"]
+testpaths = ["eimutils/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

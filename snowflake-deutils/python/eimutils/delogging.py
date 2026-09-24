@@ -14,6 +14,7 @@ from typing import Any
 from eimutils.logger import get_logger
 
 _LEVEL_MAP = {
+    "debug": logging.DEBUG,
     "info": logging.INFO,
     "err": logging.ERROR,
     "error": logging.ERROR,
@@ -39,7 +40,7 @@ Date:		20220401
 def log_to_console(function_name: str, message_type: str, message: Any) -> None:
     level = _LEVEL_MAP.get(message_type.lower(), logging.INFO)
     logger = logging.getLogger(function_name)
-    if not logger.handlers and not logging.root.handlers:
+    if not logger.handlers:
         logger = get_logger(function_name)
     logger.log(level, message)
 

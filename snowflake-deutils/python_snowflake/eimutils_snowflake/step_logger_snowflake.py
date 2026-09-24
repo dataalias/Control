@@ -175,7 +175,7 @@ class StepLoggerSnowflake:
             try:
                 database = self.session.get_current_database()
             except Exception:
-                database = "ULTRA_DEV_RAW"  # Default fallback
+                database = "MYDB_DEV_RAW"  # Default fallback
 
         self.database = database
         self.schema = schema
@@ -190,6 +190,7 @@ class StepLoggerSnowflake:
         self.TOTAL_DURATION = 0
         self.TOTAL_COUNT = 0
         self.process_start_time = datetime.now()
+        self._closed = False
 
         # Current step tracking
         self.current_step_name = None
@@ -274,11 +275,11 @@ class StepLoggerSnowflake:
 
         # Calculate duration
         end_time = datetime.now()
-        duration_seconds = int((end_time - self.current_step_start).total_seconds())
+        duration_seconds = round((end_time - self.current_step_start).total_seconds())
 
         # Build step description
         step_desc = {
-            "MessageType": "SUCCESS" if status == "SUCCESS" else "ERROR",
+            "MessageType": "SUCCESS" if status == "SUCCESS" else "FAILED",
             "StepNumber": self.step_number,
             "Operation": self.operation,
             "Description": description or f"Step {self.current_step_name} completed",
@@ -334,6 +335,9 @@ class StepLoggerSnowflake:
         Args:
             custom_attributes (Dict[str, Any], optional): Additional metadata
         """
+        if self._closed:
+            return
+        self._closed = True
         try:
             # Build completion description
             completion_desc = {
@@ -451,6 +455,9 @@ class StepLoggerSnowflake:
 
             self._log(f"Retrieved sequence value: {step_log_id}")
 
+            def _e(v: str) -> str:
+                return str(v).replace("\\", "\\\\").replace("'", "''")
+
             # Convert Step_Desc dict to JSON string
             step_desc_json = json.dumps(step_data.get('Step_Desc', {}))
 
@@ -466,16 +473,16 @@ class StepLoggerSnowflake:
                 SELECT
                     {step_log_id},
                     {step_data['Parent_Log_Id']},
-                    '{step_data['Process_Name']}',
-                    '{step_data['Process_Type']}',
-                    '{step_data['Step_Name']}',
-                    PARSE_JSON('{step_desc_json}'),
-                    '{step_data['Step_Status']}',
+                    '{_e(step_data['Process_Name'])}',
+                    '{_e(step_data['Process_Type'])}',
+                    '{_e(step_data['Step_Name'])}',
+                    PARSE_JSON('{_e(step_desc_json)}'),
+                    '{_e(step_data['Step_Status'])}',
                     TO_TIMESTAMP('{start_dtm}', 'YYYY-MM-DD HH24:MI:SS'),
                     {step_data.get('Duration_In_Seconds', 0)},
-                    {f"'{step_data['Db_Name']}'" if step_data.get('Db_Name') else 'NULL'},
+                    {f"'{_e(step_data['Db_Name'])}'" if step_data.get('Db_Name') else 'NULL'},
                     {step_data.get('Record_Count') if step_data.get('Record_Count') is not None else 'NULL'},
-                    '{step_data['ETL_Execution_Id']}'
+                    '{_e(step_data['ETL_Execution_Id'])}'
             """
 
             # Execute insert
@@ -487,7 +494,7 @@ class StepLoggerSnowflake:
 
         except Exception as e:
             self._log(f"Failed to insert step log: {e}", level="ERROR")
-            return None
+            raise
 
     def _log(self, message: str, level: str = "INFO"):
         """
